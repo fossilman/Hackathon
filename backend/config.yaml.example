@@ -1,0 +1,27 @@
+# Hackathon 后端配置文件示例
+# 复制此文件为 config.yaml 并修改相应配置
+
+# 数据库配置
+database:
+  host: localhost
+  port: "3306"
+  user: root
+  password: password
+  name: hackathon_db
+
+# JWT配置
+jwt:
+  secret: your-secret-key-change-in-production  # 生产环境请使用强随机字符串
+  expire_hours: 24
+
+# 服务器配置
+server:
+  port: "8080"
+  mode: debug  # debug/release/test
+
+# CORS配置
+cors:
+  allow_origins:
+    - http://localhost:3000
+    - http://localhost:3001
+

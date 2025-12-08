@@ -1,125 +1,164 @@
 # Hackathon 比赛平台
 
-基于 PRD-101 和 DEV-101 文档实现的完整 Hackathon 比赛平台。
+## 项目概述
 
-## 项目结构
+本项目是一个完整的 Hackathon（黑客松）比赛平台，支持主办方、参赛者和赞助商三方协同参与。平台分为两个独立的应用系统：
 
-```
-HackathonDemo2/
-├── backend/          # 后端服务 (Go + Gin)
-├── frontend/
-│   ├── admin/        # Admin Platform (React)
-│   └── arena/        # Arena Platform (React)
-└── prd/              # 需求文档和开发文档
-```
+- **Hackathon Admin Platform**：供主办方和赞助商使用，用于活动管理和人员管理
+- **Hackathon Arena Platform**：供参赛者使用，用于参与比赛的全流程操作
 
 ## 技术栈
 
 ### 后端
 - Go 1.21+
-- Gin Web Framework
-- GORM
+- Gin Web框架
+- GORM ORM
 - MySQL 8.0+
-- JWT 认证
+- JWT认证
 
 ### 前端
 - React 18+
 - TypeScript
 - Vite
 - Ant Design
-- Redux Toolkit
+- Zustand状态管理
 - React Router
-- ethers.js (Arena Platform)
+- ethers.js (Arena平台用于Metamask连接)
+
+## 项目结构
+
+```
+Hackathon/
+├── backend/                 # 后端Go应用
+│   ├── config/             # 配置管理
+│   ├── controllers/        # 控制器
+│   ├── database/           # 数据库连接
+│   ├── middleware/         # 中间件
+│   ├── models/             # 数据模型
+│   ├── routes/             # 路由
+│   ├── services/           # 业务逻辑
+│   ├── utils/              # 工具函数
+│   └── main.go             # 入口文件
+├── frontend/
+│   ├── admin/              # Admin前端应用
+│   └── arena/              # Arena前端应用
+└── sdp/                    # 需求文档和开发文档
+```
 
 ## 快速开始
 
-### 1. 数据库设置
+### 环境要求
 
-创建 MySQL 数据库：
+- Go 1.21+
+- Node.js 18+
+- MySQL 8.0+
+- npm 或 yarn
 
+### 数据库设置
+
+1. 创建数据库：
 ```sql
 CREATE DATABASE hackathon_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 2. 后端设置
+2. 配置数据库连接，有两种方式：
+
+**方式一：使用 YAML 配置文件（推荐）**
+```bash
+cd backend
+cp config.yaml.example config.yaml
+# 编辑 config.yaml 文件，修改数据库配置
+```
+
+**方式二：使用环境变量**
+```bash
+cd backend
+# 创建 .env 文件并配置环境变量
+# 或者直接设置系统环境变量
+```
+
+详细配置说明请参考 `backend/ENV_CONFIG.md`
+
+### 后端启动
 
 ```bash
 cd backend
-cp .env.example .env
-# 编辑 .env 文件，配置数据库连接信息
-
 go mod download
 go run main.go
 ```
 
-后端服务将在 `http://localhost:8080` 启动。
+后端服务将在 `http://localhost:8080` 启动
 
-### 3. 前端 Admin Platform
+### 前端启动
 
+#### Admin Platform
 ```bash
 cd frontend/admin
 npm install
 npm run dev
 ```
 
-Admin Platform 将在 `http://localhost:3000` 启动。
+Admin平台将在 `http://localhost:3000` 启动
 
-### 4. 前端 Arena Platform
-
+#### Arena Platform
 ```bash
 cd frontend/arena
 npm install
 npm run dev
 ```
 
-Arena Platform 将在 `http://localhost:3001` 启动。
+Arena平台将在 `http://localhost:3001` 启动
+
+## API文档
+
+### Admin Platform API
+
+- `POST /api/v1/admin/auth/login` - 登录
+- `GET /api/v1/admin/users` - 获取用户列表（Admin权限）
+- `POST /api/v1/admin/users` - 创建用户（Admin权限）
+- `GET /api/v1/admin/hackathons` - 获取活动列表
+- `POST /api/v1/admin/hackathons` - 创建活动
+- `POST /api/v1/admin/hackathons/:id/publish` - 发布活动
+- `POST /api/v1/admin/hackathons/:id/stages/:stage/switch` - 切换活动阶段
+
+### Arena Platform API
+
+- `POST /api/v1/arena/auth/connect` - 连接钱包，获取nonce
+- `POST /api/v1/arena/auth/verify` - 验证签名，完成登录
+- `GET /api/v1/arena/hackathons` - 获取已发布的活动列表
+- `POST /api/v1/arena/hackathons/:id/register` - 报名
+- `POST /api/v1/arena/hackathons/:id/checkin` - 签到
+- `POST /api/v1/arena/hackathons/:id/teams` - 创建队伍
+- `POST /api/v1/arena/hackathons/:id/submissions` - 提交作品
+- `POST /api/v1/arena/submissions/:id/vote` - 投票
+- `GET /api/v1/arena/hackathons/:id/results` - 查看结果
 
 ## 功能特性
 
 ### Admin Platform
-- 用户认证（账号密码登录）
-- 人员管理（Admin 权限）
-- 活动管理（Organizer 权限）
-  - 创建、编辑、删除活动
-  - 发布活动
-  - 阶段管理
-  - 统计信息查看
+- ✅ 用户登录（账号密码）
+- ✅ 人员管理（Admin权限）
+- ✅ 活动创建、编辑、删除
+- ✅ 活动发布和阶段管理
+- ✅ 活动列表和详情查看
 
 ### Arena Platform
-- Metamask 钱包登录
-- 活动浏览
-- 报名、签到
-- 组队管理
-- 作品提交
-- 投票功能
-- 结果查看
+- ✅ Metamask钱包登录
+- ✅ 活动浏览
+- ✅ 报名和签到
+- ✅ 组队功能
+- ✅ 作品提交
+- ✅ 投票功能
+- ✅ 结果查看
 
-## API 文档
+## 开发规范
 
-### Admin Platform API
-- 认证: `/api/v1/admin/auth/login`
-- 用户管理: `/api/v1/admin/users`
-- 活动管理: `/api/v1/admin/hackathons`
+- 后端使用Go标准命名规范
+- 前端使用TypeScript和React Hooks
+- API遵循RESTful规范
+- 统一使用UTF-8编码
+- 所有时间使用UTC时间存储
 
-### Arena Platform API
-- 认证: `/api/v1/arena/auth/connect`, `/api/v1/arena/auth/verify`
-- 活动: `/api/v1/arena/hackathons`
-- 报名: `/api/v1/arena/hackathons/:id/register`
-- 签到: `/api/v1/arena/hackathons/:id/checkin`
-- 组队: `/api/v1/arena/hackathons/:id/teams`
-- 提交: `/api/v1/arena/hackathons/:id/submissions`
-- 投票: `/api/v1/arena/submissions/:id/vote`
-- 结果: `/api/v1/arena/hackathons/:id/results`
+## 许可证
 
-## 开发说明
-
-详细的功能需求和技术实现方案请参考：
-- `prd/PRD101M.md` - 需求文档
-- `prd/DEV101.md` - 开发文档
-
-## 注意事项
-
-1. 确保 MySQL 数据库已启动并创建了相应的数据库
-2. 后端启动时会自动创建数据库表（通过 GORM AutoMigrate）
-3. Arena Platform 需要浏览器安装 MetaMask 插件
-4. 生产环境请修改 JWT_SECRET 等敏感配置
+MIT License
