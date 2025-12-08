@@ -21,28 +21,35 @@ func NewAdminUserController() *AdminUserController {
 
 // CreateUser 创建用户
 func (c *AdminUserController) CreateUser(ctx *gin.Context) {
-	var user models.User
-	if err := ctx.ShouldBindJSON(&user); err != nil {
+	var req struct {
+		Name      string  `json:"name" binding:"required"`
+		Email     string  `json:"email" binding:"required,email"`
+		Password  string  `json:"password" binding:"required,min=8"`
+		Role      string  `json:"role" binding:"required"`
+		Phone     string  `json:"phone"`
+		SponsorID *uint64 `json:"sponsor_id"`
+	}
+	
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(ctx, "参数错误: "+err.Error())
 		return
 	}
 
-	// 验证必填字段
-	if user.Name == "" || user.Email == "" || user.Password == "" || user.Role == "" {
-		utils.BadRequest(ctx, "姓名、邮箱、密码和角色为必填项")
-		return
-	}
-
 	// 验证角色
-	if user.Role != "organizer" && user.Role != "sponsor" {
+	if req.Role != "organizer" && req.Role != "sponsor" {
 		utils.BadRequest(ctx, "角色只能是organizer或sponsor")
 		return
 	}
 
-	// 验证密码
-	if len(user.Password) < 8 {
-		utils.BadRequest(ctx, "密码至少8位")
-		return
+	// 创建用户对象
+	user := models.User{
+		Name:      req.Name,
+		Email:     req.Email,
+		Password:  req.Password, // 会在service中加密
+		Role:      req.Role,
+		Phone:     req.Phone,
+		SponsorID: req.SponsorID,
+		Status:    1,
 	}
 
 	if err := c.userService.CreateUser(&user); err != nil {
@@ -50,6 +57,8 @@ func (c *AdminUserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	// 清除密码字段
+	user.Password = ""
 	utils.Success(ctx, user)
 }
 
