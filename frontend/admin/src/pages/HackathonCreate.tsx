@@ -9,6 +9,9 @@ import {
   Card,
   message,
   Space,
+  InputNumber,
+  Row,
+  Col,
 } from 'antd'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
@@ -25,10 +28,10 @@ export default function HackathonCreate() {
   const isEdit = !!id
 
   useEffect(() => {
-    if (isEdit) {
+    if (isEdit && id) {
       fetchDetail()
     }
-  }, [id])
+  }, [id, isEdit])
 
   const fetchDetail = async () => {
     try {
@@ -69,61 +72,110 @@ export default function HackathonCreate() {
   }
 
   return (
-    <Card title={isEdit ? '编辑活动' : '创建活动'}>
-      <Form
-        form={form}
-        onFinish={handleSubmit}
-        layout="vertical"
-        initialValues={{ location_type: 'online', max_team_size: 3 }}
+    <div className="page-container">
+      <Card
+        title={
+          <div style={{ fontSize: '20px', fontWeight: 600 }}>
+            {isEdit ? '编辑活动' : '创建活动'}
+          </div>
+        }
       >
-        <Form.Item
-          name="name"
-          label="活动名称"
-          rules={[{ required: true, message: '请输入活动名称' }]}
+        <Form
+          form={form}
+          onFinish={handleSubmit}
+          layout="vertical"
+          size="large"
+          initialValues={{ location_type: 'online', max_team_size: 3 }}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          name="description"
-          label="活动描述"
-          rules={[{ required: true, message: '请输入活动描述' }]}
-        >
-          <ReactQuill theme="snow" />
-        </Form.Item>
-        <Form.Item
-          name="timeRange"
-          label="活动时间"
-          rules={[{ required: true, message: '请选择活动时间' }]}
-        >
-          <RangePicker showTime format="YYYY-MM-DD HH:mm" />
-        </Form.Item>
-        <Form.Item
-          name="location_type"
-          label="地点类型"
-          rules={[{ required: true, message: '请选择地点类型' }]}
-        >
-          <Select>
-            <Select.Option value="online">线上</Select.Option>
-            <Select.Option value="offline">线下</Select.Option>
-            <Select.Option value="hybrid">混合</Select.Option>
-          </Select>
-        </Form.Item>
-        <Form.Item name="location_detail" label="具体地址">
-          <Input />
-        </Form.Item>
-        <Form.Item name="max_team_size" label="队伍最大成员数">
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item>
-          <Space>
-            <Button type="primary" htmlType="submit" loading={loading}>
-              {isEdit ? '更新' : '创建'}
-            </Button>
-            <Button onClick={() => navigate('/hackathons')}>取消</Button>
-          </Space>
-        </Form.Item>
-      </Form>
-    </Card>
+          <Form.Item
+            name="name"
+            label="活动名称"
+            rules={[{ required: true, message: '请输入活动名称' }]}
+          >
+            <Input placeholder="请输入活动名称" />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="活动描述"
+            rules={[{ required: true, message: '请输入活动描述' }]}
+          >
+            <ReactQuill
+              theme="snow"
+              style={{
+                background: '#fff',
+                borderRadius: '8px',
+              }}
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="timeRange"
+                label="活动时间"
+                rules={[{ required: true, message: '请选择活动时间' }]}
+              >
+                <RangePicker
+                  showTime
+                  format="YYYY-MM-DD HH:mm"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="location_type"
+                label="地点类型"
+                rules={[{ required: true, message: '请选择地点类型' }]}
+              >
+                <Select placeholder="请选择地点类型">
+                  <Select.Option value="online">线上</Select.Option>
+                  <Select.Option value="offline">线下</Select.Option>
+                  <Select.Option value="hybrid">混合</Select.Option>
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item name="location_detail" label="具体地址">
+                <Input placeholder="请输入具体地址（可选）" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="max_team_size"
+                label="队伍最大成员数"
+                rules={[
+                  { required: true, message: '请输入队伍最大成员数' },
+                  { type: 'number', min: 1, message: '至少1人' },
+                ]}
+              >
+                <InputNumber
+                  min={1}
+                  max={20}
+                  placeholder="请输入队伍最大成员数"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item style={{ marginTop: '24px', marginBottom: 0 }}>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={loading} size="large">
+                {isEdit ? '更新' : '创建'}
+              </Button>
+              <Button onClick={() => navigate('/hackathons')} size="large">
+                取消
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Card>
+    </div>
   )
 }
 

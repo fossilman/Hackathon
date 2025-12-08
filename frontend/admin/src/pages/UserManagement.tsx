@@ -9,8 +9,10 @@ import {
   message,
   Space,
   Popconfirm,
+  Card,
+  Tag,
 } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import request from '../api/request'
 
 interface User {
@@ -19,6 +21,12 @@ interface User {
   email: string
   role: string
   phone: string
+}
+
+const roleMap: Record<string, { label: string; color: string }> = {
+  organizer: { label: '主办方', color: 'blue' },
+  sponsor: { label: '赞助商', color: 'green' },
+  admin: { label: '管理员', color: 'red' },
 }
 
 export default function UserManagement() {
@@ -85,24 +93,68 @@ export default function UserManagement() {
   }
 
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: '姓名', dataIndex: 'name', key: 'name' },
-    { title: '邮箱', dataIndex: 'email', key: 'email' },
-    { title: '角色', dataIndex: 'role', key: 'role' },
-    { title: '手机号', dataIndex: 'phone', key: 'phone' },
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: '姓名',
+      dataIndex: 'name',
+      key: 'name',
+      width: 120,
+    },
+    {
+      title: '邮箱',
+      dataIndex: 'email',
+      key: 'email',
+      width: 200,
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      key: 'role',
+      width: 120,
+      render: (role: string) => {
+        const roleInfo = roleMap[role] || { label: role, color: 'default' }
+        return <Tag color={roleInfo.color}>{roleInfo.label}</Tag>
+      },
+    },
+    {
+      title: '手机号',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 150,
+    },
     {
       title: '操作',
       key: 'action',
+      width: 150,
+      fixed: 'right' as const,
       render: (_: any, record: User) => (
-        <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>
+        <Space size="small">
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            size="small"
+          >
             编辑
           </Button>
           <Popconfirm
-            title="确定要删除吗？"
+            title="确定要删除这个用户吗？"
+            description="此操作不可恢复"
             onConfirm={() => handleDelete(record.id)}
+            okText="确定"
+            cancelText="取消"
           >
-            <Button type="link" danger>
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+            >
               删除
             </Button>
           </Popconfirm>
@@ -112,31 +164,50 @@ export default function UserManagement() {
   ]
 
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+    <div className="page-container">
+      <div className="page-header">
+        <h2 className="page-title">人员管理</h2>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleCreate}
+          size="large"
+        >
           添加用户
         </Button>
       </div>
-      <Table
-        columns={columns}
-        dataSource={users}
-        loading={loading}
-        rowKey="id"
-      />
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={users}
+          loading={loading}
+          rowKey="id"
+          scroll={{ x: 800 }}
+          pagination={{
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条记录`,
+            pageSizeOptions: ['10', '20', '50', '100'],
+          }}
+        />
+      </Card>
       <Modal
         title={editingUser ? '编辑用户' : '添加用户'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false)
+          form.resetFields()
+        }}
         onOk={() => form.submit()}
+        width={600}
+        destroyOnClose
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical">
+        <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
           <Form.Item
             name="name"
             label="姓名"
             rules={[{ required: true, message: '请输入姓名' }]}
           >
-            <Input />
+            <Input placeholder="请输入姓名" />
           </Form.Item>
           <Form.Item
             name="email"
@@ -146,7 +217,7 @@ export default function UserManagement() {
               { type: 'email', message: '请输入有效的邮箱地址' },
             ]}
           >
-            <Input disabled={!!editingUser} />
+            <Input placeholder="请输入邮箱" disabled={!!editingUser} />
           </Form.Item>
           {!editingUser && (
             <Form.Item
@@ -157,7 +228,7 @@ export default function UserManagement() {
                 { min: 8, message: '密码至少8位' },
               ]}
             >
-              <Input.Password />
+              <Input.Password placeholder="请输入密码（至少8位）" />
             </Form.Item>
           )}
           <Form.Item
@@ -165,13 +236,13 @@ export default function UserManagement() {
             label="角色"
             rules={[{ required: true, message: '请选择角色' }]}
           >
-            <Select disabled={!!editingUser}>
+            <Select placeholder="请选择角色" disabled={!!editingUser}>
               <Select.Option value="organizer">主办方</Select.Option>
               <Select.Option value="sponsor">赞助商</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="phone" label="手机号">
-            <Input />
+            <Input placeholder="请输入手机号" />
           </Form.Item>
         </Form>
       </Modal>

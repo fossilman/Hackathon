@@ -27,6 +27,7 @@ func main() {
 	email := "admin@hackathon.com"
 	password := "admin123456"
 	name := "系统管理员"
+	role := "admin"
 
 	if len(os.Args) > 1 {
 		email = os.Args[1]
@@ -36,6 +37,14 @@ func main() {
 	}
 	if len(os.Args) > 3 {
 		name = os.Args[3]
+	}
+	if len(os.Args) > 4 {
+		role = os.Args[4]
+	}
+
+	// 验证角色
+	if role != "admin" && role != "organizer" && role != "sponsor" {
+		log.Fatal("角色必须是 admin, organizer 或 sponsor")
 	}
 
 	// 检查用户是否已存在
@@ -51,25 +60,24 @@ func main() {
 		log.Fatal("Failed to hash password:", err)
 	}
 
-	// 创建admin用户
-	adminUser := models.User{
+	// 创建用户
+	user := models.User{
 		Name:     name,
 		Email:    email,
 		Password: hashedPassword,
-		Role:     "admin",
+		Role:     role,
 		Status:   1,
 	}
 
-	if err := database.DB.Create(&adminUser).Error; err != nil {
-		log.Fatal("Failed to create admin user:", err)
+	if err := database.DB.Create(&user).Error; err != nil {
+		log.Fatal("Failed to create user:", err)
 	}
 
-	fmt.Printf("✅ Admin用户创建成功！\n")
+	fmt.Printf("✅ 用户创建成功！\n")
 	fmt.Printf("   邮箱: %s\n", email)
 	fmt.Printf("   密码: %s\n", password)
 	fmt.Printf("   姓名: %s\n", name)
-	fmt.Printf("   角色: admin\n")
-	fmt.Printf("   ID: %d\n", adminUser.ID)
+	fmt.Printf("   角色: %s\n", role)
+	fmt.Printf("   ID: %d\n", user.ID)
 	fmt.Printf("\n请妥善保管密码，首次登录后建议修改密码。\n")
 }
-

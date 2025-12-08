@@ -35,17 +35,27 @@ func SetupAdminRoutes(router *gin.Engine) {
 				users.DELETE("/:id", adminUserController.DeleteUser)
 			}
 
-			// 活动管理（Organizer权限）
+			// 活动管理
 			hackathons := api.Group("/hackathons")
-			hackathons.Use(middleware.RoleMiddleware("organizer", "admin"))
 			{
-				hackathons.POST("", adminHackathonController.CreateHackathon)
-				hackathons.GET("", adminHackathonController.GetHackathonList)
-				hackathons.GET("/:id", adminHackathonController.GetHackathonByID)
-				hackathons.PUT("/:id", adminHackathonController.UpdateHackathon)
-				hackathons.DELETE("/:id", adminHackathonController.DeleteHackathon)
-				hackathons.POST("/:id/publish", adminHackathonController.PublishHackathon)
-				hackathons.POST("/:id/stages/:stage/switch", adminHackathonController.SwitchStage)
+				// 查看活动列表和详情（Organizer和Admin都可以）
+				hackathons.GET("", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonList)
+				hackathons.GET("/:id", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonByID)
+
+				// 创建活动（仅Organizer）
+				hackathons.POST("", middleware.RoleMiddleware("organizer"), adminHackathonController.CreateHackathon)
+
+				// 编辑、删除、发布活动（仅Organizer，且仅活动创建者）
+				hackathons.PUT("/:id", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdateHackathon)
+				hackathons.DELETE("/:id", middleware.RoleMiddleware("organizer"), adminHackathonController.DeleteHackathon)
+				hackathons.POST("/:id/publish", middleware.RoleMiddleware("organizer"), adminHackathonController.PublishHackathon)
+
+				// 阶段管理（仅Organizer，且仅活动创建者）
+				hackathons.POST("/:id/stages/:stage/switch", middleware.RoleMiddleware("organizer"), adminHackathonController.SwitchStage)
+
+				// 归档活动（Organizer和Admin都可以，但需检查权限）
+				hackathons.POST("/:id/archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.ArchiveHackathon)
+				hackathons.POST("/batch-archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.BatchArchiveHackathons)
 			}
 		}
 	}

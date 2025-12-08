@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+import '../index.css'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -24,17 +25,16 @@ export default function Login() {
   }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: '100vh',
-        background: '#f0f2f5',
-      }}
-    >
-      <Card title="Hackathon Admin Platform" style={{ width: 400 }}>
-        <Form onFinish={onFinish} layout="vertical">
+    <div className="login-container">
+      <Card
+        title={
+          <div style={{ textAlign: 'center', fontSize: '24px', fontWeight: 600 }}>
+            🏆 Hackathon Admin Platform
+          </div>
+        }
+        className="login-card"
+      >
+        <Form onFinish={onFinish} layout="vertical" size="large">
           <Form.Item
             name="email"
             label="邮箱"
@@ -52,8 +52,8 @@ export default function Login() {
           >
             <Input.Password placeholder="请输入密码" />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block loading={loading}>
+          <Form.Item style={{ marginBottom: 0, marginTop: '24px' }}>
+            <Button type="primary" htmlType="submit" block loading={loading} size="large">
               登录
             </Button>
           </Form.Item>

@@ -110,9 +110,19 @@ func (s *UserService) GetUserByID(id uint64) (*models.User, error) {
 // UpdateUser 更新用户信息
 func (s *UserService) UpdateUser(id uint64, updates map[string]interface{}) error {
 	// 不允许修改邮箱和角色
-	delete(updates, "email")
-	delete(updates, "role")
-	delete(updates, "password") // 密码需要单独处理
+	if _, ok := updates["email"]; ok {
+		return errors.New("不允许修改邮箱")
+	}
+	if _, ok := updates["role"]; ok {
+		return errors.New("不允许修改角色")
+	}
+	if _, ok := updates["password"]; ok {
+		return errors.New("密码需要单独处理")
+	}
+
+	if len(updates) == 0 {
+		return errors.New("没有可更新的字段")
+	}
 
 	return database.DB.Model(&models.User{}).Where("id = ? AND deleted_at IS NULL", id).Updates(updates).Error
 }

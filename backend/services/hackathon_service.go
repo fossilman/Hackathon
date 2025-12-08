@@ -42,15 +42,15 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 }
 
 // GetHackathonList 获取活动列表
+// 根据权限矩阵：所有主办方可以看到所有活动，但只能编辑、删除、发布自己创建的活动
 func (s *HackathonService) GetHackathonList(page, pageSize int, status, keyword, sort string, organizerID *uint64) ([]models.Hackathon, int64, error) {
 	var hackathons []models.Hackathon
 	var total int64
 
 	query := database.DB.Model(&models.Hackathon{}).Where("deleted_at IS NULL")
 
-	if organizerID != nil {
-		query = query.Where("organizer_id = ?", *organizerID)
-	}
+	// 移除organizerID过滤，让所有主办方可以看到所有活动
+	// 权限矩阵要求：所有主办方可以看到所有活动
 
 	if status != "" {
 		query = query.Where("status = ?", status)
@@ -102,16 +102,59 @@ func (s *HackathonService) GetHackathonByID(id uint64) (*models.Hackathon, error
 	return &hackathon, nil
 }
 
-// UpdateHackathon 更新活动（仅预备状态）
-func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackathon, stages []models.HackathonStage, awards []models.HackathonAward) error {
-	// 检查活动状态
+// UpdateHackathon 更新活动
+// 根据权限矩阵：
+// - 预备状态：仅活动创建者可以编辑所有字段
+// - 发布状态及后续：活动创建者不能编辑活动基本信息，只能管理阶段
+func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackathon, stages []models.HackathonStage, awards []models.HackathonAward, userID uint64, userRole string) error {
+	// 检查活动是否存在
 	var existing models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&existing).Error; err != nil {
 		return err
 	}
 
+	// Admin不能编辑活动
+	if userRole == "admin" {
+		return errors.New("Admin不能编辑活动")
+	}
+
+	// 检查是否是活动创建者
+	if existing.OrganizerID != userID {
+		return errors.New("只能编辑自己创建的活动")
+	}
+
+	// 如果活动已发布，只能更新阶段，不能更新基本信息
 	if existing.Status != "preparation" {
-		return errors.New("只能修改处于预备状态的活动")
+		// 已发布的活动只能更新阶段
+		return database.DB.Transaction(func(tx *gorm.DB) error {
+			// 删除旧阶段
+			if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonStage{}).Error; err != nil {
+				return err
+			}
+
+			// 创建新阶段
+			for i := range stages {
+				stages[i].HackathonID = id
+				if err := tx.Create(&stages[i]).Error; err != nil {
+					return err
+				}
+			}
+
+			// 删除旧奖项
+			if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonAward{}).Error; err != nil {
+				return err
+			}
+
+			// 创建新奖项
+			for i := range awards {
+				awards[i].HackathonID = id
+				if err := tx.Create(&awards[i]).Error; err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
 	}
 
 	return database.DB.Transaction(func(tx *gorm.DB) error {
@@ -150,11 +193,21 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 	})
 }
 
-// DeleteHackathon 删除活动（仅预备状态）
-func (s *HackathonService) DeleteHackathon(id uint64) error {
+// DeleteHackathon 删除活动（仅预备状态，且仅活动创建者可删除）
+func (s *HackathonService) DeleteHackathon(id uint64, userID uint64, userRole string) error {
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
 		return err
+	}
+
+	// Admin不能删除活动
+	if userRole == "admin" {
+		return errors.New("Admin不能删除活动")
+	}
+
+	// 检查是否是活动创建者
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能删除自己创建的活动")
 	}
 
 	if hackathon.Status != "preparation" {
@@ -164,11 +217,21 @@ func (s *HackathonService) DeleteHackathon(id uint64) error {
 	return database.DB.Delete(&hackathon).Error
 }
 
-// PublishHackathon 发布活动
-func (s *HackathonService) PublishHackathon(id uint64) error {
+// PublishHackathon 发布活动（仅活动创建者可发布）
+func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole string) error {
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
 		return err
+	}
+
+	// Admin不能发布活动
+	if userRole == "admin" {
+		return errors.New("Admin不能发布活动")
+	}
+
+	// 检查是否是活动创建者
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能发布自己创建的活动")
 	}
 
 	if hackathon.Status != "preparation" {
@@ -178,8 +241,8 @@ func (s *HackathonService) PublishHackathon(id uint64) error {
 	return database.DB.Model(&hackathon).Update("status", "published").Error
 }
 
-// SwitchStage 切换活动阶段
-func (s *HackathonService) SwitchStage(id uint64, stage string) error {
+// SwitchStage 切换活动阶段（仅活动创建者可切换）
+func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, userRole string) error {
 	validStages := map[string]bool{
 		"published":      true,
 		"registration":   true,
@@ -197,6 +260,16 @@ func (s *HackathonService) SwitchStage(id uint64, stage string) error {
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
 		return err
+	}
+
+	// Admin不能切换阶段
+	if userRole == "admin" {
+		return errors.New("Admin不能切换活动阶段")
+	}
+
+	// 检查是否是活动创建者
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能切换自己创建的活动阶段")
 	}
 
 	return database.DB.Model(&hackathon).Update("status", stage).Error
@@ -245,5 +318,51 @@ func (s *HackathonService) CheckStageTime(hackathonID uint64, stage string) (boo
 
 	now := time.Now()
 	return now.After(stageModel.StartTime) && now.Before(stageModel.EndTime), nil
+}
+
+// CheckHackathonCreator 检查用户是否是活动的创建者
+func (s *HackathonService) CheckHackathonCreator(hackathonID, userID uint64) (bool, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
+		return false, err
+	}
+	return hackathon.OrganizerID == userID, nil
+}
+
+// ArchiveHackathon 归档活动（软删除，仅已发布的活动可归档）
+func (s *HackathonService) ArchiveHackathon(id uint64) error {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return err
+	}
+
+	// 只能归档已发布的活动
+	if hackathon.Status == "preparation" {
+		return errors.New("只能归档已发布的活动")
+	}
+
+	return database.DB.Delete(&hackathon).Error
+}
+
+// BatchArchiveHackathons 批量归档活动
+func (s *HackathonService) BatchArchiveHackathons(ids []uint64) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		for _, id := range ids {
+			var hackathon models.Hackathon
+			if err := tx.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+				continue // 跳过不存在的活动
+			}
+
+			// 只能归档已发布的活动
+			if hackathon.Status == "preparation" {
+				continue // 跳过预备状态的活动
+			}
+
+			if err := tx.Delete(&hackathon).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 

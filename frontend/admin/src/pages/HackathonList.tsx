@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Table, Button, Select, Space, message } from 'antd'
+import { Table, Button, Select, Space, message, Card, Tag } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { PlusOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
 import request from '../api/request'
 import dayjs from 'dayjs'
 
@@ -12,6 +12,17 @@ interface Hackathon {
   start_time: string
   end_time: string
   created_at: string
+}
+
+const statusMap: Record<string, { label: string; color: string }> = {
+  preparation: { label: '预备', color: 'default' },
+  published: { label: '发布', color: 'blue' },
+  registration: { label: '报名', color: 'cyan' },
+  checkin: { label: '签到', color: 'orange' },
+  team_formation: { label: '组队', color: 'purple' },
+  submission: { label: '提交', color: 'geekblue' },
+  voting: { label: '投票', color: 'magenta' },
+  results: { label: '公布结果', color: 'green' },
 }
 
 export default function HackathonList() {
@@ -38,50 +49,65 @@ export default function HackathonList() {
     fetchHackathons()
   }, [status])
 
-  const statusMap: Record<string, string> = {
-    preparation: '预备',
-    published: '发布',
-    registration: '报名',
-    checkin: '签到',
-    team_formation: '组队',
-    submission: '提交',
-    voting: '投票',
-    results: '公布结果',
-  }
-
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: '活动名称', dataIndex: 'name', key: 'name' },
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: '活动名称',
+      dataIndex: 'name',
+      key: 'name',
+      width: 250,
+      ellipsis: true,
+    },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => statusMap[status] || status,
+      width: 120,
+      render: (status: string) => {
+        const statusInfo = statusMap[status] || { label: status, color: 'default' }
+        return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+      },
     },
     {
       title: '开始时间',
       dataIndex: 'start_time',
       key: 'start_time',
+      width: 180,
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: '结束时间',
       dataIndex: 'end_time',
       key: 'end_time',
+      width: 180,
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
       title: '操作',
       key: 'action',
+      width: 150,
+      fixed: 'right' as const,
       render: (_: any, record: Hackathon) => (
-        <Space>
-          <Button type="link" onClick={() => navigate(`/hackathons/${record.id}`)}>
+        <Space size="small">
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/hackathons/${record.id}`)}
+            size="small"
+          >
             查看
           </Button>
           {record.status === 'preparation' && (
             <Button
               type="link"
+              icon={<EditOutlined />}
               onClick={() => navigate(`/hackathons/${record.id}/edit`)}
+              size="small"
             >
               编辑
             </Button>
@@ -92,33 +118,47 @@ export default function HackathonList() {
   ]
 
   return (
-    <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-        <Space>
+    <div className="page-container">
+      <div className="page-header">
+        <div>
+          <h2 className="page-title">活动管理</h2>
           <Select
             placeholder="筛选状态"
             allowClear
-            style={{ width: 200 }}
+            style={{ width: 200, marginTop: '8px' }}
             value={status}
             onChange={setStatus}
           >
             {Object.entries(statusMap).map(([key, value]) => (
               <Select.Option key={key} value={key}>
-                {value}
+                {value.label}
               </Select.Option>
             ))}
           </Select>
-        </Space>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/hackathons/create')}>
+        </div>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => navigate('/hackathons/create')}
+          size="large"
+        >
           创建活动
         </Button>
       </div>
-      <Table
-        columns={columns}
-        dataSource={hackathons}
-        loading={loading}
-        rowKey="id"
-      />
+      <Card>
+        <Table
+          columns={columns}
+          dataSource={hackathons}
+          loading={loading}
+          rowKey="id"
+          scroll={{ x: 1000 }}
+          pagination={{
+            showSizeChanger: true,
+            showTotal: (total) => `共 ${total} 条记录`,
+            pageSizeOptions: ['10', '20', '50', '100'],
+          }}
+        />
+      </Card>
     </div>
   )
 }

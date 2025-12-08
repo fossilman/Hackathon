@@ -19,8 +19,15 @@ func NewAdminHackathonController() *AdminHackathonController {
 	}
 }
 
-// CreateHackathon 创建活动
+// CreateHackathon 创建活动（仅主办方可创建，Admin不能创建）
 func (c *AdminHackathonController) CreateHackathon(ctx *gin.Context) {
+	// 检查角色：Admin不能创建活动
+	role, _ := ctx.Get("role")
+	if role.(string) == "admin" {
+		utils.Forbidden(ctx, "Admin不能创建活动")
+		return
+	}
+
 	var req struct {
 		models.Hackathon
 		Stages []models.HackathonStage `json:"stages"`
@@ -46,6 +53,7 @@ func (c *AdminHackathonController) CreateHackathon(ctx *gin.Context) {
 }
 
 // GetHackathonList 获取活动列表
+// 根据权限矩阵：所有主办方可以看到所有活动
 func (c *AdminHackathonController) GetHackathonList(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
@@ -53,15 +61,8 @@ func (c *AdminHackathonController) GetHackathonList(ctx *gin.Context) {
 	keyword := ctx.Query("keyword")
 	sort := ctx.DefaultQuery("sort", "created_at_desc")
 
-	// 获取当前用户ID（主办方只能看自己的活动）
-	organizerID, exists := ctx.Get("user_id")
-	var organizerIDPtr *uint64
-	if exists {
-		id := organizerID.(uint64)
-		organizerIDPtr = &id
-	}
-
-	hackathons, total, err := c.hackathonService.GetHackathonList(page, pageSize, status, keyword, sort, organizerIDPtr)
+	// 所有主办方和Admin都可以看到所有活动，不再过滤organizerID
+	hackathons, total, err := c.hackathonService.GetHackathonList(page, pageSize, status, keyword, sort, nil)
 	if err != nil {
 		utils.InternalServerError(ctx, err.Error())
 		return
@@ -87,13 +88,17 @@ func (c *AdminHackathonController) GetHackathonByID(ctx *gin.Context) {
 	utils.Success(ctx, hackathon)
 }
 
-// UpdateHackathon 更新活动
+// UpdateHackathon 更新活动（仅活动创建者可编辑）
 func (c *AdminHackathonController) UpdateHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		utils.BadRequest(ctx, "无效的活动ID")
 		return
 	}
+
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
 
 	var req struct {
 		models.Hackathon
@@ -106,7 +111,7 @@ func (c *AdminHackathonController) UpdateHackathon(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.hackathonService.UpdateHackathon(id, &req.Hackathon, req.Stages, req.Awards); err != nil {
+	if err := c.hackathonService.UpdateHackathon(id, &req.Hackathon, req.Stages, req.Awards, userID.(uint64), role.(string)); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
@@ -114,7 +119,7 @@ func (c *AdminHackathonController) UpdateHackathon(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// DeleteHackathon 删除活动
+// DeleteHackathon 删除活动（仅活动创建者可删除，且仅预备状态）
 func (c *AdminHackathonController) DeleteHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -122,7 +127,11 @@ func (c *AdminHackathonController) DeleteHackathon(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.hackathonService.DeleteHackathon(id); err != nil {
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	if err := c.hackathonService.DeleteHackathon(id, userID.(uint64), role.(string)); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
@@ -130,7 +139,7 @@ func (c *AdminHackathonController) DeleteHackathon(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// PublishHackathon 发布活动
+// PublishHackathon 发布活动（仅活动创建者可发布）
 func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -138,7 +147,11 @@ func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.hackathonService.PublishHackathon(id); err != nil {
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	if err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string)); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
@@ -146,7 +159,7 @@ func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// SwitchStage 切换活动阶段
+// SwitchStage 切换活动阶段（仅活动创建者可切换）
 func (c *AdminHackathonController) SwitchStage(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -160,7 +173,80 @@ func (c *AdminHackathonController) SwitchStage(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.hackathonService.SwitchStage(id, stage); err != nil {
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	if err := c.hackathonService.SwitchStage(id, stage, userID.(uint64), role.(string)); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// ArchiveHackathon 归档活动（Admin和活动创建者可归档已发布的活动）
+func (c *AdminHackathonController) ArchiveHackathon(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	// 检查权限：Admin或活动创建者可以归档
+	if role.(string) != "admin" {
+		// 检查是否是活动创建者
+		isCreator, err := c.hackathonService.CheckHackathonCreator(id, userID.(uint64))
+		if err != nil {
+			utils.BadRequest(ctx, "活动不存在")
+			return
+		}
+		if !isCreator {
+			utils.Forbidden(ctx, "只能归档自己创建的活动")
+			return
+		}
+	}
+
+	if err := c.hackathonService.ArchiveHackathon(id); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// BatchArchiveHackathons 批量归档活动（仅活动创建者或Admin可以执行）
+func (c *AdminHackathonController) BatchArchiveHackathons(ctx *gin.Context) {
+	var req struct {
+		IDs []uint64 `json:"ids" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	// 检查权限：Admin或活动创建者可以批量归档
+	if role.(string) != "admin" {
+		// 检查所有活动是否都是当前用户创建的
+		for _, id := range req.IDs {
+			isCreator, err := c.hackathonService.CheckHackathonCreator(id, userID.(uint64))
+			if err != nil || !isCreator {
+				utils.Forbidden(ctx, "只能归档自己创建的活动")
+				return
+			}
+		}
+	}
+
+	if err := c.hackathonService.BatchArchiveHackathons(req.IDs); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

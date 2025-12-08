@@ -109,6 +109,25 @@ func (c *AdminUserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	// 检查是否尝试修改不允许的字段
+	if _, ok := updates["email"]; ok {
+		utils.BadRequest(ctx, "不允许修改邮箱")
+		return
+	}
+	if _, ok := updates["role"]; ok {
+		utils.BadRequest(ctx, "不允许修改角色")
+		return
+	}
+	if _, ok := updates["password"]; ok {
+		utils.BadRequest(ctx, "密码需要单独处理")
+		return
+	}
+
+	if len(updates) == 0 {
+		utils.BadRequest(ctx, "没有可更新的字段")
+		return
+	}
+
 	if err := c.userService.UpdateUser(id, updates); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
