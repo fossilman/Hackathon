@@ -12,7 +12,7 @@ import {
   Card,
   Tag,
 } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined } from '@ant-design/icons'
 import request from '../api/request'
 
 interface User {
@@ -33,8 +33,11 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [resettingUser, setResettingUser] = useState<User | null>(null)
   const [form] = Form.useForm()
+  const [passwordForm] = Form.useForm()
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -73,6 +76,26 @@ export default function UserManagement() {
       fetchUsers()
     } catch (error) {
       message.error('删除失败')
+    }
+  }
+
+  const handleResetPassword = (user: User) => {
+    setResettingUser(user)
+    passwordForm.resetFields()
+    setPasswordModalVisible(true)
+  }
+
+  const handleResetPasswordSubmit = async (values: any) => {
+    if (!resettingUser) return
+    try {
+      await request.post(`/users/${resettingUser.id}/reset-password`, {
+        password: values.password,
+      })
+      message.success('密码重置成功')
+      setPasswordModalVisible(false)
+      passwordForm.resetFields()
+    } catch (error) {
+      message.error('密码重置失败')
     }
   }
 
@@ -141,6 +164,14 @@ export default function UserManagement() {
             size="small"
           >
             编辑
+          </Button>
+          <Button
+            type="link"
+            icon={<LockOutlined />}
+            onClick={() => handleResetPassword(record)}
+            size="small"
+          >
+            重置密码
           </Button>
           <Popconfirm
             title="确定要删除这个用户吗？"
@@ -243,6 +274,36 @@ export default function UserManagement() {
           </Form.Item>
           <Form.Item name="phone" label="手机号">
             <Input placeholder="请输入手机号" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`重置密码 - ${resettingUser?.name}`}
+        open={passwordModalVisible}
+        onCancel={() => {
+          setPasswordModalVisible(false)
+          passwordForm.resetFields()
+        }}
+        onOk={() => passwordForm.submit()}
+        width={500}
+        destroyOnClose
+      >
+        <Form
+          form={passwordForm}
+          onFinish={handleResetPasswordSubmit}
+          layout="vertical"
+          size="large"
+        >
+          <Form.Item
+            name="password"
+            label="新密码"
+            rules={[
+              { required: true, message: '请输入新密码' },
+              { min: 8, message: '密码至少8位' },
+            ]}
+          >
+            <Input.Password placeholder="请输入新密码（至少8位）" />
           </Form.Item>
         </Form>
       </Modal>

@@ -132,3 +132,68 @@ func (s *UserService) DeleteUser(id uint64) error {
 	return database.DB.Where("id = ? AND deleted_at IS NULL", id).Delete(&models.User{}).Error
 }
 
+// ResetPassword 重置用户密码（Admin权限）
+func (s *UserService) ResetPassword(id uint64, newPassword string) error {
+	// 检查用户是否存在
+	var user models.User
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&user).Error; err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 加密新密码
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("密码加密失败: %w", err)
+	}
+
+	// 更新密码
+	return database.DB.Model(&models.User{}).Where("id = ?", id).Update("password", hashedPassword).Error
+}
+
+// UpdatePassword 更新当前用户密码
+func (s *UserService) UpdatePassword(userID uint64, oldPassword, newPassword string) error {
+	var user models.User
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", userID).First(&user).Error; err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 验证旧密码
+	if !utils.CheckPassword(oldPassword, user.Password) {
+		return errors.New("原密码错误")
+	}
+
+	// 加密新密码
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("密码加密失败: %w", err)
+	}
+
+	// 更新密码
+	return database.DB.Model(&models.User{}).Where("id = ?", userID).Update("password", hashedPassword).Error
+}
+
+// GetCurrentUser 获取当前用户信息
+func (s *UserService) GetCurrentUser(userID uint64) (*models.User, error) {
+	return s.GetUserByID(userID)
+}
+
+// UpdateCurrentUser 更新当前用户信息
+func (s *UserService) UpdateCurrentUser(userID uint64, updates map[string]interface{}) error {
+	// 不允许修改邮箱和角色
+	if _, ok := updates["email"]; ok {
+		return errors.New("不允许修改邮箱")
+	}
+	if _, ok := updates["role"]; ok {
+		return errors.New("不允许修改角色")
+	}
+	if _, ok := updates["password"]; ok {
+		return errors.New("密码需要单独处理")
+	}
+
+	if len(updates) == 0 {
+		return errors.New("没有可更新的字段")
+	}
+
+	return database.DB.Model(&models.User{}).Where("id = ? AND deleted_at IS NULL", userID).Updates(updates).Error
+}
+

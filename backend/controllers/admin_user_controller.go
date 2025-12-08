@@ -152,3 +152,28 @@ func (c *AdminUserController) DeleteUser(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
+// ResetPassword 重置用户密码（Admin权限）
+func (c *AdminUserController) ResetPassword(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的用户ID")
+		return
+	}
+
+	var req struct {
+		Password string `json:"password" binding:"required,min=8"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := c.userService.ResetPassword(id, req.Password); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+

@@ -11,6 +11,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 	adminAuthController := controllers.NewAdminAuthController()
 	adminUserController := controllers.NewAdminUserController()
 	adminHackathonController := controllers.NewAdminHackathonController()
+	adminDashboardController := controllers.NewAdminDashboardController()
 
 	api := router.Group("/api/v1/admin")
 	{
@@ -33,7 +34,19 @@ func SetupAdminRoutes(router *gin.Engine) {
 				users.GET("/:id", adminUserController.GetUserByID)
 				users.PATCH("/:id", adminUserController.UpdateUser)
 				users.DELETE("/:id", adminUserController.DeleteUser)
+				users.POST("/:id/reset-password", adminUserController.ResetPassword)
 			}
+
+			// 个人中心（所有角色）
+			profile := api.Group("/profile")
+			{
+				profile.GET("", adminAuthController.GetProfile)
+				profile.PATCH("", adminAuthController.UpdateProfile)
+				profile.POST("/change-password", adminAuthController.ChangePassword)
+			}
+
+			// 仪表盘（Organizer和Admin都可以）
+			api.GET("/dashboard", middleware.RoleMiddleware("organizer", "admin"), adminDashboardController.GetDashboard)
 
 			// 活动管理
 			hackathons := api.Group("/hackathons")
@@ -41,6 +54,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 				// 查看活动列表和详情（Organizer和Admin都可以）
 				hackathons.GET("", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonList)
 				hackathons.GET("/:id", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonByID)
+				hackathons.GET("/:id/stats", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonStats)
 
 				// 创建活动（仅Organizer）
 				hackathons.POST("", middleware.RoleMiddleware("organizer"), adminHackathonController.CreateHackathon)
@@ -52,9 +66,12 @@ func SetupAdminRoutes(router *gin.Engine) {
 
 				// 阶段管理（仅Organizer，且仅活动创建者）
 				hackathons.POST("/:id/stages/:stage/switch", middleware.RoleMiddleware("organizer"), adminHackathonController.SwitchStage)
+				hackathons.GET("/:id/stages", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetStageTimes)
+				hackathons.PUT("/:id/stages", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdateStageTimes)
 
 				// 归档活动（Organizer和Admin都可以，但需检查权限）
 				hackathons.POST("/:id/archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.ArchiveHackathon)
+				hackathons.POST("/:id/unarchive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.UnarchiveHackathon)
 				hackathons.POST("/batch-archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.BatchArchiveHackathons)
 			}
 		}

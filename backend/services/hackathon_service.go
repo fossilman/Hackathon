@@ -65,9 +65,20 @@ func (s *HackathonService) GetHackathonList(page, pageSize int, status, keyword,
 	}
 
 	// 排序
-	if sort == "created_at_asc" {
+	switch sort {
+	case "created_at_asc":
 		query = query.Order("created_at ASC")
-	} else {
+	case "created_at_desc":
+		query = query.Order("created_at DESC")
+	case "start_time_asc":
+		query = query.Order("start_time ASC")
+	case "start_time_desc":
+		query = query.Order("start_time DESC")
+	case "end_time_asc":
+		query = query.Order("end_time ASC")
+	case "end_time_desc":
+		query = query.Order("end_time DESC")
+	default:
 		query = query.Order("created_at DESC")
 	}
 
@@ -86,20 +97,27 @@ func (s *HackathonService) GetHackathonByID(id uint64) (*models.Hackathon, error
 		return nil, err
 	}
 
-	// 获取统计信息
-	var registrationCount, checkinCount, teamCount, submissionCount int64
+	return &hackathon, nil
+}
+
+// GetHackathonStats 获取活动统计信息
+func (s *HackathonService) GetHackathonStats(id uint64) (map[string]interface{}, error) {
+	stats := make(map[string]interface{})
+
+	var registrationCount, checkinCount, teamCount, submissionCount, voteCount int64
 	database.DB.Model(&models.Registration{}).Where("hackathon_id = ?", id).Count(&registrationCount)
 	database.DB.Model(&models.Checkin{}).Where("hackathon_id = ?", id).Count(&checkinCount)
 	database.DB.Model(&models.Team{}).Where("hackathon_id = ? AND deleted_at IS NULL", id).Count(&teamCount)
 	database.DB.Model(&models.Submission{}).Where("hackathon_id = ? AND draft = 0", id).Count(&submissionCount)
+	database.DB.Model(&models.Vote{}).Where("hackathon_id = ?", id).Count(&voteCount)
 
-	// 将统计信息添加到hackathon对象（这里简化处理，实际可以扩展模型）
-	_ = registrationCount
-	_ = checkinCount
-	_ = teamCount
-	_ = submissionCount
+	stats["registration_count"] = registrationCount
+	stats["checkin_count"] = checkinCount
+	stats["team_count"] = teamCount
+	stats["submission_count"] = submissionCount
+	stats["vote_count"] = voteCount
 
-	return &hackathon, nil
+	return stats, nil
 }
 
 // UpdateHackathon 更新活动
@@ -364,5 +382,121 @@ func (s *HackathonService) BatchArchiveHackathons(ids []uint64) error {
 		}
 		return nil
 	})
+}
+
+// UnarchiveHackathon 取消归档活动（恢复已归档的活动）
+func (s *HackathonService) UnarchiveHackathon(id uint64) error {
+	var hackathon models.Hackathon
+	if err := database.DB.Unscoped().Where("id = ? AND deleted_at IS NOT NULL", id).First(&hackathon).Error; err != nil {
+		return errors.New("活动不存在或未被归档")
+	}
+
+	// 恢复活动（取消软删除）
+	return database.DB.Unscoped().Model(&hackathon).Update("deleted_at", nil).Error
+}
+
+// UpdateStageTimes 更新活动阶段时间（仅活动创建者可设置）
+func (s *HackathonService) UpdateStageTimes(hackathonID uint64, stages []models.HackathonStage, userID uint64, userRole string) error {
+	// 检查活动是否存在
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
+		return errors.New("活动不存在")
+	}
+
+	// Admin不能设置阶段时间
+	if userRole == "admin" {
+		return errors.New("Admin不能设置活动阶段时间")
+	}
+
+	// 检查是否是活动创建者
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能设置自己创建的活动阶段时间")
+	}
+
+	// 验证阶段时间
+	if err := s.validateStageTimes(hackathonID, stages, &hackathon); err != nil {
+		return err
+	}
+
+	// 更新阶段时间
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// 删除旧阶段
+		if err := tx.Where("hackathon_id = ?", hackathonID).Delete(&models.HackathonStage{}).Error; err != nil {
+			return err
+		}
+
+		// 创建新阶段
+		for i := range stages {
+			stages[i].HackathonID = hackathonID
+			if err := tx.Create(&stages[i]).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+// GetStageTimes 获取活动阶段时间设置
+func (s *HackathonService) GetStageTimes(hackathonID uint64) ([]models.HackathonStage, error) {
+	var stages []models.HackathonStage
+	if err := database.DB.Where("hackathon_id = ?", hackathonID).Order("start_time ASC").Find(&stages).Error; err != nil {
+		return nil, err
+	}
+	return stages, nil
+}
+
+// validateStageTimes 验证阶段时间
+func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []models.HackathonStage, hackathon *models.Hackathon) error {
+	// 阶段顺序
+	stageOrder := map[string]int{
+		"registration":   1,
+		"checkin":        2,
+		"team_formation": 3,
+		"submission":     4,
+		"voting":          5,
+	}
+
+	// 检查每个阶段的时间
+	for _, stage := range stages {
+		// 开始时间不能早于活动开始时间
+		if stage.StartTime.Before(hackathon.StartTime) {
+			return fmt.Errorf("阶段 %s 的开始时间不能早于活动开始时间", stage.Stage)
+		}
+
+		// 结束时间不能晚于活动结束时间
+		if stage.EndTime.After(hackathon.EndTime) {
+			return fmt.Errorf("阶段 %s 的结束时间不能晚于活动结束时间", stage.Stage)
+		}
+
+		// 开始时间必须早于结束时间
+		if !stage.StartTime.Before(stage.EndTime) {
+			return fmt.Errorf("阶段 %s 的开始时间必须早于结束时间", stage.Stage)
+		}
+	}
+
+	// 检查阶段时间是否重叠
+	for i := 0; i < len(stages); i++ {
+		for j := i + 1; j < len(stages); j++ {
+			// 如果两个阶段的时间有重叠
+			if stages[i].StartTime.Before(stages[j].EndTime) && stages[j].StartTime.Before(stages[i].EndTime) {
+				return fmt.Errorf("阶段 %s 和 %s 的时间重叠", stages[i].Stage, stages[j].Stage)
+			}
+		}
+	}
+
+	// 检查阶段顺序（后一个阶段的开始时间不能早于前一个阶段的结束时间）
+	for i := 0; i < len(stages)-1; i++ {
+		for j := i + 1; j < len(stages); j++ {
+			if stageOrder[stages[i].Stage] < stageOrder[stages[j].Stage] {
+				// stages[i] 应该在 stages[j] 之前
+				if stages[j].StartTime.Before(stages[i].EndTime) {
+					return fmt.Errorf("阶段 %s 的开始时间不能早于阶段 %s 的结束时间", stages[j].Stage, stages[i].Stage)
+				}
+			}
+		}
+	}
+
+	return nil
 }
 

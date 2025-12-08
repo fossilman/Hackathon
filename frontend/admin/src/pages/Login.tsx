@@ -16,7 +16,12 @@ export default function Login() {
       const data = await login(values)
       setAuth(data.token, data.user)
       message.success('登录成功')
-      navigate('/')
+      // 根据角色跳转到不同页面
+      if (data.user.role === 'sponsor') {
+        navigate('/profile')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       message.error('登录失败')
     } finally {

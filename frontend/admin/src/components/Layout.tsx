@@ -21,20 +21,33 @@ export default function Layout() {
     navigate('/login')
   }
 
-  const menuItems: MenuProps['items'] = [
-    {
+  const menuItems: MenuProps['items'] = []
+
+  // 根据角色显示不同的菜单
+  if (user?.role === 'admin' || user?.role === 'organizer') {
+    menuItems.push({
+      key: '/dashboard',
+      icon: <TrophyOutlined />,
+      label: '仪表盘',
+    })
+    menuItems.push({
       key: '/hackathons',
       icon: <TrophyOutlined />,
       label: '活动管理',
-    },
-  ]
+    })
+  }
 
   if (user?.role === 'admin') {
-    menuItems.unshift({
+    menuItems.splice(1, 0, {
       key: '/users',
       icon: <UserOutlined />,
       label: '人员管理',
     })
+  }
+
+  // 赞助商第一期不显示菜单项（仅显示个人中心）
+  if (user?.role === 'sponsor') {
+    // 赞助商第一期功能待定，不显示菜单
   }
 
   const userMenuItems: MenuProps['items'] = [
@@ -42,7 +55,7 @@ export default function Layout() {
       key: 'profile',
       icon: <SettingOutlined />,
       label: '个人设置',
-      disabled: true,
+      onClick: () => navigate('/profile'),
     },
     {
       type: 'divider',

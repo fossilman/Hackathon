@@ -9,13 +9,25 @@ import {
   Tag,
   Spin,
   Divider,
+  Row,
+  Col,
+  Statistic,
+  Table,
+  Tabs,
+  Timeline,
 } from 'antd'
 import {
   EditOutlined,
   RocketOutlined,
   ArrowRightOutlined,
+  UserOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined,
+  SettingOutlined,
 } from '@ant-design/icons'
 import request from '../api/request'
+import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -43,13 +55,22 @@ export default function HackathonDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [hackathon, setHackathon] = useState<any>(null)
+  const [stats, setStats] = useState<any>(null)
+  const [stages, setStages] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const { user } = useAuthStore()
 
   const fetchDetail = async () => {
     setLoading(true)
     try {
-      const data = await request.get(`/hackathons/${id}`)
-      setHackathon(data)
+      const [hackathonData, statsData, stagesData] = await Promise.all([
+        request.get(`/hackathons/${id}`),
+        request.get(`/hackathons/${id}/stats`),
+        request.get(`/hackathons/${id}/stages`),
+      ])
+      setHackathon(hackathonData)
+      setStats(statsData)
+      setStages(stagesData || [])
     } catch (error) {
       message.error('获取活动详情失败')
     } finally {
@@ -87,6 +108,18 @@ export default function HackathonDetail() {
     return stageFlow.find((flow) => flow.from === hackathon?.status)
   }
 
+  const isCreator = hackathon?.organizer_id === user?.id
+  const canEdit = isCreator && hackathon?.status === 'preparation'
+  const canManageStages = isCreator
+
+  const stageLabels: Record<string, string> = {
+    registration: '报名阶段',
+    checkin: '签到阶段',
+    team_formation: '组队阶段',
+    submission: '提交阶段',
+    voting: '投票阶段',
+  }
+
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
@@ -114,23 +147,33 @@ export default function HackathonDetail() {
           </div>
         }
         extra={
-          hackathon.status === 'preparation' && (
-            <Space>
+          <Space>
+            {canEdit && (
+              <>
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={() => navigate(`/hackathons/${id}/edit`)}
+                >
+                  编辑
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<RocketOutlined />}
+                  onClick={handlePublish}
+                >
+                  发布活动
+                </Button>
+              </>
+            )}
+            {canManageStages && (
               <Button
-                icon={<EditOutlined />}
-                onClick={() => navigate(`/hackathons/${id}/edit`)}
+                icon={<SettingOutlined />}
+                onClick={() => navigate(`/hackathons/${id}/stages`)}
               >
-                编辑
+                阶段管理
               </Button>
-              <Button
-                type="primary"
-                icon={<RocketOutlined />}
-                onClick={handlePublish}
-              >
-                发布活动
-              </Button>
-            </Space>
-          )
+            )}
+          </Space>
         }
       >
         <Descriptions column={2} bordered>
@@ -171,10 +214,81 @@ export default function HackathonDetail() {
           </Descriptions.Item>
         </Descriptions>
 
-        {nextStage && (
+        {/* 统计信息 */}
+        <Divider orientation="left" style={{ marginTop: '32px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 600 }}>统计信息</span>
+        </Divider>
+        <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+          <Col xs={12} sm={8} lg={6}>
+            <Card>
+              <Statistic
+                title="报名人数"
+                value={stats?.registration_count || 0}
+                prefix={<UserOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} lg={6}>
+            <Card>
+              <Statistic
+                title="签到人数"
+                value={stats?.checkin_count || 0}
+                prefix={<UserOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} lg={6}>
+            <Card>
+              <Statistic
+                title="队伍数量"
+                value={stats?.team_count || 0}
+                prefix={<TeamOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={12} sm={8} lg={6}>
+            <Card>
+              <Statistic
+                title="作品数量"
+                value={stats?.submission_count || 0}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 阶段时间轴 */}
+        {stages.length > 0 && (
           <>
             <Divider orientation="left" style={{ marginTop: '32px' }}>
-              <span style={{ fontSize: '16px', fontWeight: 600 }}>阶段管理</span>
+              <span style={{ fontSize: '16px', fontWeight: 600 }}>阶段时间轴</span>
+            </Divider>
+            <Card style={{ marginTop: '16px' }}>
+              <Timeline>
+                {stages.map((stage) => (
+                  <Timeline.Item
+                    key={stage.stage}
+                    color={hackathon.status === stage.stage ? 'green' : 'blue'}
+                  >
+                    <div>
+                      <strong>{stageLabels[stage.stage] || stage.stage}</strong>
+                      <div style={{ marginTop: '8px', color: '#8c8c8c' }}>
+                        {dayjs(stage.start_time).format('YYYY-MM-DD HH:mm')} -{' '}
+                        {dayjs(stage.end_time).format('YYYY-MM-DD HH:mm')}
+                      </div>
+                    </div>
+                  </Timeline.Item>
+                ))}
+              </Timeline>
+            </Card>
+          </>
+        )}
+
+        {/* 阶段切换 */}
+        {nextStage && canManageStages && (
+          <>
+            <Divider orientation="left" style={{ marginTop: '32px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 600 }}>阶段切换</span>
             </Divider>
             <div style={{ marginTop: '16px' }}>
               <Space>

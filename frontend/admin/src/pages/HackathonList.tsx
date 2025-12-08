@@ -30,12 +30,13 @@ export default function HackathonList() {
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
+  const [sort, setSort] = useState('created_at_desc')
 
   const fetchHackathons = async () => {
     setLoading(true)
     try {
       const data = await request.get('/hackathons', {
-        params: { page: 1, page_size: 100, status },
+        params: { page: 1, page_size: 100, status, sort },
       })
       setHackathons(data.list || [])
     } catch (error) {
@@ -47,7 +48,7 @@ export default function HackathonList() {
 
   useEffect(() => {
     fetchHackathons()
-  }, [status])
+  }, [status, sort])
 
   const columns = [
     {
@@ -122,19 +123,34 @@ export default function HackathonList() {
       <div className="page-header">
         <div>
           <h2 className="page-title">活动管理</h2>
-          <Select
-            placeholder="筛选状态"
-            allowClear
-            style={{ width: 200, marginTop: '8px' }}
-            value={status}
-            onChange={setStatus}
-          >
-            {Object.entries(statusMap).map(([key, value]) => (
-              <Select.Option key={key} value={key}>
-                {value.label}
-              </Select.Option>
-            ))}
-          </Select>
+          <Space style={{ marginTop: '8px' }}>
+            <Select
+              placeholder="筛选状态"
+              allowClear
+              style={{ width: 200 }}
+              value={status}
+              onChange={setStatus}
+            >
+              {Object.entries(statusMap).map(([key, value]) => (
+                <Select.Option key={key} value={key}>
+                  {value.label}
+                </Select.Option>
+              ))}
+            </Select>
+            <Select
+              placeholder="排序方式"
+              style={{ width: 200 }}
+              value={sort}
+              onChange={setSort}
+            >
+              <Select.Option value="created_at_desc">创建时间（降序）</Select.Option>
+              <Select.Option value="created_at_asc">创建时间（升序）</Select.Option>
+              <Select.Option value="start_time_desc">开始时间（降序）</Select.Option>
+              <Select.Option value="start_time_asc">开始时间（升序）</Select.Option>
+              <Select.Option value="end_time_desc">结束时间（降序）</Select.Option>
+              <Select.Option value="end_time_asc">结束时间（升序）</Select.Option>
+            </Select>
+          </Space>
         </div>
         <Button
           type="primary"

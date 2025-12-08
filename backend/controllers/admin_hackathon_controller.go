@@ -254,3 +254,100 @@ func (c *AdminHackathonController) BatchArchiveHackathons(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
+// UnarchiveHackathon 取消归档活动（Admin和活动创建者可取消归档）
+func (c *AdminHackathonController) UnarchiveHackathon(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	// 检查权限：Admin或活动创建者可以取消归档
+	if role.(string) != "admin" {
+		// 检查是否是活动创建者
+		isCreator, err := c.hackathonService.CheckHackathonCreator(id, userID.(uint64))
+		if err != nil {
+			utils.BadRequest(ctx, "活动不存在")
+			return
+		}
+		if !isCreator {
+			utils.Forbidden(ctx, "只能取消归档自己创建的活动")
+			return
+		}
+	}
+
+	if err := c.hackathonService.UnarchiveHackathon(id); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// UpdateStageTimes 更新活动阶段时间（仅活动创建者可设置）
+func (c *AdminHackathonController) UpdateStageTimes(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	// 获取当前用户信息
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	var req struct {
+		Stages []models.HackathonStage `json:"stages" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := c.hackathonService.UpdateStageTimes(id, req.Stages, userID.(uint64), role.(string)); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// GetStageTimes 获取活动阶段时间设置
+func (c *AdminHackathonController) GetStageTimes(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	stages, err := c.hackathonService.GetStageTimes(id)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, stages)
+}
+
+// GetHackathonStats 获取活动统计信息
+func (c *AdminHackathonController) GetHackathonStats(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	stats, err := c.hackathonService.GetHackathonStats(id)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, stats)
+}
+
