@@ -1,0 +1,179 @@
+<testsuites id="" name="" tests="5" failures="4" skipped="0" errors="0" time="113.97119900000001">
+<testsuite name="01-auth.spec.ts" timestamp="2025-12-08T08:24:22.097Z" hostname="chromium" tests="5" failures="4" skipped="0" time="130.155" errors="0">
+<testcase name="用户认证模块 › 所有角色都可以登录" classname="01-auth.spec.ts" time="32.089">
+<failure message="01-auth.spec.ts:14:7 所有角色都可以登录" type="FAILURE">
+<![CDATA[  [chromium] › 01-auth.spec.ts:14:7 › 用户认证模块 › 所有角色都可以登录 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="email"]')
+
+
+       at setup/helpers.ts:13
+
+      11 |   
+      12 |   // 填写邮箱
+    > 13 |   await page.fill('input[name="email"]', user.email);
+         |              ^
+      14 |   
+      15 |   // 填写密码
+      16 |   await page.fill('input[type="password"]', user.password);
+        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:16:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="用户认证模块 › 登录后根据角色跳转" classname="01-auth.spec.ts" time="30.461">
+<failure message="01-auth.spec.ts:26:7 登录后根据角色跳转" type="FAILURE">
+<![CDATA[  [chromium] › 01-auth.spec.ts:26:7 › 用户认证模块 › 登录后根据角色跳转 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="email"]')
+
+
+       at setup/helpers.ts:13
+
+      11 |   
+      12 |   // 填写邮箱
+    > 13 |   await page.fill('input[name="email"]', user.email);
+         |              ^
+      14 |   
+      15 |   // 填写密码
+      16 |   await page.fill('input[type="password"]', user.password);
+        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:29:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="用户认证模块 › 所有角色都可以登出" classname="01-auth.spec.ts" time="32.028">
+<failure message="01-auth.spec.ts:52:7 所有角色都可以登出" type="FAILURE">
+<![CDATA[  [chromium] › 01-auth.spec.ts:52:7 › 用户认证模块 › 所有角色都可以登出 ───────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="email"]')
+
+
+       at setup/helpers.ts:13
+
+      11 |   
+      12 |   // 填写邮箱
+    > 13 |   await page.fill('input[name="email"]', user.email);
+         |              ^
+      14 |   
+      15 |   // 填写密码
+      16 |   await page.fill('input[type="password"]', user.password);
+        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:54:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="用户认证模块 › 未登录用户访问受保护页面会重定向到登录页" classname="01-auth.spec.ts" time="3.503">
+</testcase>
+<testcase name="用户认证模块 › 登录失败显示错误提示" classname="01-auth.spec.ts" time="32.074">
+<failure message="01-auth.spec.ts:74:7 登录失败显示错误提示" type="FAILURE">
+<![CDATA[  [chromium] › 01-auth.spec.ts:74:7 › 用户认证模块 › 登录失败显示错误提示 ──────────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.fill: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="email"]')
+
+
+      74 |   test('登录失败显示错误提示', async ({ page }) => {
+      75 |     await page.waitForLoadState('networkidle');
+    > 76 |     await page.fill('input[name="email"]', 'wrong@test.com');
+         |                ^
+      77 |     await page.fill('input[type="password"]', 'wrongpassword');
+      78 |     await page.click('button[type="submit"]');
+      79 |     
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:76:16
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

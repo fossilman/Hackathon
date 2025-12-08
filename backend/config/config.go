@@ -56,7 +56,7 @@ func LoadConfig() error {
 		DBName:         "hackathon_db",
 		JWTSecret:      "your-secret-key-change-in-production",
 		JWTExpireHours: 24,
-		ServerPort:     "8080",
+		ServerPort:     "8000",
 		ServerMode:     "debug",
 		CORSOrigins:    []string{"http://localhost:3000", "http://localhost:3001"},
 	}
