@@ -18,19 +18,19 @@
       [
         "html",
         {
-          "outputFolder": "./reports/html"
-        }
-      ],
-      [
-        "json",
-        {
-          "outputFile": "./reports/results.json"
+          "outputFolder": "reports/html"
         }
       ],
       [
         "junit",
         {
-          "outputFile": "./reports/junit.xml"
+          "outputFile": "reports/junit.xml"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "reports/results.json"
         }
       ]
     ],
@@ -63,319 +63,776 @@
     "updateSourceMethod": "patch",
     "version": "1.57.0",
     "workers": 2,
-    "webServer": null
+    "webServer": {
+      "command": "echo \"请确保后端服务运行在 http://localhost:8000，前端服务运行在 http://localhost:3000\"",
+      "port": 3000,
+      "reuseExistingServer": true
+    }
   },
   "suites": [
     {
-      "title": "01-auth.spec.ts",
-      "file": "01-auth.spec.ts",
+      "title": "07-profile.spec.ts",
+      "file": "07-profile.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "用户认证模块",
-          "file": "01-auth.spec.ts",
-          "line": 9,
+          "title": "个人中心",
+          "file": "07-profile.spec.ts",
+          "line": 8,
           "column": 6,
-          "specs": [
+          "specs": [],
+          "suites": [
             {
-              "title": "所有角色都可以登录",
-              "ok": false,
-              "tags": [],
-              "tests": [
+              "title": "所有角色",
+              "file": "07-profile.spec.ts",
+              "line": 9,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "Admin可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 0,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32089,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
-                            "column": 14,
-                            "line": 13
-                          },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   at setup/helpers.ts:13\n\n  11 |   \n  12 |   // 填写邮箱\n> 13 |   await page.fill('input[name=\"email\"]', user.email);\n     |              ^\n  14 |   \n  15 |   // 填写密码\n  16 |   await page.fill('input[type=\"password\"]', user.password);\n    at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:16:7"
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6160,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:17.692Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-08T08:24:23.610Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/error-context.md"
-                        }
-                      ]
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "791b3c4e0869e77b2651-8c2c05bf084c032e1a05",
-              "file": "01-auth.spec.ts",
-              "line": 14,
-              "column": 7
-            },
-            {
-              "title": "登录后根据角色跳转",
-              "ok": false,
-              "tags": [],
-              "tests": [
+                  "id": "2db9f63601dbcc8c56c9-65d0bddd847b45759a24",
+                  "file": "07-profile.spec.ts",
+                  "line": 10,
+                  "column": 9
+                },
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "主办方可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "timedOut",
-                      "duration": 30461,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
-                            "column": 14,
-                            "line": 13
-                          },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   at setup/helpers.ts:13\n\n  11 |   \n  12 |   // 填写邮箱\n> 13 |   await page.fill('input[name=\"email\"]', user.email);\n     |              ^\n  14 |   \n  15 |   // 填写密码\n  16 |   await page.fill('input[type=\"password\"]', user.password);\n    at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:29:5"
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 6301,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:17.677Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-08T08:24:23.603Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/error-context.md"
-                        }
-                      ]
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "791b3c4e0869e77b2651-c9e7508798c77f96cebd",
-              "file": "01-auth.spec.ts",
-              "line": 26,
-              "column": 7
-            },
-            {
-              "title": "所有角色都可以登出",
-              "ok": false,
-              "tags": [],
-              "tests": [
+                  "id": "2db9f63601dbcc8c56c9-983608f30dd46f4f319c",
+                  "file": "07-profile.spec.ts",
+                  "line": 16,
+                  "column": 9
+                },
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "赞助商可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 2,
-                      "parallelIndex": 1,
-                      "status": "timedOut",
-                      "duration": 32028,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
-                            "column": 14,
-                            "line": 13
-                          },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n   at setup/helpers.ts:13\n\n  11 |   \n  12 |   // 填写邮箱\n> 13 |   await page.fill('input[name=\"email\"]', user.email);\n     |              ^\n  14 |   \n  15 |   // 填写密码\n  16 |   await page.fill('input[type=\"password\"]', user.password);\n    at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:54:7"
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6128,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:24.122Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-08T08:25:36.734Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/error-context.md"
-                        }
-                      ]
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "2db9f63601dbcc8c56c9-1b3c4b98a8fc188a0efa",
+                  "file": "07-profile.spec.ts",
+                  "line": 22,
+                  "column": 9
                 }
-              ],
-              "id": "791b3c4e0869e77b2651-372aa962753feb0c2e3a",
-              "file": "01-auth.spec.ts",
-              "line": 52,
-              "column": 7
+              ]
             },
             {
-              "title": "未登录用户访问受保护页面会重定向到登录页",
-              "ok": true,
-              "tags": [],
-              "tests": [
+              "title": "查看个人信息",
+              "file": "07-profile.spec.ts",
+              "line": 29,
+              "column": 8,
+              "specs": [
                 {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
+                  "title": "可以查看姓名",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
                     {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 3503,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-08T08:25:39.088Z",
+                      "timeout": 30000,
                       "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "791b3c4e0869e77b2651-f0335e100d29f7a6215c",
-              "file": "01-auth.spec.ts",
-              "line": 61,
-              "column": 7
-            },
-            {
-              "title": "登录失败显示错误提示",
-              "ok": false,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "timedOut",
-                      "duration": 32074,
-                      "error": {
-                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                      },
-                      "errors": [
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
                         {
-                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                        },
-                        {
-                          "location": {
-                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts",
-                            "column": 16,
-                            "line": 76
-                          },
-                          "message": "Error: page.fill: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  74 |   test('登录失败显示错误提示', async ({ page }) => {\n  75 |     await page.waitForLoadState('networkidle');\n> 76 |     await page.fill('input[name=\"email\"]', 'wrong@test.com');\n     |                ^\n  77 |     await page.fill('input[type=\"password\"]', 'wrongpassword');\n  78 |     await page.click('button[type=\"submit\"]');\n  79 |     \n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:76:16"
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 6217,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:24.336Z",
+                          "annotations": [],
+                          "attachments": []
                         }
                       ],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-12-08T08:25:43.479Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/test-failed-1.png"
-                        },
-                        {
-                          "name": "video",
-                          "contentType": "video/webm",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/video.webm"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/error-context.md"
-                        }
-                      ]
+                      "status": "expected"
                     }
                   ],
-                  "status": "unexpected"
+                  "id": "2db9f63601dbcc8c56c9-ab426cab696c1cca4d2c",
+                  "file": "07-profile.spec.ts",
+                  "line": 30,
+                  "column": 9
+                },
+                {
+                  "title": "可以查看邮箱（只读）",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5233,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:30.273Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-7089a1e228607331a51f",
+                  "file": "07-profile.spec.ts",
+                  "line": 36,
+                  "column": 9
+                },
+                {
+                  "title": "可以查看角色（只读）",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5640,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:30.787Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-f5aa7c4611b15982824c",
+                  "file": "07-profile.spec.ts",
+                  "line": 44,
+                  "column": 9
+                },
+                {
+                  "title": "可以查看手机号",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5070,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:35.529Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-39a82c7f48e6e02d16f2",
+                  "file": "07-profile.spec.ts",
+                  "line": 52,
+                  "column": 9
                 }
-              ],
-              "id": "791b3c4e0869e77b2651-1e5b377b648086292c69",
-              "file": "01-auth.spec.ts",
-              "line": 74,
-              "column": 7
+              ]
+            },
+            {
+              "title": "修改个人信息",
+              "file": "07-profile.spec.ts",
+              "line": 59,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "可以修改姓名",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 11671,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:71:77",
+                            "location": {
+                              "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                              "column": 77,
+                              "line": 71
+                            },
+                            "snippet": "  69 |       // 验证修改成功\n  70 |       await page.reload()\n> 71 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  72 |     })\n  73 |\n  74 |     test('可以修改手机号', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 77,
+                                "line": 71
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n\n  69 |       // 验证修改成功\n  70 |       await page.reload()\n> 71 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  72 |     })\n  73 |\n  74 |     test('可以修改手机号', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:71:77"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:36.440Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                            "column": 77,
+                            "line": 71
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-f083e0bf7c2cc629f239",
+                  "file": "07-profile.spec.ts",
+                  "line": 60,
+                  "column": 9
+                },
+                {
+                  "title": "可以修改手机号",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 11071,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:85:78",
+                            "location": {
+                              "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                              "column": 78,
+                              "line": 85
+                            },
+                            "snippet": "  83 |       // 验证修改成功\n  84 |       await page.reload()\n> 85 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  86 |     })\n  87 |\n  88 |     test('不能修改邮箱', async ({ page }) => {"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 78,
+                                "line": 85
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n\n  83 |       // 验证修改成功\n  84 |       await page.reload()\n> 85 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  86 |     })\n  87 |\n  88 |     test('不能修改邮箱', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:85:78"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:40.617Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                            "column": 78,
+                            "line": 85
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-454a7f34ce6aa5d10349",
+                  "file": "07-profile.spec.ts",
+                  "line": 74,
+                  "column": 9
+                },
+                {
+                  "title": "不能修改邮箱",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5208,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:49.047Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-e6315a1b95e298067319",
+                  "file": "07-profile.spec.ts",
+                  "line": 88,
+                  "column": 9
+                },
+                {
+                  "title": "不能修改角色",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4963,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:52.558Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-b602dc56c9401d6db7b2",
+                  "file": "07-profile.spec.ts",
+                  "line": 101,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "修改密码",
+              "file": "07-profile.spec.ts",
+              "line": 113,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "可以打开修改密码对话框",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "timedOut",
+                          "duration": 31366,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 18,
+                                "line": 119
+                              },
+                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  117 |       \n  118 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 119 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  120 |       await expect(page.locator('[data-testid=\"profile-change-password-modal\"]')).toBeVisible()\n  121 |     })\n  122 |\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:119:18"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:54.512Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/error-context.md"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-0db281323d6fbf9883a4",
+                  "file": "07-profile.spec.ts",
+                  "line": 114,
+                  "column": 9
+                },
+                {
+                  "title": "修改密码需要填写原密码",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "timedOut",
+                          "duration": 32144,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 18,
+                                "line": 128
+                              },
+                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    56 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  126 |       \n  127 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 128 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  129 |       \n  130 |       // 只填写新密码，不填原密码\n  131 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', 'NewPassword123')\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:128:18"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:36:57.702Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/error-context.md"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-0ec6c130898a6ee5bb93",
+                  "file": "07-profile.spec.ts",
+                  "line": 123,
+                  "column": 9
+                },
+                {
+                  "title": "新密码至少8位",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 1,
+                          "status": "timedOut",
+                          "duration": 31348,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 18,
+                                "line": 145
+                              },
+                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  143 |       \n  144 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 145 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  146 |       \n  147 |       await page.fill('[data-testid=\"profile-change-password-form-old-password-input\"]', TEST_USERS.admin.password)\n  148 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', '1234567') // 只有7位\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:145:18"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:37:26.971Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/error-context.md"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-4b6c3f4f9147d3c9025a",
+                  "file": "07-profile.spec.ts",
+                  "line": 140,
+                  "column": 9
+                },
+                {
+                  "title": "确认密码必须与新密码一致",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 0,
+                          "status": "timedOut",
+                          "duration": 31397,
+                          "error": {
+                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                          },
+                          "errors": [
+                            {
+                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                            },
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
+                                "column": 18,
+                                "line": 162
+                              },
+                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  160 |       \n  161 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 162 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  163 |       \n  164 |       await page.fill('[data-testid=\"profile-change-password-form-old-password-input\"]', TEST_USERS.admin.password)\n  165 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', 'NewPassword123')\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:162:18"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T05:37:30.707Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/error-context.md"
+                            }
+                          ]
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "2db9f63601dbcc8c56c9-35638bf656344d024046",
+                  "file": "07-profile.spec.ts",
+                  "line": 157,
+                  "column": 9
+                }
+              ]
             }
           ]
         }
@@ -384,11 +841,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-12-08T08:24:21.859Z",
-    "duration": 113971.19900000001,
-    "expected": 1,
+    "startTime": "2025-12-09T05:36:16.686Z",
+    "duration": 105645.29999999999,
+    "expected": 9,
     "skipped": 0,
-    "unexpected": 4,
+    "unexpected": 6,
     "flaky": 0
   }
 }

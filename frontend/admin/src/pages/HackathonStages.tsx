@@ -89,14 +89,16 @@ export default function HackathonStages() {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-testid="hackathon-stages-page">
       <Card
         title={
-          <div style={{ fontSize: '20px', fontWeight: 600 }}>
+          <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="hackathon-stages-title">
             <Space>
               <Button
                 icon={<ArrowLeftOutlined />}
                 onClick={() => navigate(`/hackathons/${id}`)}
+                data-testid="hackathon-stages-back-button"
+                aria-label="返回"
               >
                 返回
               </Button>
@@ -104,12 +106,14 @@ export default function HackathonStages() {
             </Space>
           </div>
         }
+        data-testid="hackathon-stages-card"
       >
         {hackathon && (
           <Alert
             message={`活动时间：${dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')} - ${dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}`}
             type="info"
             style={{ marginBottom: '24px' }}
+            data-testid="hackathon-stages-alert"
           />
         )}
 
@@ -118,6 +122,7 @@ export default function HackathonStages() {
           onFinish={handleSubmit}
           layout="vertical"
           size="large"
+          data-testid="hackathon-stages-form"
         >
           <Row gutter={[16, 16]}>
             {stageOptions.map((option) => (
@@ -134,6 +139,8 @@ export default function HackathonStages() {
                     format="YYYY-MM-DD HH:mm"
                     style={{ width: '100%' }}
                     placeholder={['开始时间', '结束时间']}
+                    data-testid={`hackathon-stages-form-${option.value}-picker`}
+                    aria-label={`${option.label}时间选择器`}
                   />
                 </Form.Item>
               </Col>
@@ -141,17 +148,24 @@ export default function HackathonStages() {
           </Row>
 
           <Form.Item style={{ marginTop: '24px' }}>
-            <Space>
+            <Space data-testid="hackathon-stages-form-actions">
               <Button
                 type="primary"
                 htmlType="submit"
                 icon={<SaveOutlined />}
                 loading={loading}
                 size="large"
+                data-testid="hackathon-stages-form-submit-button"
+                aria-label="保存"
               >
                 保存
               </Button>
-              <Button onClick={() => navigate(`/hackathons/${id}`)} size="large">
+              <Button 
+                onClick={() => navigate(`/hackathons/${id}`)} 
+                size="large"
+                data-testid="hackathon-stages-form-cancel-button"
+                aria-label="取消"
+              >
                 取消
               </Button>
             </Space>
@@ -160,9 +174,9 @@ export default function HackathonStages() {
 
         {/* 时间轴预览 */}
         {stages.length > 0 && (
-          <div style={{ marginTop: '32px' }}>
+          <div style={{ marginTop: '32px' }} data-testid="hackathon-stages-timeline">
             <h3 style={{ marginBottom: '16px' }}>时间轴预览</h3>
-            <Timeline>
+            <Timeline data-testid="hackathon-stages-timeline-list">
               {stages
                 .sort((a, b) =>
                   dayjs(a.start_time).isBefore(dayjs(b.start_time)) ? -1 : 1
@@ -172,7 +186,11 @@ export default function HackathonStages() {
                     (opt) => opt.value === stage.stage
                   )
                   return (
-                    <Timeline.Item key={stage.stage} color="blue">
+                    <Timeline.Item 
+                      key={stage.stage} 
+                      color="blue"
+                      data-testid={`hackathon-stages-timeline-item-${stage.stage}`}
+                    >
                       <div>
                         <strong>{option?.label || stage.stage}</strong>
                         <div style={{ marginTop: '8px', color: '#8c8c8c' }}>

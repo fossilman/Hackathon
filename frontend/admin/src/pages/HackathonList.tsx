@@ -94,12 +94,14 @@ export default function HackathonList() {
       width: 150,
       fixed: 'right' as const,
       render: (_: any, record: Hackathon) => (
-        <Space size="small">
+        <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
           <Button
             type="link"
             icon={<EyeOutlined />}
             onClick={() => navigate(`/hackathons/${record.id}`)}
             size="small"
+            data-testid={`hackathon-list-view-button-${record.id}`}
+            aria-label={`查看活动 ${record.name}`}
           >
             查看
           </Button>
@@ -109,6 +111,8 @@ export default function HackathonList() {
               icon={<EditOutlined />}
               onClick={() => navigate(`/hackathons/${record.id}/edit`)}
               size="small"
+              data-testid={`hackathon-list-edit-button-${record.id}`}
+              aria-label={`编辑活动 ${record.name}`}
             >
               编辑
             </Button>
@@ -119,20 +123,22 @@ export default function HackathonList() {
   ]
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-testid="hackathon-list-page">
       <div className="page-header">
         <div>
-          <h2 className="page-title">活动管理</h2>
-          <Space style={{ marginTop: '8px' }}>
+          <h2 className="page-title" data-testid="hackathon-list-title">活动管理</h2>
+          <Space style={{ marginTop: '8px' }} data-testid="hackathon-list-filters">
             <Select
               placeholder="筛选状态"
               allowClear
               style={{ width: 200 }}
               value={status}
               onChange={setStatus}
+              data-testid="hackathon-list-status-filter"
+              aria-label="筛选状态"
             >
               {Object.entries(statusMap).map(([key, value]) => (
-                <Select.Option key={key} value={key}>
+                <Select.Option key={key} value={key} data-testid={`hackathon-list-status-option-${key}`}>
                   {value.label}
                 </Select.Option>
               ))}
@@ -142,13 +148,15 @@ export default function HackathonList() {
               style={{ width: 200 }}
               value={sort}
               onChange={setSort}
+              data-testid="hackathon-list-sort-filter"
+              aria-label="排序方式"
             >
-              <Select.Option value="created_at_desc">创建时间（降序）</Select.Option>
-              <Select.Option value="created_at_asc">创建时间（升序）</Select.Option>
-              <Select.Option value="start_time_desc">开始时间（降序）</Select.Option>
-              <Select.Option value="start_time_asc">开始时间（升序）</Select.Option>
-              <Select.Option value="end_time_desc">结束时间（降序）</Select.Option>
-              <Select.Option value="end_time_asc">结束时间（升序）</Select.Option>
+              <Select.Option value="created_at_desc" data-testid="hackathon-list-sort-created-desc">创建时间（降序）</Select.Option>
+              <Select.Option value="created_at_asc" data-testid="hackathon-list-sort-created-asc">创建时间（升序）</Select.Option>
+              <Select.Option value="start_time_desc" data-testid="hackathon-list-sort-start-desc">开始时间（降序）</Select.Option>
+              <Select.Option value="start_time_asc" data-testid="hackathon-list-sort-start-asc">开始时间（升序）</Select.Option>
+              <Select.Option value="end_time_desc" data-testid="hackathon-list-sort-end-desc">结束时间（降序）</Select.Option>
+              <Select.Option value="end_time_asc" data-testid="hackathon-list-sort-end-asc">结束时间（升序）</Select.Option>
             </Select>
           </Space>
         </div>
@@ -157,11 +165,13 @@ export default function HackathonList() {
           icon={<PlusOutlined />}
           onClick={() => navigate('/hackathons/create')}
           size="large"
+          data-testid="hackathon-list-create-button"
+          aria-label="创建活动"
         >
           创建活动
         </Button>
       </div>
-      <Card>
+      <Card data-testid="hackathon-list-table-card">
         <Table
           columns={columns}
           dataSource={hackathons}
@@ -173,6 +183,7 @@ export default function HackathonList() {
             showTotal: (total) => `共 ${total} 条记录`,
             pageSizeOptions: ['10', '20', '50', '100'],
           }}
+          data-testid="hackathon-list-table"
         />
       </Card>
     </div>

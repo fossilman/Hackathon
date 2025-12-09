@@ -122,14 +122,14 @@ export default function HackathonDetail() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px' }}>
+      <div style={{ textAlign: 'center', padding: '50px' }} data-testid="hackathon-detail-loading">
         <Spin size="large" />
       </div>
     )
   }
 
   if (!hackathon) {
-    return <div>加载中...</div>
+    return <div data-testid="hackathon-detail-empty">加载中...</div>
   }
 
   const statusInfo = statusMap[hackathon.status] || {
@@ -139,20 +139,22 @@ export default function HackathonDetail() {
   const nextStage = getNextStage()
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-testid="hackathon-detail-page">
       <Card
         title={
-          <div style={{ fontSize: '20px', fontWeight: 600 }}>
+          <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="hackathon-detail-title">
             {hackathon.name}
           </div>
         }
         extra={
-          <Space>
+          <Space data-testid="hackathon-detail-actions">
             {canEdit && (
               <>
                 <Button
                   icon={<EditOutlined />}
                   onClick={() => navigate(`/hackathons/${id}/edit`)}
+                  data-testid="hackathon-detail-edit-button"
+                  aria-label="编辑活动"
                 >
                   编辑
                 </Button>
@@ -160,6 +162,8 @@ export default function HackathonDetail() {
                   type="primary"
                   icon={<RocketOutlined />}
                   onClick={handlePublish}
+                  data-testid="hackathon-detail-publish-button"
+                  aria-label="发布活动"
                 >
                   发布活动
                 </Button>
@@ -169,26 +173,29 @@ export default function HackathonDetail() {
               <Button
                 icon={<SettingOutlined />}
                 onClick={() => navigate(`/hackathons/${id}/stages`)}
+                data-testid="hackathon-detail-stages-button"
+                aria-label="阶段管理"
               >
                 阶段管理
               </Button>
             )}
           </Space>
         }
+        data-testid="hackathon-detail-card"
       >
-        <Descriptions column={2} bordered>
-          <Descriptions.Item label="状态">
-            <Tag color={statusInfo.color} style={{ fontSize: '14px' }}>
+        <Descriptions column={2} bordered data-testid="hackathon-detail-descriptions">
+          <Descriptions.Item label="状态" data-testid="hackathon-detail-status">
+            <Tag color={statusInfo.color} style={{ fontSize: '14px' }} data-testid="hackathon-detail-status-tag">
               {statusInfo.label}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="开始时间">
+          <Descriptions.Item label="开始时间" data-testid="hackathon-detail-start-time">
             {dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')}
           </Descriptions.Item>
-          <Descriptions.Item label="结束时间">
+          <Descriptions.Item label="结束时间" data-testid="hackathon-detail-end-time">
             {dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}
           </Descriptions.Item>
-          <Descriptions.Item label="地点类型">
+          <Descriptions.Item label="地点类型" data-testid="hackathon-detail-location-type">
             {hackathon.location_type === 'online'
               ? '线上'
               : hackathon.location_type === 'offline'
@@ -196,11 +203,11 @@ export default function HackathonDetail() {
               : '混合'}
           </Descriptions.Item>
           {hackathon.location_detail && (
-            <Descriptions.Item label="具体地址" span={2}>
+            <Descriptions.Item label="具体地址" span={2} data-testid="hackathon-detail-location-detail">
               {hackathon.location_detail}
             </Descriptions.Item>
           )}
-          <Descriptions.Item label="描述" span={2}>
+          <Descriptions.Item label="描述" span={2} data-testid="hackathon-detail-description">
             <div
               dangerouslySetInnerHTML={{ __html: hackathon.description }}
               style={{
@@ -210,48 +217,53 @@ export default function HackathonDetail() {
                 background: '#fafafa',
                 borderRadius: '8px',
               }}
+              data-testid="hackathon-detail-description-content"
             />
           </Descriptions.Item>
         </Descriptions>
 
         {/* 统计信息 */}
-        <Divider orientation="left" style={{ marginTop: '32px' }}>
+        <Divider orientation="left" style={{ marginTop: '32px' }} data-testid="hackathon-detail-stats-divider">
           <span style={{ fontSize: '16px', fontWeight: 600 }}>统计信息</span>
         </Divider>
-        <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
+        <Row gutter={[16, 16]} style={{ marginTop: '16px' }} data-testid="hackathon-detail-stats">
           <Col xs={12} sm={8} lg={6}>
-            <Card>
+            <Card data-testid="hackathon-detail-stat-registration">
               <Statistic
                 title="报名人数"
                 value={stats?.registration_count || 0}
                 prefix={<UserOutlined />}
+                data-testid="hackathon-detail-stat-registration-value"
               />
             </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card>
+            <Card data-testid="hackathon-detail-stat-checkin">
               <Statistic
                 title="签到人数"
                 value={stats?.checkin_count || 0}
                 prefix={<UserOutlined />}
+                data-testid="hackathon-detail-stat-checkin-value"
               />
             </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card>
+            <Card data-testid="hackathon-detail-stat-team">
               <Statistic
                 title="队伍数量"
                 value={stats?.team_count || 0}
                 prefix={<TeamOutlined />}
+                data-testid="hackathon-detail-stat-team-value"
               />
             </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card>
+            <Card data-testid="hackathon-detail-stat-submission">
               <Statistic
                 title="作品数量"
                 value={stats?.submission_count || 0}
                 prefix={<FileTextOutlined />}
+                data-testid="hackathon-detail-stat-submission-value"
               />
             </Card>
           </Col>
@@ -260,15 +272,16 @@ export default function HackathonDetail() {
         {/* 阶段时间轴 */}
         {stages.length > 0 && (
           <>
-            <Divider orientation="left" style={{ marginTop: '32px' }}>
+            <Divider orientation="left" style={{ marginTop: '32px' }} data-testid="hackathon-detail-timeline-divider">
               <span style={{ fontSize: '16px', fontWeight: 600 }}>阶段时间轴</span>
             </Divider>
-            <Card style={{ marginTop: '16px' }}>
-              <Timeline>
+            <Card style={{ marginTop: '16px' }} data-testid="hackathon-detail-timeline-card">
+              <Timeline data-testid="hackathon-detail-timeline">
                 {stages.map((stage) => (
                   <Timeline.Item
                     key={stage.stage}
                     color={hackathon.status === stage.stage ? 'green' : 'blue'}
+                    data-testid={`hackathon-detail-timeline-item-${stage.stage}`}
                   >
                     <div>
                       <strong>{stageLabels[stage.stage] || stage.stage}</strong>
@@ -287,22 +300,24 @@ export default function HackathonDetail() {
         {/* 阶段切换 */}
         {nextStage && canManageStages && (
           <>
-            <Divider orientation="left" style={{ marginTop: '32px' }}>
+            <Divider orientation="left" style={{ marginTop: '32px' }} data-testid="hackathon-detail-stage-switch-divider">
               <span style={{ fontSize: '16px', fontWeight: 600 }}>阶段切换</span>
             </Divider>
-            <div style={{ marginTop: '16px' }}>
+            <div style={{ marginTop: '16px' }} data-testid="hackathon-detail-stage-switch">
               <Space>
                 <span style={{ color: '#8c8c8c' }}>当前阶段：</span>
-                <Tag color={statusInfo.color}>{statusInfo.label}</Tag>
+                <Tag color={statusInfo.color} data-testid="hackathon-detail-current-stage-tag">{statusInfo.label}</Tag>
                 <ArrowRightOutlined style={{ color: '#8c8c8c' }} />
                 <span style={{ color: '#8c8c8c' }}>下一阶段：</span>
-                <Tag color={statusMap[nextStage.to]?.color || 'default'}>
+                <Tag color={statusMap[nextStage.to]?.color || 'default'} data-testid="hackathon-detail-next-stage-tag">
                   {nextStage.label}
                 </Tag>
                 <Button
                   type="primary"
                   onClick={() => handleSwitchStage(nextStage.to)}
                   style={{ marginLeft: '16px' }}
+                  data-testid="hackathon-detail-switch-stage-button"
+                  aria-label={`切换到 ${nextStage.label}`}
                 >
                   切换到 {nextStage.label}
                 </Button>

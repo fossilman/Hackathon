@@ -29,11 +29,13 @@ export default function Layout() {
       key: '/dashboard',
       icon: <TrophyOutlined />,
       label: '仪表盘',
+      'data-testid': 'admin-menu-dashboard',
     })
     menuItems.push({
       key: '/hackathons',
       icon: <TrophyOutlined />,
       label: '活动管理',
+      'data-testid': 'admin-menu-hackathons',
     })
   }
 
@@ -42,6 +44,7 @@ export default function Layout() {
       key: '/users',
       icon: <UserOutlined />,
       label: '人员管理',
+      'data-testid': 'admin-menu-users',
     })
   }
 
@@ -56,6 +59,7 @@ export default function Layout() {
       icon: <SettingOutlined />,
       label: '个人设置',
       onClick: () => navigate('/profile'),
+      'data-testid': 'admin-menu-profile',
     },
     {
       type: 'divider',
@@ -66,11 +70,12 @@ export default function Layout() {
       label: '退出登录',
       danger: true,
       onClick: handleLogout,
+      'data-testid': 'admin-menu-logout',
     },
   ]
 
   return (
-    <AntLayout style={{ minHeight: '100vh' }}>
+    <AntLayout style={{ minHeight: '100vh' }} data-testid="admin-layout">
       <Header
         style={{
           display: 'flex',
@@ -84,6 +89,7 @@ export default function Layout() {
           top: 0,
           zIndex: 100,
         }}
+        data-testid="admin-header"
       >
         <div
           style={{
@@ -92,16 +98,19 @@ export default function Layout() {
             fontWeight: 600,
             letterSpacing: '0.5px',
           }}
+          data-testid="admin-header-title"
         >
           🏆 Hackathon Admin Platform
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '14px', opacity: 0.9 }}>{user?.name}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} data-testid="admin-header-actions">
+          <span style={{ fontSize: '14px', opacity: 0.9 }} data-testid="admin-user-name">{user?.name}</span>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Button
               type="text"
               icon={<LogoutOutlined />}
               style={{ color: '#fff' }}
+              data-testid="admin-user-menu-button"
+              aria-label="用户菜单"
             >
               退出
             </Button>
@@ -115,6 +124,7 @@ export default function Layout() {
             background: '#fff',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.06)',
           }}
+          data-testid="admin-sider"
         >
           <Menu
             mode="inline"
@@ -126,6 +136,7 @@ export default function Layout() {
               borderRight: 0,
               paddingTop: '16px',
             }}
+            data-testid="admin-sidebar-menu"
           />
         </Sider>
         <Content
@@ -134,6 +145,7 @@ export default function Layout() {
             background: '#f5f7fa',
             minHeight: 'calc(100vh - 64px)',
           }}
+          data-testid="admin-content"
         >
           <Outlet />
         </Content>

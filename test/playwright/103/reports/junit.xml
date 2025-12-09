@@ -1,177 +1,286 @@
-<testsuites id="" name="" tests="5" failures="4" skipped="0" errors="0" time="113.97119900000001">
-<testsuite name="01-auth.spec.ts" timestamp="2025-12-08T08:24:22.097Z" hostname="chromium" tests="5" failures="4" skipped="0" time="130.155" errors="0">
-<testcase name="用户认证模块 › 所有角色都可以登录" classname="01-auth.spec.ts" time="32.089">
-<failure message="01-auth.spec.ts:14:7 所有角色都可以登录" type="FAILURE">
-<![CDATA[  [chromium] › 01-auth.spec.ts:14:7 › 用户认证模块 › 所有角色都可以登录 ───────────────────────────────────────────
+<testsuites id="" name="" tests="15" failures="6" skipped="0" errors="0" time="105.64529999999999">
+<testsuite name="07-profile.spec.ts" timestamp="2025-12-09T05:36:16.805Z" hostname="chromium" tests="15" failures="6" skipped="0" time="199.917" errors="0">
+<testcase name="个人中心 › 所有角色 › Admin可以访问个人中心" classname="07-profile.spec.ts" time="6.16">
+</testcase>
+<testcase name="个人中心 › 所有角色 › 主办方可以访问个人中心" classname="07-profile.spec.ts" time="6.301">
+</testcase>
+<testcase name="个人中心 › 所有角色 › 赞助商可以访问个人中心" classname="07-profile.spec.ts" time="6.128">
+</testcase>
+<testcase name="个人中心 › 查看个人信息 › 可以查看姓名" classname="07-profile.spec.ts" time="6.217">
+</testcase>
+<testcase name="个人中心 › 查看个人信息 › 可以查看邮箱（只读）" classname="07-profile.spec.ts" time="5.233">
+</testcase>
+<testcase name="个人中心 › 查看个人信息 › 可以查看角色（只读）" classname="07-profile.spec.ts" time="5.64">
+</testcase>
+<testcase name="个人中心 › 查看个人信息 › 可以查看手机号" classname="07-profile.spec.ts" time="5.07">
+</testcase>
+<testcase name="个人中心 › 修改个人信息 › 可以修改姓名" classname="07-profile.spec.ts" time="11.671">
+<failure message="07-profile.spec.ts:60:9 可以修改姓名" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:60:9 › 个人中心 › 修改个人信息 › 可以修改姓名 ────────────────────────────────────
 
-    Test timeout of 30000ms exceeded.
+    Error: expect(locator).toHaveValue(expected) failed
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Locator:  locator('[data-testid="profile-form-name-input"]')
+    Expected: "新姓名1765258601196"
+    Received: "新姓名1765257956375"
+    Timeout:  5000ms
+
     Call log:
-      - waiting for locator('input[name="email"]')
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('[data-testid="profile-form-name-input"]')
+        8 × locator resolved to <input id="name" type="text" aria-label="姓名输入框" placeholder="请输入姓名" aria-required="true" value="新姓名1765257956375" data-testid="profile-form-name-input" class="ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success"/>
+          - unexpected value "新姓名1765257956375"
 
 
-       at setup/helpers.ts:13
-
-      11 |   
-      12 |   // 填写邮箱
-    > 13 |   await page.fill('input[name="email"]', user.email);
-         |              ^
-      14 |   
-      15 |   // 填写密码
-      16 |   await page.fill('input[type="password"]', user.password);
-        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
-        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:16:7
+      69 |       // 验证修改成功
+      70 |       await page.reload()
+    > 71 |       await expect(page.locator('[data-testid="profile-form-name-input"]')).toHaveValue(newName)
+         |                                                                             ^
+      72 |     })
+      73 |
+      74 |     test('可以修改手机号', async ({ page }) => {
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:71:77
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/test-failed-1.png
+    ../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/video.webm
+    ../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/error-context.md
+    Error Context: ../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/test-failed-1.png]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/video.webm]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/video.webm]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登录-chromium/error-context.md]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改姓名-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="用户认证模块 › 登录后根据角色跳转" classname="01-auth.spec.ts" time="30.461">
-<failure message="01-auth.spec.ts:26:7 登录后根据角色跳转" type="FAILURE">
-<![CDATA[  [chromium] › 01-auth.spec.ts:26:7 › 用户认证模块 › 登录后根据角色跳转 ───────────────────────────────────────────
+<testcase name="个人中心 › 修改个人信息 › 可以修改手机号" classname="07-profile.spec.ts" time="11.071">
+<failure message="07-profile.spec.ts:74:9 可以修改手机号" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:74:9 › 个人中心 › 修改个人信息 › 可以修改手机号 ───────────────────────────────────
 
-    Test timeout of 30000ms exceeded.
+    Error: expect(locator).toHaveValue(expected) failed
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Locator:  locator('[data-testid="profile-form-phone-input"]')
+    Expected: "13858605204"
+    Received: "13800006375"
+    Timeout:  5000ms
+
     Call log:
-      - waiting for locator('input[name="email"]')
+      - Expect "toHaveValue" with timeout 5000ms
+      - waiting for locator('[data-testid="profile-form-phone-input"]')
+        - locator resolved to <input value="" id="phone" type="text" aria-label="手机号输入框" placeholder="请输入手机号" data-testid="profile-form-phone-input" class="ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined"/>
+        - unexpected value ""
+        7 × locator resolved to <input id="phone" type="text" aria-label="手机号输入框" value="13800006375" placeholder="请输入手机号" data-testid="profile-form-phone-input" class="ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success"/>
+          - unexpected value "13800006375"
 
 
-       at setup/helpers.ts:13
-
-      11 |   
-      12 |   // 填写邮箱
-    > 13 |   await page.fill('input[name="email"]', user.email);
-         |              ^
-      14 |   
-      15 |   // 填写密码
-      16 |   await page.fill('input[type="password"]', user.password);
-        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
-        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:29:5
+      83 |       // 验证修改成功
+      84 |       await page.reload()
+    > 85 |       await expect(page.locator('[data-testid="profile-form-phone-input"]')).toHaveValue(newPhone)
+         |                                                                              ^
+      86 |     })
+      87 |
+      88 |     test('不能修改邮箱', async ({ page }) => {
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:85:78
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/test-failed-1.png
+    ../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/video.webm
+    ../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/error-context.md
+    Error Context: ../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/test-failed-1.png]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/video.webm]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/video.webm]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录后根据角色跳转-chromium/error-context.md]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改个人信息-可以修改手机号-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="用户认证模块 › 所有角色都可以登出" classname="01-auth.spec.ts" time="32.028">
-<failure message="01-auth.spec.ts:52:7 所有角色都可以登出" type="FAILURE">
-<![CDATA[  [chromium] › 01-auth.spec.ts:52:7 › 用户认证模块 › 所有角色都可以登出 ───────────────────────────────────────────
+<testcase name="个人中心 › 修改个人信息 › 不能修改邮箱" classname="07-profile.spec.ts" time="5.208">
+</testcase>
+<testcase name="个人中心 › 修改个人信息 › 不能修改角色" classname="07-profile.spec.ts" time="4.963">
+</testcase>
+<testcase name="个人中心 › 修改密码 › 可以打开修改密码对话框" classname="07-profile.spec.ts" time="31.366">
+<failure message="07-profile.spec.ts:114:9 可以打开修改密码对话框" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:114:9 › 个人中心 › 修改密码 › 可以打开修改密码对话框 ────────────────────────────────
 
     Test timeout of 30000ms exceeded.
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
     Call log:
-      - waiting for locator('input[name="email"]')
+      - waiting for locator('[data-testid="profile-change-password-modal"]') to be visible
+        55 × locator resolved to hidden <div data-testid="profile-change-password-modal" class="ant-modal-root css-dev-only-do-not-override-198drv2">…</div>
 
 
-       at setup/helpers.ts:13
-
-      11 |   
-      12 |   // 填写邮箱
-    > 13 |   await page.fill('input[name="email"]', user.email);
-         |              ^
-      14 |   
-      15 |   // 填写密码
-      16 |   await page.fill('input[type="password"]', user.password);
-        at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:13:14)
-        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:54:7
+      117 |       
+      118 |       await page.click('[data-testid="profile-form-change-password-button"]')
+    > 119 |       await page.waitForSelector('[data-testid="profile-change-password-modal"]')
+          |                  ^
+      120 |       await expect(page.locator('[data-testid="profile-change-password-modal"]')).toBeVisible()
+      121 |     })
+      122 |
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:119:18
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/test-failed-1.png
+    ../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/video.webm
+    ../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/error-context.md
+    Error Context: ../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/test-failed-1.png]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/video.webm]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/video.webm]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-所有角色都可以登出-chromium/error-context.md]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="用户认证模块 › 未登录用户访问受保护页面会重定向到登录页" classname="01-auth.spec.ts" time="3.503">
-</testcase>
-<testcase name="用户认证模块 › 登录失败显示错误提示" classname="01-auth.spec.ts" time="32.074">
-<failure message="01-auth.spec.ts:74:7 登录失败显示错误提示" type="FAILURE">
-<![CDATA[  [chromium] › 01-auth.spec.ts:74:7 › 用户认证模块 › 登录失败显示错误提示 ──────────────────────────────────────────
+<testcase name="个人中心 › 修改密码 › 修改密码需要填写原密码" classname="07-profile.spec.ts" time="32.144">
+<failure message="07-profile.spec.ts:123:9 修改密码需要填写原密码" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:123:9 › 个人中心 › 修改密码 › 修改密码需要填写原密码 ────────────────────────────────
 
     Test timeout of 30000ms exceeded.
 
-    Error: page.fill: Test timeout of 30000ms exceeded.
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
     Call log:
-      - waiting for locator('input[name="email"]')
+      - waiting for locator('[data-testid="profile-change-password-modal"]') to be visible
+        56 × locator resolved to hidden <div data-testid="profile-change-password-modal" class="ant-modal-root css-dev-only-do-not-override-198drv2">…</div>
 
 
-      74 |   test('登录失败显示错误提示', async ({ page }) => {
-      75 |     await page.waitForLoadState('networkidle');
-    > 76 |     await page.fill('input[name="email"]', 'wrong@test.com');
-         |                ^
-      77 |     await page.fill('input[type="password"]', 'wrongpassword');
-      78 |     await page.click('button[type="submit"]');
-      79 |     
-        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:76:16
+      126 |       
+      127 |       await page.click('[data-testid="profile-form-change-password-button"]')
+    > 128 |       await page.waitForSelector('[data-testid="profile-change-password-modal"]')
+          |                  ^
+      129 |       
+      130 |       // 只填写新密码，不填原密码
+      131 |       await page.fill('[data-testid="profile-change-password-form-new-password-input"]', 'NewPassword123')
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:128:18
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/test-failed-1.png
+    ../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/video.webm
+    ../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: ../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/error-context.md
+    Error Context: ../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
 <![CDATA[
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/test-failed-1.png]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/test-failed-1.png]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/video.webm]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/video.webm]]
 
-[[ATTACHMENT|../test-results/01-auth-用户认证模块-登录失败显示错误提示-chromium/error-context.md]]
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-修改密码需要填写原密码-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="个人中心 › 修改密码 › 新密码至少8位" classname="07-profile.spec.ts" time="31.348">
+<failure message="07-profile.spec.ts:140:9 新密码至少8位" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:140:9 › 个人中心 › 修改密码 › 新密码至少8位 ────────────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="profile-change-password-modal"]') to be visible
+        55 × locator resolved to hidden <div data-testid="profile-change-password-modal" class="ant-modal-root css-dev-only-do-not-override-198drv2">…</div>
+
+
+      143 |       
+      144 |       await page.click('[data-testid="profile-form-change-password-button"]')
+    > 145 |       await page.waitForSelector('[data-testid="profile-change-password-modal"]')
+          |                  ^
+      146 |       
+      147 |       await page.fill('[data-testid="profile-change-password-form-old-password-input"]', TEST_USERS.admin.password)
+      148 |       await page.fill('[data-testid="profile-change-password-form-new-password-input"]', '1234567') // 只有7位
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:145:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-新密码至少8位-chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="个人中心 › 修改密码 › 确认密码必须与新密码一致" classname="07-profile.spec.ts" time="31.397">
+<failure message="07-profile.spec.ts:157:9 确认密码必须与新密码一致" type="FAILURE">
+<![CDATA[  [chromium] › 07-profile.spec.ts:157:9 › 个人中心 › 修改密码 › 确认密码必须与新密码一致 ───────────────────────────────
+
+    Test timeout of 30000ms exceeded.
+
+    Error: page.waitForSelector: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="profile-change-password-modal"]') to be visible
+        55 × locator resolved to hidden <div data-testid="profile-change-password-modal" class="ant-modal-root css-dev-only-do-not-override-198drv2">…</div>
+
+
+      160 |       
+      161 |       await page.click('[data-testid="profile-form-change-password-button"]')
+    > 162 |       await page.waitForSelector('[data-testid="profile-change-password-modal"]')
+          |                  ^
+      163 |       
+      164 |       await page.fill('[data-testid="profile-change-password-form-old-password-input"]', TEST_USERS.admin.password)
+      165 |       await page.fill('[data-testid="profile-change-password-form-new-password-input"]', 'NewPassword123')
+        at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:162:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/video.webm]]
+
+[[ATTACHMENT|../test-results/07-profile-个人中心-修改密码-确认密码必须与新密码一致-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>

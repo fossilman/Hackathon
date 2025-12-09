@@ -72,13 +72,14 @@ export default function HackathonCreate() {
   }
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-testid="hackathon-create-page">
       <Card
         title={
-          <div style={{ fontSize: '20px', fontWeight: 600 }}>
+          <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="hackathon-create-title">
             {isEdit ? '编辑活动' : '创建活动'}
           </div>
         }
+        data-testid="hackathon-create-card"
       >
         <Form
           form={form}
@@ -86,13 +87,18 @@ export default function HackathonCreate() {
           layout="vertical"
           size="large"
           initialValues={{ location_type: 'online', max_team_size: 3 }}
+          data-testid="hackathon-create-form"
         >
           <Form.Item
             name="name"
             label="活动名称"
             rules={[{ required: true, message: '请输入活动名称' }]}
           >
-            <Input placeholder="请输入活动名称" />
+            <Input 
+              placeholder="请输入活动名称" 
+              data-testid="hackathon-create-form-name-input"
+              aria-label="活动名称输入框"
+            />
           </Form.Item>
 
           <Form.Item
@@ -100,13 +106,16 @@ export default function HackathonCreate() {
             label="活动描述"
             rules={[{ required: true, message: '请输入活动描述' }]}
           >
-            <ReactQuill
-              theme="snow"
-              style={{
-                background: '#fff',
-                borderRadius: '8px',
-              }}
-            />
+            <div data-testid="hackathon-create-form-description-editor">
+              <ReactQuill
+                theme="snow"
+                style={{
+                  background: '#fff',
+                  borderRadius: '8px',
+                }}
+                data-testid="hackathon-create-form-description-quill"
+              />
+            </div>
           </Form.Item>
 
           <Row gutter={16}>
@@ -120,6 +129,8 @@ export default function HackathonCreate() {
                   showTime
                   format="YYYY-MM-DD HH:mm"
                   style={{ width: '100%' }}
+                  data-testid="hackathon-create-form-time-range-picker"
+                  aria-label="活动时间选择器"
                 />
               </Form.Item>
             </Col>
@@ -129,10 +140,14 @@ export default function HackathonCreate() {
                 label="地点类型"
                 rules={[{ required: true, message: '请选择地点类型' }]}
               >
-                <Select placeholder="请选择地点类型">
-                  <Select.Option value="online">线上</Select.Option>
-                  <Select.Option value="offline">线下</Select.Option>
-                  <Select.Option value="hybrid">混合</Select.Option>
+                <Select 
+                  placeholder="请选择地点类型"
+                  data-testid="hackathon-create-form-location-type-select"
+                  aria-label="地点类型选择框"
+                >
+                  <Select.Option value="online" data-testid="hackathon-create-form-location-online">线上</Select.Option>
+                  <Select.Option value="offline" data-testid="hackathon-create-form-location-offline">线下</Select.Option>
+                  <Select.Option value="hybrid" data-testid="hackathon-create-form-location-hybrid">混合</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -141,7 +156,11 @@ export default function HackathonCreate() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="location_detail" label="具体地址">
-                <Input placeholder="请输入具体地址（可选）" />
+                <Input 
+                  placeholder="请输入具体地址（可选）" 
+                  data-testid="hackathon-create-form-location-detail-input"
+                  aria-label="具体地址输入框"
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -158,17 +177,31 @@ export default function HackathonCreate() {
                   max={20}
                   placeholder="请输入队伍最大成员数"
                   style={{ width: '100%' }}
+                  data-testid="hackathon-create-form-max-team-size-input"
+                  aria-label="队伍最大成员数输入框"
                 />
               </Form.Item>
             </Col>
           </Row>
 
           <Form.Item style={{ marginTop: '24px', marginBottom: 0 }}>
-            <Space>
-              <Button type="primary" htmlType="submit" loading={loading} size="large">
+            <Space data-testid="hackathon-create-form-actions">
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                loading={loading} 
+                size="large"
+                data-testid="hackathon-create-form-submit-button"
+                aria-label={isEdit ? '更新活动按钮' : '创建活动按钮'}
+              >
                 {isEdit ? '更新' : '创建'}
               </Button>
-              <Button onClick={() => navigate('/hackathons')} size="large">
+              <Button 
+                onClick={() => navigate('/hackathons')} 
+                size="large"
+                data-testid="hackathon-create-form-cancel-button"
+                aria-label="取消按钮"
+              >
                 取消
               </Button>
             </Space>

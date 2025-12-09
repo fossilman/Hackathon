@@ -156,12 +156,14 @@ export default function UserManagement() {
       width: 150,
       fixed: 'right' as const,
       render: (_: any, record: User) => (
-        <Space size="small">
+        <Space size="small" data-testid={`user-management-actions-${record.id}`}>
           <Button
             type="link"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
             size="small"
+            data-testid={`user-management-edit-button-${record.id}`}
+            aria-label={`编辑用户 ${record.name}`}
           >
             编辑
           </Button>
@@ -170,6 +172,8 @@ export default function UserManagement() {
             icon={<LockOutlined />}
             onClick={() => handleResetPassword(record)}
             size="small"
+            data-testid={`user-management-reset-password-button-${record.id}`}
+            aria-label={`重置用户 ${record.name} 的密码`}
           >
             重置密码
           </Button>
@@ -179,12 +183,15 @@ export default function UserManagement() {
             onConfirm={() => handleDelete(record.id)}
             okText="确定"
             cancelText="取消"
+            data-testid={`user-management-delete-confirm-${record.id}`}
           >
             <Button
               type="link"
               danger
               icon={<DeleteOutlined />}
               size="small"
+              data-testid={`user-management-delete-button-${record.id}`}
+              aria-label={`删除用户 ${record.name}`}
             >
               删除
             </Button>
@@ -195,19 +202,21 @@ export default function UserManagement() {
   ]
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-testid="user-management-page">
       <div className="page-header">
-        <h2 className="page-title">人员管理</h2>
+        <h2 className="page-title" data-testid="user-management-title">人员管理</h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleCreate}
           size="large"
+          data-testid="user-management-create-button"
+          aria-label="添加用户"
         >
           添加用户
         </Button>
       </div>
-      <Card>
+      <Card data-testid="user-management-table-card">
         <Table
           columns={columns}
           dataSource={users}
@@ -219,6 +228,7 @@ export default function UserManagement() {
             showTotal: (total) => `共 ${total} 条记录`,
             pageSizeOptions: ['10', '20', '50', '100'],
           }}
+          data-testid="user-management-table"
         />
       </Card>
       <Modal
@@ -231,14 +241,26 @@ export default function UserManagement() {
         onOk={() => form.submit()}
         width={600}
         destroyOnClose
+        data-testid="user-management-form-modal"
+        aria-label={editingUser ? '编辑用户对话框' : '添加用户对话框'}
       >
-        <Form form={form} onFinish={handleSubmit} layout="vertical" size="large">
+        <Form 
+          form={form} 
+          onFinish={handleSubmit} 
+          layout="vertical" 
+          size="large"
+          data-testid="user-management-form"
+        >
           <Form.Item
             name="name"
             label="姓名"
             rules={[{ required: true, message: '请输入姓名' }]}
           >
-            <Input placeholder="请输入姓名" />
+            <Input 
+              placeholder="请输入姓名" 
+              data-testid="user-management-form-name-input"
+              aria-label="姓名输入框"
+            />
           </Form.Item>
           <Form.Item
             name="email"
@@ -248,7 +270,12 @@ export default function UserManagement() {
               { type: 'email', message: '请输入有效的邮箱地址' },
             ]}
           >
-            <Input placeholder="请输入邮箱" disabled={!!editingUser} />
+            <Input 
+              placeholder="请输入邮箱" 
+              disabled={!!editingUser}
+              data-testid="user-management-form-email-input"
+              aria-label="邮箱输入框"
+            />
           </Form.Item>
           {!editingUser && (
             <Form.Item
@@ -259,7 +286,11 @@ export default function UserManagement() {
                 { min: 8, message: '密码至少8位' },
               ]}
             >
-              <Input.Password placeholder="请输入密码（至少8位）" />
+              <Input.Password 
+                placeholder="请输入密码（至少8位）" 
+                data-testid="user-management-form-password-input"
+                aria-label="密码输入框"
+              />
             </Form.Item>
           )}
           <Form.Item
@@ -267,13 +298,22 @@ export default function UserManagement() {
             label="角色"
             rules={[{ required: true, message: '请选择角色' }]}
           >
-            <Select placeholder="请选择角色" disabled={!!editingUser}>
-              <Select.Option value="organizer">主办方</Select.Option>
-              <Select.Option value="sponsor">赞助商</Select.Option>
+            <Select 
+              placeholder="请选择角色" 
+              disabled={!!editingUser}
+              data-testid="user-management-form-role-select"
+              aria-label="角色选择框"
+            >
+              <Select.Option value="organizer" data-testid="user-management-form-role-organizer">主办方</Select.Option>
+              <Select.Option value="sponsor" data-testid="user-management-form-role-sponsor">赞助商</Select.Option>
             </Select>
           </Form.Item>
           <Form.Item name="phone" label="手机号">
-            <Input placeholder="请输入手机号" />
+            <Input 
+              placeholder="请输入手机号" 
+              data-testid="user-management-form-phone-input"
+              aria-label="手机号输入框"
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -288,12 +328,15 @@ export default function UserManagement() {
         onOk={() => passwordForm.submit()}
         width={500}
         destroyOnClose
+        data-testid="user-management-reset-password-modal"
+        aria-label="重置密码对话框"
       >
         <Form
           form={passwordForm}
           onFinish={handleResetPasswordSubmit}
           layout="vertical"
           size="large"
+          data-testid="user-management-reset-password-form"
         >
           <Form.Item
             name="password"
@@ -303,7 +346,11 @@ export default function UserManagement() {
               { min: 8, message: '密码至少8位' },
             ]}
           >
-            <Input.Password placeholder="请输入新密码（至少8位）" />
+            <Input.Password 
+              placeholder="请输入新密码（至少8位）" 
+              data-testid="user-management-reset-password-input"
+              aria-label="新密码输入框"
+            />
           </Form.Item>
         </Form>
       </Modal>
