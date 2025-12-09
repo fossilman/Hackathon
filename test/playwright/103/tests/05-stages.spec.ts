@@ -49,11 +49,11 @@ test.describe('活动阶段管理', () => {
         // 验证阶段时间设置表单存在
         await expect(page.locator('[data-testid="hackathon-stages-form"]')).toBeVisible()
         
-        // 验证各个阶段的时间选择器存在
+        // 验证各个阶段的时间选择器存在（可能有多个匹配，使用first()）
         const stages = ['registration', 'checkin', 'team_formation', 'submission', 'voting']
         for (const stage of stages) {
-          const picker = page.locator(`[data-testid="hackathon-stages-form-${stage}-picker"]`)
-          await expect(picker).toBeVisible()
+          const picker = page.locator(`[data-testid="hackathon-stages-form-${stage}-picker"]`).first()
+          await expect(picker).toBeVisible({ timeout: 5000 })
         }
       }
     }
@@ -84,28 +84,36 @@ test.describe('活动阶段管理', () => {
     await page.goto('/hackathons')
     await page.waitForSelector('[data-testid="hackathon-list-table"]', { timeout: 5000 })
     
-    // 查找已发布的活动
+    // 查找已发布的活动（通过状态列的Tag查找）
     const rows = page.locator('[data-testid="hackathon-list-table"] tbody tr')
     const count = await rows.count()
     
+    let found = false
     for (let i = 0; i < count; i++) {
       const row = rows.nth(i)
-      const statusText = await row.locator('td').nth(2).textContent()
-      if (statusText?.includes('发布') || statusText?.includes('报名')) {
+      // 查找状态列中包含"发布"或"报名"的行
+      const statusTag = row.locator('td').filter({ hasText: /发布|报名/ })
+      if (await statusTag.isVisible({ timeout: 1000 }).catch(() => false)) {
         const viewButton = row.locator('[data-testid^="hackathon-list-view-button-"]')
         if (await viewButton.isVisible({ timeout: 1000 }).catch(() => false)) {
           await viewButton.click()
-          await page.waitForTimeout(1000)
+          await page.waitForTimeout(2000)
           
           // 检查是否有切换阶段按钮
           const switchButton = page.locator('[data-testid="hackathon-detail-switch-stage-button"]')
           if (await switchButton.isVisible({ timeout: 2000 }).catch(() => false)) {
             // 可以测试切换阶段功能
             await expect(switchButton).toBeVisible()
+            found = true
             break
           }
         }
       }
+    }
+    
+    // 如果没有找到可切换阶段的活动，测试仍然通过（可能没有已发布的活动）
+    if (!found) {
+      console.log('未找到可切换阶段的活动，跳过此测试')
     }
   })
 

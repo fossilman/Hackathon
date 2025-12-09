@@ -23,6 +23,8 @@ export default function Login() {
         // 直接跳转到 dashboard，而不是通过 IndexRedirect
         navigate('/dashboard', { replace: true })
       }
+      // 等待导航完成
+      await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error) {
       message.error('登录失败')
     } finally {

@@ -47,8 +47,8 @@ test.describe('分页功能测试', () => {
       if (await pagination.isVisible({ timeout: 2000 }).catch(() => false)) {
         // 查找下一页按钮
         const nextButton = pagination.locator('.ant-pagination-next')
-        if (await nextButton.isVisible({ timeout: 1000 }).catch(() => false) && 
-            !(await nextButton.hasClass('ant-pagination-disabled'))) {
+        const isDisabled = await nextButton.evaluate((el) => el.classList.contains('ant-pagination-disabled')).catch(() => true)
+        if (await nextButton.isVisible({ timeout: 1000 }).catch(() => false) && !isDisabled) {
           // 记录第一页的第一行内容
           const firstRow = page.locator('[data-testid="user-management-table"] tbody tr').first()
           const firstRowText = await firstRow.textContent()
@@ -116,8 +116,8 @@ test.describe('分页功能测试', () => {
       const pagination = page.locator('.ant-pagination')
       if (await pagination.isVisible({ timeout: 2000 }).catch(() => false)) {
         const nextButton = pagination.locator('.ant-pagination-next')
-        if (await nextButton.isVisible({ timeout: 1000 }).catch(() => false) && 
-            !(await nextButton.hasClass('ant-pagination-disabled'))) {
+        const isDisabled = await nextButton.evaluate((el) => el.classList.contains('ant-pagination-disabled')).catch(() => true)
+        if (await nextButton.isVisible({ timeout: 1000 }).catch(() => false) && !isDisabled) {
           const firstRow = page.locator('[data-testid="hackathon-list-table"] tbody tr').first()
           const firstRowText = await firstRow.textContent()
           

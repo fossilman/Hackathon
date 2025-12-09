@@ -71,6 +71,2625 @@
   },
   "suites": [
     {
+      "title": "01-auth.spec.ts",
+      "file": "01-auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "认证模块",
+          "file": "01-auth.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Admin登录成功",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6495,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:02:57.350Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-1b510e9c2c283a18b746",
+              "file": "01-auth.spec.ts",
+              "line": 13,
+              "column": 7
+            },
+            {
+              "title": "主办方登录成功",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5727,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:02:57.366Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-e5abed6d3dd7e124ff0b",
+              "file": "01-auth.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "赞助商登录成功",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6149,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:03.357Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-3252a53370b534c40018",
+              "file": "01-auth.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "登录失败 - 错误密码",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2865,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:04.122Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-9d24ac1b3798b95fc490",
+              "file": "01-auth.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "登录失败 - 不存在的用户",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2315,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:07.010Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-a5e46d36a56ac097a85c",
+              "file": "01-auth.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "登出功能",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7764,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:09.342Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-ffda553f286db8c27d04",
+              "file": "01-auth.spec.ts",
+              "line": 49,
+              "column": 7
+            },
+            {
+              "title": "修改密码",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 17446,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:09.522Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-951446d2707914883c09",
+              "file": "01-auth.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "查看个人信息",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 28925,
+                      "error": {
+                        "message": "Error: 登录后未跳转，当前URL: http://localhost:3000/login",
+                        "stack": "Error: 登录后未跳转，当前URL: http://localhost:3000/login\n    at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:83:15)\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:102:5",
+                        "location": {
+                          "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
+                          "column": 15,
+                          "line": 83
+                        },
+                        "snippet": "   at setup/helpers.ts:83\n\n  81 |       const finalUrl = page.url()\n  82 |       if (finalUrl.includes('/login')) {\n> 83 |         throw new Error(`登录后未跳转，当前URL: ${finalUrl}`)\n     |               ^\n  84 |       }\n  85 |     }\n  86 |     // 如果已经跳转，说明登录成功，直接返回"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
+                            "column": 15,
+                            "line": 83
+                          },
+                          "message": "Error: 登录后未跳转，当前URL: http://localhost:3000/login\n\n   at setup/helpers.ts:83\n\n  81 |       const finalUrl = page.url()\n  82 |       if (finalUrl.includes('/login')) {\n> 83 |         throw new Error(`登录后未跳转，当前URL: ${finalUrl}`)\n     |               ^\n  84 |       }\n  85 |     }\n  86 |     // 如果已经跳转，说明登录成功，直接返回\n    at login (/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts:83:15)\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:102:5"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:17.122Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-查看个人信息-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-查看个人信息-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-查看个人信息-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/setup/helpers.ts",
+                        "column": 15,
+                        "line": 83
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-043da7e08b6d42fca53b",
+              "file": "01-auth.spec.ts",
+              "line": 101,
+              "column": 7
+            },
+            {
+              "title": "修改个人信息",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 11155,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60211364\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60211364\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:129:75",
+                        "location": {
+                          "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts",
+                          "column": 75,
+                          "line": 129
+                        },
+                        "snippet": "  127 |     // 验证修改成功\n  128 |     await page.reload()\n> 129 |     await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n      |                                                                           ^\n  130 |     await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n  131 |   })\n  132 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts",
+                            "column": 75,
+                            "line": 129
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60211364\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n\n  127 |     // 验证修改成功\n  128 |     await page.reload()\n> 129 |     await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n      |                                                                           ^\n  130 |     await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n  131 |   })\n  132 |\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts:129:75"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:26.990Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-修改个人信息-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-修改个人信息-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/01-auth-认证模块-修改个人信息-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/01-auth.spec.ts",
+                        "column": 75,
+                        "line": 129
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-8e4512268c4768deb11c",
+              "file": "01-auth.spec.ts",
+              "line": 111,
+              "column": 7
+            },
+            {
+              "title": "不能修改邮箱和角色",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 5212,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:03:39.288Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-85687b30cebaa10aa4ed",
+              "file": "01-auth.spec.ts",
+              "line": 133,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-page-access.spec.ts",
+      "file": "02-page-access.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "页面访问权限",
+          "file": "02-page-access.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Admin权限",
+              "file": "02-page-access.spec.ts",
+              "line": 9,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "可以访问登录页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5531,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:44.846Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-122754aa91001e21728b",
+                  "file": "02-page-access.spec.ts",
+                  "line": 14,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问仪表盘",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5023,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:47.451Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-3f1f6fdae1b44d1e02eb",
+                  "file": "02-page-access.spec.ts",
+                  "line": 22,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问人员管理页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5834,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:50.395Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-95d65c51455b7a3625c8",
+                  "file": "02-page-access.spec.ts",
+                  "line": 27,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问活动列表页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5372,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:52.713Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-9afee31f3da23ef5d166",
+                  "file": "02-page-access.spec.ts",
+                  "line": 32,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问活动创建页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4944,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:56.249Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-4428ce489743fd1167ba",
+                  "file": "02-page-access.spec.ts",
+                  "line": 37,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5404,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:03:58.106Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-8ce16aa1446eda599a16",
+                  "file": "02-page-access.spec.ts",
+                  "line": 43,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "主办方权限",
+              "file": "02-page-access.spec.ts",
+              "line": 49,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "可以访问登录页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4747,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:01.208Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-931e656ddefba6bc0220",
+                  "file": "02-page-access.spec.ts",
+                  "line": 54,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问仪表盘",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4874,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:03.527Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-3630ffb80cf8647574cc",
+                  "file": "02-page-access.spec.ts",
+                  "line": 62,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问人员管理页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4858,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:05.967Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-8270ec81328816edaf0a",
+                  "file": "02-page-access.spec.ts",
+                  "line": 67,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问活动列表页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5494,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:08.416Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-d88875ddebe1f55378e0",
+                  "file": "02-page-access.spec.ts",
+                  "line": 73,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问活动创建页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5247,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:10.840Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-b52ea5bd68b99178369f",
+                  "file": "02-page-access.spec.ts",
+                  "line": 78,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4537,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:13.924Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-3b32c0efd7efecb76cff",
+                  "file": "02-page-access.spec.ts",
+                  "line": 83,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "赞助商权限",
+              "file": "02-page-access.spec.ts",
+              "line": 89,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "可以访问登录页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4639,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:16.104Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-6b5d180b8430a4a3fddc",
+                  "file": "02-page-access.spec.ts",
+                  "line": 94,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问仪表盘",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4416,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:18.475Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-b3a6b4948a50f8e6515c",
+                  "file": "02-page-access.spec.ts",
+                  "line": 102,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问人员管理页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4465,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:20.755Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-c3894ea5a5c1c58a941c",
+                  "file": "02-page-access.spec.ts",
+                  "line": 108,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问活动列表页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4477,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:22.906Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-60f6a6447fad4cd199f9",
+                  "file": "02-page-access.spec.ts",
+                  "line": 113,
+                  "column": 9
+                },
+                {
+                  "title": "不能访问活动创建页面",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 4476,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:25.233Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-898a07767eb0ad57d5ce",
+                  "file": "02-page-access.spec.ts",
+                  "line": 118,
+                  "column": 9
+                },
+                {
+                  "title": "可以访问个人中心",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 4892,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:27.400Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-e5c1a5344ce5078ec4f0",
+                  "file": "02-page-access.spec.ts",
+                  "line": 123,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "未登录用户",
+              "file": "02-page-access.spec.ts",
+              "line": 129,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "访问受保护页面应该重定向到登录页",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 1431,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:04:29.723Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "74af6425180549ec2c54-76264a7c5f1ef9598ee6",
+                  "file": "02-page-access.spec.ts",
+                  "line": 130,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-user-management.spec.ts",
+      "file": "03-user-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "用户管理操作权限",
+          "file": "03-user-management.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Admin可以查看人员列表",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 7034,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:04:31.188Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-5014eb58a331f529cf5e",
+              "file": "03-user-management.spec.ts",
+              "line": 15,
+              "column": 7
+            },
+            {
+              "title": "Admin可以添加主办方人员",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11603,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:04:32.314Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-d9a6255945cc249301f1",
+              "file": "03-user-management.spec.ts",
+              "line": 23,
+              "column": 7
+            },
+            {
+              "title": "Admin可以添加赞助商人员",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 15385,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:04:38.238Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-7a46b465c94e3672a2d5",
+              "file": "03-user-management.spec.ts",
+              "line": 71,
+              "column": 7
+            },
+            {
+              "title": "Admin可以编辑人员信息",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 23140,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=编辑后的姓名1765260294308')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=编辑后的姓名1765260294308')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=编辑后的姓名1765260294308')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=编辑后的姓名1765260294308')\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts:140:53",
+                        "location": {
+                          "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts",
+                          "column": 53,
+                          "line": 140
+                        },
+                        "snippet": "  138 |       \n  139 |       // 等待并查找新姓名\n> 140 |       await expect(page.locator(`text=${newName}`)).toBeVisible({ timeout: 10000 })\n      |                                                     ^\n  141 |     }\n  142 |   })\n  143 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts",
+                            "column": 53,
+                            "line": 140
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=编辑后的姓名1765260294308')\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=编辑后的姓名1765260294308')\u001b[22m\n\n\n  138 |       \n  139 |       // 等待并查找新姓名\n> 140 |       await expect(page.locator(`text=${newName}`)).toBeVisible({ timeout: 10000 })\n      |                                                     ^\n  141 |     }\n  142 |   })\n  143 |\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts:140:53"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:04:43.937Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以编辑人员信息-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以编辑人员信息-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以编辑人员信息-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts",
+                        "column": 53,
+                        "line": 140
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-1946029c509cbfed4fce",
+              "file": "03-user-management.spec.ts",
+              "line": 108,
+              "column": 7
+            },
+            {
+              "title": "Admin可以删除人员",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 1,
+                      "status": "timedOut",
+                      "duration": 31783,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts",
+                            "column": 18,
+                            "line": 182
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid^=\"user-management-delete-confirm-\"] button:has-text(\"确定\")')\u001b[22m\n\n\n  180 |       \n  181 |       // 确认删除\n> 182 |       await page.click('[data-testid^=\"user-management-delete-confirm-\"] button:has-text(\"确定\")')\n      |                  ^\n  183 |       await waitForMessage(page, 'success')\n  184 |\n  185 |       // 验证用户已删除\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/03-user-management.spec.ts:182:18"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:04:53.646Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以删除人员-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以删除人员-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/03-user-management-用户管理操作权限-Admin可以删除人员-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-776ab90b71f4b9fd703d",
+              "file": "03-user-management.spec.ts",
+              "line": 144,
+              "column": 7
+            },
+            {
+              "title": "Admin可以重置人员密码",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9078,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:05:08.174Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-5a2453e8677112f92f2d",
+              "file": "03-user-management.spec.ts",
+              "line": 192,
+              "column": 7
+            },
+            {
+              "title": "主办方不能访问人员管理页面",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 10295,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:05:17.553Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-788502861aba76bc13de",
+              "file": "03-user-management.spec.ts",
+              "line": 217,
+              "column": 7
+            },
+            {
+              "title": "赞助商不能访问人员管理页面",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 10858,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:05:26.422Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-3bc88972148a11a03b63",
+              "file": "03-user-management.spec.ts",
+              "line": 224,
+              "column": 7
+            },
+            {
+              "title": "按角色筛选人员",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7441,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:05:27.869Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-8a221be82da454bfa640",
+              "file": "03-user-management.spec.ts",
+              "line": 231,
+              "column": 7
+            },
+            {
+              "title": "按姓名/邮箱搜索人员",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5912,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:05:35.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bbf38de4587036c90b02-2332c47205b68956b002",
+              "file": "03-user-management.spec.ts",
+              "line": 237,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04-hackathon-management.spec.ts",
+      "file": "04-hackathon-management.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "活动管理操作权限",
+          "file": "04-hackathon-management.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "活动列表操作",
+              "file": "04-hackathon-management.spec.ts",
+              "line": 9,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "Admin可以查看活动列表",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 6040,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:37.477Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-43aa71e713e250c731a3",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 16,
+                  "column": 9
+                },
+                {
+                  "title": "Admin不能创建活动",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 5805,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:41.269Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-42d45400bd51e187856a",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 23,
+                  "column": 9
+                },
+                {
+                  "title": "按活动状态筛选",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 7929,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:43.535Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-55e95f796f8cabb1c46f",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 35,
+                  "column": 9
+                },
+                {
+                  "title": "按创建时间排序",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 9204,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:47.087Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-d93ddc329b88626e1c8c",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 51,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "活动创建/编辑操作",
+              "file": "04-hackathon-management.spec.ts",
+              "line": 66,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "主办方可以创建活动",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 16471,
+                          "error": {
+                            "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"hackathon-create-form-description-quill\"] .ql-editor') to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"hackathon-create-form-description-quill\"] .ql-editor') to be visible\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/04-hackathon-management.spec.ts:81:31",
+                            "location": {
+                              "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/04-hackathon-management.spec.ts",
+                              "column": 31,
+                              "line": 81
+                            },
+                            "snippet": "  79 |       await page.waitForTimeout(1000) // 等待编辑器加载\n  80 |       const descriptionEditor = page.locator('[data-testid=\"hackathon-create-form-description-quill\"] .ql-editor')\n> 81 |       await descriptionEditor.waitFor({ state: 'visible', timeout: 10000 })\n     |                               ^\n  82 |       await descriptionEditor.click()\n  83 |       await descriptionEditor.fill(`这是测试活动${timestamp}的描述`)\n  84 |"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/04-hackathon-management.spec.ts",
+                                "column": 31,
+                                "line": 81
+                              },
+                              "message": "TimeoutError: locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"hackathon-create-form-description-quill\"] .ql-editor') to be visible\u001b[22m\n\n\n  79 |       await page.waitForTimeout(1000) // 等待编辑器加载\n  80 |       const descriptionEditor = page.locator('[data-testid=\"hackathon-create-form-description-quill\"] .ql-editor')\n> 81 |       await descriptionEditor.waitFor({ state: 'visible', timeout: 10000 })\n     |                               ^\n  82 |       await descriptionEditor.click()\n  83 |       await descriptionEditor.fill(`这是测试活动${timestamp}的描述`)\n  84 |\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/04-hackathon-management.spec.ts:81:31"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:51.480Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/04-hackathon-management-活动管理操作权限-活动创建-编辑操作-主办方可以创建活动-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/04-hackathon-management-活动管理操作权限-活动创建-编辑操作-主办方可以创建活动-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/04-hackathon-management-活动管理操作权限-活动创建-编辑操作-主办方可以创建活动-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/04-hackathon-management.spec.ts",
+                            "column": 31,
+                            "line": 81
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-1d685f892644092b5fdf",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 67,
+                  "column": 9
+                },
+                {
+                  "title": "主办方可以编辑自己创建的预备状态活动",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6978,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:05:56.308Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-7c53969bb96b668fd879",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 119,
+                  "column": 9
+                },
+                {
+                  "title": "主办方可以发布自己创建的活动",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 8912,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:03.303Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-e244bb35ed45ec91a1f1",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 153,
+                  "column": 9
+                },
+                {
+                  "title": "Admin不能创建活动",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5679,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:10.410Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-a3e2ddad708771e95a54",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 191,
+                  "column": 9
+                },
+                {
+                  "title": "Admin不能编辑活动",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6947,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:12.244Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-c24a51240b8c16a12c3e",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 198,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "活动详情查看",
+              "file": "04-hackathon-management.spec.ts",
+              "line": 210,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "Admin可以查看活动详情",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 6778,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:16.463Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-13b8b88a3798dda64c89",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 211,
+                  "column": 9
+                },
+                {
+                  "title": "主办方可以查看活动详情",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 6610,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:19.221Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-9d4814ee3270c18fa1fe",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 225,
+                  "column": 9
+                },
+                {
+                  "title": "查看活动统计信息",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 6994,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:23.259Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "7f0b454d732be0a12006-27b98b7d6be04180df40",
+                  "file": "04-hackathon-management.spec.ts",
+                  "line": 238,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05-stages.spec.ts",
+      "file": "05-stages.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "活动阶段管理",
+          "file": "05-stages.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "活动创建者可以访问阶段管理页面",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7615,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:25.845Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-eccb6053d14bc04c52de",
+              "file": "05-stages.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "活动创建者可以设置阶段时间",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 7948,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:30.275Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-83127c4339137ac7dffc",
+              "file": "05-stages.spec.ts",
+              "line": 32,
+              "column": 7
+            },
+            {
+              "title": "活动创建者可以查看时间轴视图",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6092,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:33.471Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-b9655acf32ed9e025463",
+              "file": "05-stages.spec.ts",
+              "line": 62,
+              "column": 7
+            },
+            {
+              "title": "活动创建者可以手动切换活动阶段",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 7331,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:38.243Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-7eeaf42de9113e4f7b31",
+              "file": "05-stages.spec.ts",
+              "line": 81,
+              "column": 7
+            },
+            {
+              "title": "Admin不能管理活动阶段",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6551,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:39.588Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-4b21a8ac375e857155ce",
+              "file": "05-stages.spec.ts",
+              "line": 120,
+              "column": 7
+            },
+            {
+              "title": "其他主办方不能管理非自己创建的活动阶段",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 6942,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-09T06:06:45.586Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ac8afc91bfe32f51812d-527984690f88bee2c071",
+              "file": "05-stages.spec.ts",
+              "line": 146,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "06-pagination.spec.ts",
+      "file": "06-pagination.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "分页功能测试",
+          "file": "06-pagination.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "用户管理分页",
+              "file": "06-pagination.spec.ts",
+              "line": 9,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "用户列表支持分页",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 7884,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:46.173Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-a67aaec812fb5d5b27f8",
+                  "file": "06-pagination.spec.ts",
+                  "line": 16,
+                  "column": 9
+                },
+                {
+                  "title": "可以切换每页显示数量",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 9720,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m20\u001b[39m\nReceived:    \u001b[31m21\u001b[39m",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m20\u001b[39m\nReceived:    \u001b[31m21\u001b[39m\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/06-pagination.spec.ts:39:27",
+                            "location": {
+                              "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/06-pagination.spec.ts",
+                              "column": 27,
+                              "line": 39
+                            },
+                            "snippet": "  37 |             const rows = page.locator('[data-testid=\"user-management-table\"] tbody tr')\n  38 |             const count = await rows.count()\n> 39 |             expect(count).toBeLessThanOrEqual(20)\n     |                           ^\n  40 |           }\n  41 |         }\n  42 |       }"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/06-pagination.spec.ts",
+                                "column": 27,
+                                "line": 39
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: <= \u001b[32m20\u001b[39m\nReceived:    \u001b[31m21\u001b[39m\n\n  37 |             const rows = page.locator('[data-testid=\"user-management-table\"] tbody tr')\n  38 |             const count = await rows.count()\n> 39 |             expect(count).toBeLessThanOrEqual(20)\n     |                           ^\n  40 |           }\n  41 |         }\n  42 |       }\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/06-pagination.spec.ts:39:27"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:52.551Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/06-pagination-分页功能测试-用户管理分页-可以切换每页显示数量-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/06-pagination-分页功能测试-用户管理分页-可以切换每页显示数量-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/06-pagination-分页功能测试-用户管理分页-可以切换每页显示数量-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/06-pagination.spec.ts",
+                            "column": 27,
+                            "line": 39
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-0d7244c5a4d97eed2902",
+                  "file": "06-pagination.spec.ts",
+                  "line": 20,
+                  "column": 9
+                },
+                {
+                  "title": "可以翻页",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 7186,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:06:54.080Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-731bf7fcbd39798fd22c",
+                  "file": "06-pagination.spec.ts",
+                  "line": 45,
+                  "column": 9
+                },
+                {
+                  "title": "显示总记录数",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 7625,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:07:01.294Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-3cc0c320dc64ec2ccdae",
+                  "file": "06-pagination.spec.ts",
+                  "line": 69,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "活动列表分页",
+              "file": "06-pagination.spec.ts",
+              "line": 82,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "活动列表支持分页",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 7315,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:07:04.189Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-09c4757ddde41a22137a",
+                  "file": "06-pagination.spec.ts",
+                  "line": 89,
+                  "column": 9
+                },
+                {
+                  "title": "可以切换每页显示数量",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 8730,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:07:08.933Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-debcd6dda19268a1b3f2",
+                  "file": "06-pagination.spec.ts",
+                  "line": 93,
+                  "column": 9
+                },
+                {
+                  "title": "可以翻页",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 5815,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:07:11.871Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-0b547cd1f086971e6db6",
+                  "file": "06-pagination.spec.ts",
+                  "line": 115,
+                  "column": 9
+                },
+                {
+                  "title": "筛选和排序后分页仍然有效",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 9396,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-09T06:07:17.678Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "911695c0c88116b44387-892bb35de0dedac1205b",
+                  "file": "06-pagination.spec.ts",
+                  "line": 135,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "title": "07-profile.spec.ts",
       "file": "07-profile.spec.ts",
       "column": 0,
@@ -103,15 +2722,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
-                          "parallelIndex": 0,
+                          "workerIndex": 7,
+                          "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 6160,
+                          "duration": 6326,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:17.692Z",
+                          "startTime": "2025-12-09T06:07:17.758Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -137,15 +2756,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
+                          "workerIndex": 7,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 6301,
+                          "duration": 5209,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:17.677Z",
+                          "startTime": "2025-12-09T06:07:24.096Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -171,15 +2790,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
+                          "workerIndex": 4,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 6128,
+                          "duration": 4412,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:24.122Z",
+                          "startTime": "2025-12-09T06:07:27.093Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -213,15 +2832,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
+                          "workerIndex": 7,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 6217,
+                          "duration": 4711,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:24.336Z",
+                          "startTime": "2025-12-09T06:07:29.317Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -247,15 +2866,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
+                          "workerIndex": 4,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 5233,
+                          "duration": 4685,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:30.273Z",
+                          "startTime": "2025-12-09T06:07:31.516Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -281,15 +2900,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
+                          "workerIndex": 7,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 5640,
+                          "duration": 4498,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:30.787Z",
+                          "startTime": "2025-12-09T06:07:34.042Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -315,15 +2934,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
+                          "workerIndex": 4,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 5070,
+                          "duration": 4533,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:35.529Z",
+                          "startTime": "2025-12-09T06:07:36.216Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -357,34 +2976,34 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 1,
+                          "workerIndex": 7,
                           "parallelIndex": 1,
                           "status": "failed",
-                          "duration": 11671,
+                          "duration": 11887,
                           "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:71:77",
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60462902\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60462902\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:74:77",
                             "location": {
                               "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                               "column": 77,
-                              "line": 71
+                              "line": 74
                             },
-                            "snippet": "  69 |       // 验证修改成功\n  70 |       await page.reload()\n> 71 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  72 |     })\n  73 |\n  74 |     test('可以修改手机号', async ({ page }) => {"
+                            "snippet": "  72 |       await page.waitForSelector('[data-testid=\"profile-form-name-input\"]', { timeout: 5000 })\n  73 |       await page.waitForTimeout(1000) // 等待表单数据加载\n> 74 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  75 |     })\n  76 |\n  77 |     test('可以修改手机号', async ({ page }) => {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                                 "column": 77,
-                                "line": 71
+                                "line": 74
                               },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名176525\u001b[7m8601196\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名176525\u001b[7m7956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    8 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n\n  69 |       // 验证修改成功\n  70 |       await page.reload()\n> 71 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  72 |     })\n  73 |\n  74 |     test('可以修改手机号', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:71:77"
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-name-input\"]')\nExpected: \u001b[32m\"新姓名17652\u001b[7m60462902\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"新姓名17652\u001b[7m57956375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-name-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"name\" type=\"text\" aria-label=\"姓名输入框\" placeholder=\"请输入姓名\" aria-required=\"true\" value=\"新姓名1765257956375\" data-testid=\"profile-form-name-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"新姓名1765257956375\"\u001b[22m\n\n\n  72 |       await page.waitForSelector('[data-testid=\"profile-form-name-input\"]', { timeout: 5000 })\n  73 |       await page.waitForTimeout(1000) // 等待表单数据加载\n> 74 |       await expect(page.locator('[data-testid=\"profile-form-name-input\"]')).toHaveValue(newName)\n     |                                                                             ^\n  75 |     })\n  76 |\n  77 |     test('可以修改手机号', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:74:77"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:36.440Z",
+                          "startTime": "2025-12-09T06:07:38.553Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -406,7 +3025,7 @@
                           "errorLocation": {
                             "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                             "column": 77,
-                            "line": 71
+                            "line": 74
                           }
                         }
                       ],
@@ -431,34 +3050,34 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 0,
+                          "workerIndex": 4,
                           "parallelIndex": 0,
                           "status": "failed",
-                          "duration": 11071,
+                          "duration": 12370,
                           "error": {
-                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n",
-                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:85:78",
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m60465072\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m60465072\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:91:78",
                             "location": {
                               "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                               "column": 78,
-                              "line": 85
+                              "line": 91
                             },
-                            "snippet": "  83 |       // 验证修改成功\n  84 |       await page.reload()\n> 85 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  86 |     })\n  87 |\n  88 |     test('不能修改邮箱', async ({ page }) => {"
+                            "snippet": "  89 |       await page.waitForSelector('[data-testid=\"profile-form-phone-input\"]', { timeout: 5000 })\n  90 |       await page.waitForTimeout(1000) // 等待表单数据加载\n> 91 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  92 |     })\n  93 |\n  94 |     test('不能修改邮箱', async ({ page }) => {"
                           },
                           "errors": [
                             {
                               "location": {
                                 "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                                 "column": 78,
-                                "line": 85
+                                "line": 91
                               },
-                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m58605204\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined\"/>\u001b[22m\n\u001b[2m    - unexpected value \"\"\u001b[22m\n\u001b[2m    7 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n\n  83 |       // 验证修改成功\n  84 |       await page.reload()\n> 85 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  86 |     })\n  87 |\n  88 |     test('不能修改邮箱', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:85:78"
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveValue\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('[data-testid=\"profile-form-phone-input\"]')\nExpected: \u001b[32m\"138\u001b[7m60465072\u001b[27m\"\u001b[39m\nReceived: \u001b[31m\"138\u001b[7m00006375\u001b[27m\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveValue\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"profile-form-phone-input\"]')\u001b[22m\n\u001b[2m    9 × locator resolved to <input id=\"phone\" type=\"text\" aria-label=\"手机号输入框\" value=\"13800006375\" placeholder=\"请输入手机号\" data-testid=\"profile-form-phone-input\" class=\"ant-input ant-input-lg css-dev-only-do-not-override-198drv2 ant-input-outlined ant-input-status-success\"/>\u001b[22m\n\u001b[2m      - unexpected value \"13800006375\"\u001b[22m\n\n\n  89 |       await page.waitForSelector('[data-testid=\"profile-form-phone-input\"]', { timeout: 5000 })\n  90 |       await page.waitForTimeout(1000) // 等待表单数据加载\n> 91 |       await expect(page.locator('[data-testid=\"profile-form-phone-input\"]')).toHaveValue(newPhone)\n     |                                                                              ^\n  92 |     })\n  93 |\n  94 |     test('不能修改邮箱', async ({ page }) => {\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:91:78"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:40.617Z",
+                          "startTime": "2025-12-09T06:07:40.762Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -480,7 +3099,7 @@
                           "errorLocation": {
                             "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                             "column": 78,
-                            "line": 85
+                            "line": 91
                           }
                         }
                       ],
@@ -489,7 +3108,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-454a7f34ce6aa5d10349",
                   "file": "07-profile.spec.ts",
-                  "line": 74,
+                  "line": 77,
                   "column": 9
                 },
                 {
@@ -505,15 +3124,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 2,
+                          "workerIndex": 8,
                           "parallelIndex": 1,
                           "status": "passed",
-                          "duration": 5208,
+                          "duration": 6162,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:49.047Z",
+                          "startTime": "2025-12-09T06:07:51.523Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -523,7 +3142,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-e6315a1b95e298067319",
                   "file": "07-profile.spec.ts",
-                  "line": 88,
+                  "line": 94,
                   "column": 9
                 },
                 {
@@ -539,15 +3158,15 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
+                          "workerIndex": 9,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 4963,
+                          "duration": 5448,
                           "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:52.558Z",
+                          "startTime": "2025-12-09T06:07:54.470Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -557,7 +3176,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-b602dc56c9401d6db7b2",
                   "file": "07-profile.spec.ts",
-                  "line": 101,
+                  "line": 107,
                   "column": 9
                 }
               ]
@@ -565,12 +3184,12 @@
             {
               "title": "修改密码",
               "file": "07-profile.spec.ts",
-              "line": 113,
+              "line": 119,
               "column": 8,
               "specs": [
                 {
                   "title": "可以打开修改密码对话框",
-                  "ok": false,
+                  "ok": true,
                   "tags": [],
                   "tests": [
                     {
@@ -581,57 +3200,25 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 2,
+                          "workerIndex": 8,
                           "parallelIndex": 1,
-                          "status": "timedOut",
-                          "duration": 31366,
-                          "error": {
-                            "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
-                            "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                          },
-                          "errors": [
-                            {
-                              "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
-                            },
-                            {
-                              "location": {
-                                "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
-                                "column": 18,
-                                "line": 119
-                              },
-                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  117 |       \n  118 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 119 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  120 |       await expect(page.locator('[data-testid=\"profile-change-password-modal\"]')).toBeVisible()\n  121 |     })\n  122 |\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:119:18"
-                            }
-                          ],
+                          "status": "passed",
+                          "duration": 5409,
+                          "errors": [],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:54.512Z",
+                          "startTime": "2025-12-09T06:07:58.010Z",
                           "annotations": [],
-                          "attachments": [
-                            {
-                              "name": "screenshot",
-                              "contentType": "image/png",
-                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/test-failed-1.png"
-                            },
-                            {
-                              "name": "video",
-                              "contentType": "video/webm",
-                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/video.webm"
-                            },
-                            {
-                              "name": "error-context",
-                              "contentType": "text/markdown",
-                              "path": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/test-results/07-profile-个人中心-修改密码-可以打开修改密码对话框-chromium/error-context.md"
-                            }
-                          ]
+                          "attachments": []
                         }
                       ],
-                      "status": "unexpected"
+                      "status": "expected"
                     }
                   ],
                   "id": "2db9f63601dbcc8c56c9-0db281323d6fbf9883a4",
                   "file": "07-profile.spec.ts",
-                  "line": 114,
+                  "line": 120,
                   "column": 9
                 },
                 {
@@ -647,10 +3234,10 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 3,
+                          "workerIndex": 9,
                           "parallelIndex": 0,
                           "status": "timedOut",
-                          "duration": 32144,
+                          "duration": 30168,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -663,15 +3250,15 @@
                               "location": {
                                 "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                                 "column": 18,
-                                "line": 128
+                                "line": 146
                               },
-                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    56 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  126 |       \n  127 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 128 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  129 |       \n  130 |       // 只填写新密码，不填原密码\n  131 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', 'NewPassword123')\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:128:18"
+                              "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\u001b[22m\n\n\n  144 |       \n  145 |       // 尝试提交（应该失败）\n> 146 |       await page.click('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\n      |                  ^\n  147 |       // 应该显示验证错误\n  148 |       await page.waitForTimeout(500)\n  149 |     })\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:146:18"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:36:57.702Z",
+                          "startTime": "2025-12-09T06:08:00.126Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -697,7 +3284,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-0ec6c130898a6ee5bb93",
                   "file": "07-profile.spec.ts",
-                  "line": 123,
+                  "line": 132,
                   "column": 9
                 },
                 {
@@ -713,10 +3300,10 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 4,
+                          "workerIndex": 8,
                           "parallelIndex": 1,
                           "status": "timedOut",
-                          "duration": 31348,
+                          "duration": 30518,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -729,15 +3316,15 @@
                               "location": {
                                 "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                                 "column": 18,
-                                "line": 145
+                                "line": 165
                               },
-                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  143 |       \n  144 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 145 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  146 |       \n  147 |       await page.fill('[data-testid=\"profile-change-password-form-old-password-input\"]', TEST_USERS.admin.password)\n  148 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', '1234567') // 只有7位\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:145:18"
+                              "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\u001b[22m\n\n\n  163 |       \n  164 |       // 尝试提交（应该失败）\n> 165 |       await page.click('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\n      |                  ^\n  166 |       await page.waitForTimeout(500)\n  167 |       // 应该显示验证错误\n  168 |     })\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:165:18"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:37:26.971Z",
+                          "startTime": "2025-12-09T06:08:03.436Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -763,7 +3350,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-4b6c3f4f9147d3c9025a",
                   "file": "07-profile.spec.ts",
-                  "line": 140,
+                  "line": 151,
                   "column": 9
                 },
                 {
@@ -779,10 +3366,10 @@
                       "projectName": "chromium",
                       "results": [
                         {
-                          "workerIndex": 5,
+                          "workerIndex": 10,
                           "parallelIndex": 0,
                           "status": "timedOut",
-                          "duration": 31397,
+                          "duration": 30201,
                           "error": {
                             "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
                             "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
@@ -795,15 +3382,15 @@
                               "location": {
                                 "file": "/Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts",
                                 "column": 18,
-                                "line": 162
+                                "line": 184
                               },
-                              "message": "Error: page.waitForSelector: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"]') to be visible\u001b[22m\n\u001b[2m    55 × locator resolved to hidden <div data-testid=\"profile-change-password-modal\" class=\"ant-modal-root css-dev-only-do-not-override-198drv2\">…</div>\u001b[22m\n\n\n  160 |       \n  161 |       await page.click('[data-testid=\"profile-form-change-password-button\"]')\n> 162 |       await page.waitForSelector('[data-testid=\"profile-change-password-modal\"]')\n      |                  ^\n  163 |       \n  164 |       await page.fill('[data-testid=\"profile-change-password-form-old-password-input\"]', TEST_USERS.admin.password)\n  165 |       await page.fill('[data-testid=\"profile-change-password-form-new-password-input\"]', 'NewPassword123')\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:162:18"
+                              "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\u001b[22m\n\n\n  182 |       \n  183 |       // 尝试提交（应该失败）\n> 184 |       await page.click('[data-testid=\"profile-change-password-modal\"] button:has-text(\"确定\")')\n      |                  ^\n  185 |       await page.waitForTimeout(500)\n  186 |       // 应该显示验证错误\n  187 |     })\n    at /Users/krame/Workspace/aiproject/Hackathon/test/playwright/103/tests/07-profile.spec.ts:184:18"
                             }
                           ],
                           "stdout": [],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-12-09T05:37:30.707Z",
+                          "startTime": "2025-12-09T06:08:31.200Z",
                           "annotations": [],
                           "attachments": [
                             {
@@ -829,7 +3416,7 @@
                   ],
                   "id": "2db9f63601dbcc8c56c9-35638bf656344d024046",
                   "file": "07-profile.spec.ts",
-                  "line": 157,
+                  "line": 170,
                   "column": 9
                 }
               ]
@@ -841,11 +3428,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-12-09T05:36:16.686Z",
-    "duration": 105645.29999999999,
-    "expected": 9,
+    "startTime": "2025-12-09T06:02:56.185Z",
+    "duration": 365462.536,
+    "expected": 69,
     "skipped": 0,
-    "unexpected": 6,
+    "unexpected": 11,
     "flaky": 0
   }
 }

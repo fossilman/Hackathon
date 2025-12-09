@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import { useAuthStore } from '../store/authStore'
 
 interface Hackathon {
   id: number
@@ -12,6 +13,7 @@ interface Hackathon {
   start_time: string
   end_time: string
   created_at: string
+  organizer_id?: number
 }
 
 const statusMap: Record<string, { label: string; color: string }> = {
@@ -27,18 +29,31 @@ const statusMap: Record<string, { label: string; color: string }> = {
 
 export default function HackathonList() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [sort, setSort] = useState('created_at_desc')
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 100,
+    total: 0,
+  })
+  
+  const isOrganizer = user?.role === 'organizer'
 
-  const fetchHackathons = async () => {
+  const fetchHackathons = async (page = 1, pageSize = 100) => {
     setLoading(true)
     try {
       const data = await request.get('/hackathons', {
-        params: { page: 1, page_size: 100, status, sort },
+        params: { page, page_size: pageSize, status, sort },
       })
       setHackathons(data.list || [])
+      setPagination({
+        current: page,
+        pageSize: pageSize,
+        total: data.pagination?.total || data.total || 0,
+      })
     } catch (error) {
       message.error('获取活动列表失败')
     } finally {
@@ -47,7 +62,9 @@ export default function HackathonList() {
   }
 
   useEffect(() => {
-    fetchHackathons()
+    // 当筛选或排序改变时，重置到第一页
+    fetchHackathons(1, pagination.pageSize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, sort])
 
   const columns = [
@@ -93,32 +110,35 @@ export default function HackathonList() {
       key: 'action',
       width: 150,
       fixed: 'right' as const,
-      render: (_: any, record: Hackathon) => (
-        <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => navigate(`/hackathons/${record.id}`)}
-            size="small"
-            data-testid={`hackathon-list-view-button-${record.id}`}
-            aria-label={`查看活动 ${record.name}`}
-          >
-            查看
-          </Button>
-          {record.status === 'preparation' && (
+      render: (_: any, record: Hackathon) => {
+        const canEdit = isOrganizer && record.status === 'preparation' && record.organizer_id === user?.id
+        return (
+          <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
             <Button
               type="link"
-              icon={<EditOutlined />}
-              onClick={() => navigate(`/hackathons/${record.id}/edit`)}
+              icon={<EyeOutlined />}
+              onClick={() => navigate(`/hackathons/${record.id}`)}
               size="small"
-              data-testid={`hackathon-list-edit-button-${record.id}`}
-              aria-label={`编辑活动 ${record.name}`}
+              data-testid={`hackathon-list-view-button-${record.id}`}
+              aria-label={`查看活动 ${record.name}`}
             >
-              编辑
+              查看
             </Button>
-          )}
-        </Space>
-      ),
+            {canEdit && (
+              <Button
+                type="link"
+                icon={<EditOutlined />}
+                onClick={() => navigate(`/hackathons/${record.id}/edit`)}
+                size="small"
+                data-testid={`hackathon-list-edit-button-${record.id}`}
+                aria-label={`编辑活动 ${record.name}`}
+              >
+                编辑
+              </Button>
+            )}
+          </Space>
+        )
+      },
     },
   ]
 
@@ -160,16 +180,18 @@ export default function HackathonList() {
             </Select>
           </Space>
         </div>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/hackathons/create')}
-          size="large"
-          data-testid="hackathon-list-create-button"
-          aria-label="创建活动"
-        >
-          创建活动
-        </Button>
+        {isOrganizer && (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/hackathons/create')}
+            size="large"
+            data-testid="hackathon-list-create-button"
+            aria-label="创建活动"
+          >
+            创建活动
+          </Button>
+        )}
       </div>
       <Card data-testid="hackathon-list-table-card">
         <Table
@@ -179,9 +201,18 @@ export default function HackathonList() {
           rowKey="id"
           scroll={{ x: 1000 }}
           pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
             showTotal: (total) => `共 ${total} 条记录`,
             pageSizeOptions: ['10', '20', '50', '100'],
+            onChange: (page, pageSize) => {
+              fetchHackathons(page, pageSize)
+            },
+            onShowSizeChange: (current, size) => {
+              fetchHackathons(1, size)
+            },
           }}
           data-testid="hackathon-list-table"
         />

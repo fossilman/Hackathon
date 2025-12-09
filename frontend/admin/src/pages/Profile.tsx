@@ -165,7 +165,16 @@ export default function Profile() {
           setPasswordModalVisible(false)
           passwordForm.resetFields()
         }}
-        onOk={() => passwordForm.submit()}
+        onOk={async () => {
+          try {
+            await passwordForm.validateFields()
+            passwordForm.submit()
+          } catch (error) {
+            // 表单验证失败，不关闭对话框
+          }
+        }}
+        okText="确定"
+        cancelText="取消"
         width={500}
         destroyOnClose
         data-testid="profile-change-password-modal"
