@@ -69,32 +69,35 @@ export default function MyHackathons() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="my-hackathons-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1>
-          <TrophyOutlined /> 我的活动
+    <div className="page-content" data-testid="my-hackathons-page">
+      <div className="page-header" data-testid="my-hackathons-header">
+        <h1 className="page-title" data-testid="my-hackathons-title" style={{ fontSize: '28px' }}>
+          <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
+          我的活动
         </h1>
       </div>
 
       <Spin spinning={loading}>
         {hackathons.length === 0 ? (
-          <Empty
-            description="您还没有报名任何活动"
-            data-testid="my-hackathons-empty"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          >
-            <Button 
-              type="primary" 
-              onClick={() => navigate('/')}
-              data-testid="my-hackathons-empty-browse-button"
-              aria-label="去浏览活动"
+          <div className="page-container">
+            <Empty
+              description="您还没有报名任何活动"
+              data-testid="my-hackathons-empty"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
-              去浏览活动
-            </Button>
-          </Empty>
+              <Button 
+                type="primary" 
+                onClick={() => navigate('/')}
+                data-testid="my-hackathons-empty-browse-button"
+                aria-label="去浏览活动"
+              >
+                去浏览活动
+              </Button>
+            </Empty>
+          </div>
         ) : (
           <div 
-            style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}
+            className="grid-container"
             data-testid="my-hackathons-list"
           >
             {hackathons.map((hackathon) => (

@@ -27,15 +27,16 @@ export default function Profile() {
   }
 
   return (
-    <div className="page-container" data-testid="profile-page">
-      <div className="page-header">
-        <h1 className="page-title" data-testid="profile-title">
-          <UserOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
-          个人中心
-        </h1>
-      </div>
+    <div className="page-content" data-testid="profile-page">
+      <div className="page-container" style={{ maxWidth: '800px' }} data-testid="profile-container">
+        <div className="page-header" data-testid="profile-header">
+          <h1 className="page-title" data-testid="profile-title">
+            <UserOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
+            个人中心
+          </h1>
+        </div>
 
-      <Card style={{ maxWidth: '600px', margin: '0 auto' }} data-testid="profile-info-card">
+        <Card data-testid="profile-info-card">
         <Space direction="vertical" size="large" style={{ width: '100%' }} data-testid="profile-info-content">
           <div data-testid="profile-address-section">
             <div 
@@ -74,7 +75,8 @@ export default function Profile() {
             </Button>
           </div>
         </Space>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

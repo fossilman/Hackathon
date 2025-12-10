@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Table, Tag, message } from 'antd'
+import { Card, Table, Tag, message, Row, Col, Statistic } from 'antd'
+import { TrophyOutlined, TeamOutlined, FileTextOutlined, LikeOutlined } from '@ant-design/icons'
 import request from '../api/request'
 
 export default function Results() {
@@ -29,7 +30,21 @@ export default function Results() {
       title: '排名', 
       dataIndex: 'rank', 
       key: 'rank',
-      render: (text: any) => <span data-testid={`results-table-rank-${text}`}>{text}</span>
+      width: 80,
+      render: (text: any) => (
+        <span 
+          data-testid={`results-table-rank-${text}`}
+          style={{ 
+            fontWeight: text <= 3 ? 600 : 400,
+            color: text === 1 ? '#ffd700' : text === 2 ? '#c0c0c0' : text === 3 ? '#cd7f32' : 'inherit'
+          }}
+        >
+          {text === 1 && '🥇 '}
+          {text === 2 && '🥈 '}
+          {text === 3 && '🥉 '}
+          {text}
+        </span>
+      )
     },
     { 
       title: '队伍名称', 
@@ -47,8 +62,12 @@ export default function Results() {
       title: '得票数', 
       dataIndex: 'vote_count', 
       key: 'vote_count',
+      width: 100,
       render: (text: any, record: any) => (
-        <span data-testid={`results-table-votes-${record.rank}`}>{text}</span>
+        <span data-testid={`results-table-votes-${record.rank}`}>
+          <LikeOutlined style={{ marginRight: 4, color: 'var(--primary-color)' }} />
+          {text}
+        </span>
       )
     },
     {
@@ -67,21 +86,64 @@ export default function Results() {
   ]
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="results-page">
-      <Card title="比赛结果" data-testid="results-card">
-        <div style={{ marginBottom: 24 }} data-testid="results-statistics">
-          <p data-testid="results-stat-votes">总投票数: {statistics.total_votes}</p>
-          <p data-testid="results-stat-teams">参与队伍数: {statistics.total_teams}</p>
-          <p data-testid="results-stat-submissions">提交作品数: {statistics.total_submissions}</p>
+    <div className="page-content" data-testid="results-page">
+      <div className="page-container" data-testid="results-container">
+        <div className="page-header" data-testid="results-header">
+          <h2 className="page-title" data-testid="results-title">
+            <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
+            比赛结果
+          </h2>
         </div>
-        <Table
-          columns={columns}
-          dataSource={results}
-          rowKey="rank"
-          pagination={false}
-          data-testid="results-table"
-        />
-      </Card>
+
+        {/* 统计信息卡片 */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }} data-testid="results-statistics">
+          <Col xs={24} sm={12} lg={8}>
+            <Card className="stat-card" data-testid="results-stat-votes">
+              <Statistic
+                title="总投票数"
+                value={statistics.total_votes || 0}
+                prefix={<LikeOutlined />}
+                valueStyle={{ color: 'var(--primary-color)' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <Card className="stat-card" data-testid="results-stat-teams">
+              <Statistic
+                title="参与队伍数"
+                value={statistics.total_teams || 0}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: 'var(--success-color)' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <Card className="stat-card" data-testid="results-stat-submissions">
+              <Statistic
+                title="提交作品数"
+                value={statistics.total_submissions || 0}
+                prefix={<FileTextOutlined />}
+                valueStyle={{ color: 'var(--warning-color)' }}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* 排名表格 */}
+        <Card 
+          title="排名榜单" 
+          data-testid="results-card"
+          style={{ marginTop: 24 }}
+        >
+          <Table
+            columns={columns}
+            dataSource={results}
+            rowKey="rank"
+            pagination={false}
+            data-testid="results-table"
+          />
+        </Card>
+      </div>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, Space, message, Tag, Descriptions } from 'antd'
+import { TrophyOutlined } from '@ant-design/icons'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
@@ -73,7 +74,13 @@ export default function HackathonDetail() {
   }
 
   if (!hackathon) {
-    return <div>加载中...</div>
+    return (
+      <div className="page-content">
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
+          加载中...
+        </div>
+      </div>
+    )
   }
 
   const statusMap: Record<string, string> = {
@@ -87,25 +94,50 @@ export default function HackathonDetail() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="hackathon-detail-page">
-      <Card
-        title={hackathon.name}
-        extra={<Tag data-testid="hackathon-detail-status">{statusMap[hackathon.status] || hackathon.status}</Tag>}
-        data-testid="hackathon-detail-card"
-      >
-        <Descriptions column={2} bordered data-testid="hackathon-detail-info">
-          <Descriptions.Item label="开始时间" data-testid="hackathon-detail-start-time">
-            {dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')}
-          </Descriptions.Item>
-          <Descriptions.Item label="结束时间" data-testid="hackathon-detail-end-time">
-            {dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}
-          </Descriptions.Item>
-          <Descriptions.Item label="描述" span={2} data-testid="hackathon-detail-description">
-            <div dangerouslySetInnerHTML={{ __html: hackathon.description }} />
-          </Descriptions.Item>
-        </Descriptions>
+    <div className="page-content" data-testid="hackathon-detail-page">
+      <div className="page-container" data-testid="hackathon-detail-container">
+        <Card
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <TrophyOutlined style={{ fontSize: '24px', color: 'var(--primary-color)' }} />
+              <span>{hackathon.name}</span>
+            </div>
+          }
+          extra={
+            <Tag 
+              color="blue"
+              data-testid="hackathon-detail-status"
+              style={{ fontSize: '14px', padding: '4px 12px' }}
+            >
+              {statusMap[hackathon.status] || hackathon.status}
+            </Tag>
+          }
+          data-testid="hackathon-detail-card"
+        >
+          <Descriptions column={2} bordered data-testid="hackathon-detail-info">
+            <Descriptions.Item label="开始时间">
+              <span data-testid="hackathon-detail-start-time">
+                {dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')}
+              </span>
+            </Descriptions.Item>
+            <Descriptions.Item label="结束时间">
+              <span data-testid="hackathon-detail-end-time">
+                {dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}
+              </span>
+            </Descriptions.Item>
+            <Descriptions.Item label="描述" span={2}>
+              <div 
+                data-testid="hackathon-detail-description"
+                dangerouslySetInnerHTML={{ __html: hackathon.description }}
+                style={{ 
+                  lineHeight: '1.6',
+                  color: 'var(--text-primary)'
+                }}
+              />
+            </Descriptions.Item>
+          </Descriptions>
 
-        <div style={{ marginTop: 24 }} data-testid="hackathon-detail-actions">
+          <div style={{ marginTop: 24 }} data-testid="hackathon-detail-actions">
           {!token && (
             <Button 
               type="primary" 
@@ -190,6 +222,7 @@ export default function HackathonDetail() {
           )}
         </div>
       </Card>
+      </div>
     </div>
   )
 }

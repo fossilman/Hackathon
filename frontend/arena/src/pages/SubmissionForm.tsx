@@ -28,8 +28,12 @@ export default function SubmissionForm() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }} data-testid="submission-form-page">
-      <Card title="提交作品" data-testid="submission-form-card">
+    <div className="page-content" data-testid="submission-form-page">
+      <div className="page-container" style={{ maxWidth: '800px' }} data-testid="submission-form-container">
+        <div className="page-header" data-testid="submission-form-header">
+          <h2 className="page-title" data-testid="submission-form-title">提交作品</h2>
+        </div>
+        <Card data-testid="submission-form-card">
         <Form form={form} onFinish={handleSubmit} layout="vertical" data-testid="submission-form">
           <Form.Item
             name="name"
@@ -89,7 +93,8 @@ export default function SubmissionForm() {
             </Space>
           </Form.Item>
         </Form>
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

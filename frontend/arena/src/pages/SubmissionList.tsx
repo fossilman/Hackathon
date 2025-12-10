@@ -47,8 +47,12 @@ export default function SubmissionList() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="submission-list-page">
-      <Card title="作品列表" data-testid="submission-list-card">
+    <div className="page-content" data-testid="submission-list-page">
+      <div className="page-container" data-testid="submission-list-container">
+        <div className="page-header" data-testid="submission-list-header">
+          <h2 className="page-title" data-testid="submission-list-title">作品列表</h2>
+        </div>
+        <Card data-testid="submission-list-card">
         <List
           dataSource={submissions}
           data-testid="submission-list"
@@ -91,7 +95,8 @@ export default function SubmissionList() {
             </List.Item>
           )}
         />
-      </Card>
+        </Card>
+      </div>
     </div>
   )
 }

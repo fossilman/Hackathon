@@ -159,7 +159,6 @@ export default function Layout() {
       </Header>
       <Content
         style={{
-          padding: '24px',
           background: '#f5f7fa',
           minHeight: 'calc(100vh - 64px)',
         }}

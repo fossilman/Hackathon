@@ -52,10 +52,10 @@ export default function TeamList() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="team-list-page">
-      <Card
-        title="队伍列表"
-        extra={
+    <div className="page-content" data-testid="team-list-page">
+      <div className="page-container" data-testid="team-list-container">
+        <div className="page-header" data-testid="team-list-header">
+          <h2 className="page-title" data-testid="team-list-title">队伍列表</h2>
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
@@ -65,9 +65,8 @@ export default function TeamList() {
           >
             创建队伍
           </Button>
-        }
-        data-testid="team-list-card"
-      >
+        </div>
+        <Card data-testid="team-list-card">
         <List
           dataSource={teams}
           data-testid="team-list"
@@ -91,9 +90,9 @@ export default function TeamList() {
             </List.Item>
           )}
         />
-      </Card>
+        </Card>
 
-      <Modal
+        <Modal
         title="创建队伍"
         open={modalVisible}
         onOk={handleCreateTeam}
@@ -108,7 +107,8 @@ export default function TeamList() {
           data-testid="team-list-create-modal-name-input"
           aria-label="队伍名称输入框"
         />
-      </Modal>
+        </Modal>
+      </div>
     </div>
   )
 }

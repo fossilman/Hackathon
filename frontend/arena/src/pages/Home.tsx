@@ -84,14 +84,23 @@ export default function Home() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="home-page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }} data-testid="home-header">
-        <h1 data-testid="home-title">
-          <TrophyOutlined /> Hackathon Arena
+    <div className="page-content" data-testid="home-page">
+      <div className="page-header" data-testid="home-header">
+        <h1 className="page-title" data-testid="home-title" style={{ fontSize: '28px' }}>
+          <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
+          Hackathon Arena
         </h1>
         {walletAddress ? (
           <Space data-testid="home-wallet-info">
-            <span data-testid="home-wallet-address">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+            <span 
+              data-testid="home-wallet-address"
+              style={{ 
+                color: 'var(--text-secondary)',
+                fontSize: '14px'
+              }}
+            >
+              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </span>
           </Space>
         ) : (
           <Button 
@@ -106,10 +115,20 @@ export default function Home() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }} data-testid="home-loading">加载中...</div>
+        <div 
+          style={{ 
+            textAlign: 'center', 
+            padding: '60px 20px',
+            color: 'var(--text-secondary)',
+            fontSize: '16px'
+          }} 
+          data-testid="home-loading"
+        >
+          加载中...
+        </div>
       ) : (
         <div 
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}
+          className="grid-container"
           data-testid="home-hackathon-list"
         >
           {hackathons.map((hackathon) => (
