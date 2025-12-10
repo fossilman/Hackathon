@@ -63,6 +63,44 @@ func (s *RegistrationService) GetRegistrationStatus(hackathonID, participantID u
 	return true, &registration.CreatedAt, nil
 }
 
+// CancelRegistration 取消报名
+func (s *RegistrationService) CancelRegistration(hackathonID, participantID uint64) error {
+	// 检查活动状态
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
+		return errors.New("活动不存在")
+	}
+
+	if hackathon.Status != "registration" {
+		return errors.New("当前不在报名阶段，不能取消报名")
+	}
+
+	// 检查阶段时间
+	hackathonService := &HackathonService{}
+	inTime, err := hackathonService.CheckStageTime(hackathonID, "registration")
+	if err != nil {
+		return errors.New("报名阶段时间未设置")
+	}
+	if !inTime {
+		return errors.New("不在报名时间范围内，不能取消报名")
+	}
+
+	// 检查是否已报名
+	var registration models.Registration
+	if err := database.DB.Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).First(&registration).Error; err != nil {
+		return errors.New("您尚未报名该活动")
+	}
+
+	// 检查是否已签到（已签到不能取消报名）
+	var checkin models.Checkin
+	if err := database.DB.Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).First(&checkin).Error; err == nil {
+		return errors.New("已签到，不能取消报名")
+	}
+
+	// 删除报名记录
+	return database.DB.Delete(&registration).Error
+}
+
 // Checkin 签到
 func (s *RegistrationService) Checkin(hackathonID, participantID uint64) error {
 	// 检查是否已报名

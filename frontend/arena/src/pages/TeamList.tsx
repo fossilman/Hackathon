@@ -52,24 +52,42 @@ export default function TeamList() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="team-list-page">
       <Card
         title="队伍列表"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalVisible(true)}>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={() => setModalVisible(true)}
+            data-testid="team-list-create-button"
+            aria-label="创建队伍"
+          >
             创建队伍
           </Button>
         }
+        data-testid="team-list-card"
       >
         <List
           dataSource={teams}
+          data-testid="team-list"
           renderItem={(team) => (
-            <List.Item>
+            <List.Item data-testid={`team-list-item-${team.id}`}>
               <List.Item.Meta
-                title={team.name}
-                description={`成员数: ${team.members?.length || 0}/${team.max_size}`}
+                title={<span data-testid={`team-list-item-${team.id}-name`}>{team.name}</span>}
+                description={
+                  <span data-testid={`team-list-item-${team.id}-members`}>
+                    成员数: {team.members?.length || 0}/{team.max_size}
+                  </span>
+                }
               />
-              <Button onClick={() => handleJoinTeam(team.id)}>加入</Button>
+              <Button 
+                onClick={() => handleJoinTeam(team.id)}
+                data-testid={`team-list-join-button-${team.id}`}
+                aria-label={`加入队伍: ${team.name}`}
+              >
+                加入
+              </Button>
             </List.Item>
           )}
         />
@@ -80,11 +98,15 @@ export default function TeamList() {
         open={modalVisible}
         onOk={handleCreateTeam}
         onCancel={() => setModalVisible(false)}
+        data-testid="team-list-create-modal"
+        aria-label="创建队伍对话框"
       >
         <Input
           placeholder="队伍名称"
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
+          data-testid="team-list-create-modal-name-input"
+          aria-label="队伍名称输入框"
         />
       </Modal>
     </div>

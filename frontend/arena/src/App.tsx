@@ -7,17 +7,24 @@ import TeamList from './pages/TeamList'
 import SubmissionForm from './pages/SubmissionForm'
 import SubmissionList from './pages/SubmissionList'
 import Results from './pages/Results'
+import MyHackathons from './pages/MyHackathons'
+import Profile from './pages/Profile'
+import Layout from './components/Layout'
 
 function App() {
   return (
     <ConfigProvider locale={zhCN}>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/hackathons/:id" element={<HackathonDetail />} />
-        <Route path="/hackathons/:id/teams" element={<TeamList />} />
-        <Route path="/hackathons/:id/submit" element={<SubmissionForm />} />
-        <Route path="/hackathons/:id/submissions" element={<SubmissionList />} />
-        <Route path="/hackathons/:id/results" element={<Results />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="my-hackathons" element={<MyHackathons />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="hackathons/:id" element={<HackathonDetail />} />
+          <Route path="hackathons/:id/teams" element={<TeamList />} />
+          <Route path="hackathons/:id/submit" element={<SubmissionForm />} />
+          <Route path="hackathons/:id/submissions" element={<SubmissionList />} />
+          <Route path="hackathons/:id/results" element={<Results />} />
+        </Route>
       </Routes>
     </ConfigProvider>
   )

@@ -20,6 +20,7 @@ type Config struct {
 	ServerPort     string   `yaml:"-"`
 	ServerMode     string   `yaml:"-"`
 	CORSOrigins    []string `yaml:"-"`
+	TestWallets    []string `yaml:"-"` // 测试钱包地址列表
 
 	// YAML配置结构
 	Database struct {
@@ -59,6 +60,13 @@ func LoadConfig() error {
 		ServerPort:     "8000",
 		ServerMode:     "debug",
 		CORSOrigins:    []string{"http://localhost:3000", "http://localhost:3001"},
+		TestWallets: []string{
+			"0x1111111111111111111111111111111111111111",
+			"0x2222222222222222222222222222222222222222",
+			"0x3333333333333333333333333333333333333333",
+			"0x4444444444444444444444444444444444444444",
+			"0x5555555555555555555555555555555555555555",
+		},
 	}
 
 	// 尝试从YAML配置文件加载
@@ -73,6 +81,11 @@ func LoadConfig() error {
 	_ = godotenv.Load()
 
 	// 从环境变量覆盖配置（如果设置了环境变量）
+	testWallets := defaultConfig.TestWallets
+	if envWallets := getEnv("TEST_WALLETS", ""); envWallets != "" {
+		testWallets = getEnvAsSlice("TEST_WALLETS", defaultConfig.TestWallets)
+	}
+
 	AppConfig = &Config{
 		DBHost:         getEnv("DB_HOST", defaultConfig.DBHost),
 		DBPort:         getEnv("DB_PORT", defaultConfig.DBPort),
@@ -84,6 +97,7 @@ func LoadConfig() error {
 		ServerPort:     getEnv("SERVER_PORT", defaultConfig.ServerPort),
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
+		TestWallets:    testWallets,
 	}
 
 	return nil

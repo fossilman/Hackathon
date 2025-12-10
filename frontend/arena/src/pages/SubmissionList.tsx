@@ -47,30 +47,41 @@ export default function SubmissionList() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Card title="作品列表">
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="submission-list-page">
+      <Card title="作品列表" data-testid="submission-list-card">
         <List
           dataSource={submissions}
+          data-testid="submission-list"
           renderItem={(submission) => (
             <List.Item
+              data-testid={`submission-list-item-${submission.id}`}
               actions={[
                 <Button
+                  key={`vote-${submission.id}`}
                   type={votedIds.has(submission.id) ? 'default' : 'primary'}
                   icon={<LikeOutlined />}
                   onClick={() => handleVote(submission.id)}
                   disabled={votedIds.has(submission.id)}
+                  data-testid={`submission-list-vote-button-${submission.id}`}
+                  aria-label={votedIds.has(submission.id) ? `已投票: ${submission.name}` : `投票: ${submission.name}`}
                 >
                   {votedIds.has(submission.id) ? '已投票' : '投票'}
                 </Button>,
               ]}
             >
               <List.Item.Meta
-                title={submission.name}
+                title={<span data-testid={`submission-list-item-${submission.id}-name`}>{submission.name}</span>}
                 description={
-                  <div>
+                  <div data-testid={`submission-list-item-${submission.id}-description`}>
                     <div dangerouslySetInnerHTML={{ __html: submission.description }} />
                     <div style={{ marginTop: 8 }}>
-                      <a href={submission.link} target="_blank" rel="noopener noreferrer">
+                      <a 
+                        href={submission.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        data-testid={`submission-list-item-${submission.id}-link`}
+                        aria-label={`作品链接: ${submission.name}`}
+                      >
                         {submission.link}
                       </a>
                     </div>

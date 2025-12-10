@@ -87,7 +87,7 @@ go mod download
 go run main.go
 ```
 
-后端服务将在 `http://localhost:8080` 启动
+后端服务将在 `http://localhost:8000` 启动
 
 ### 前端启动
 

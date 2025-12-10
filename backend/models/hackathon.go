@@ -37,7 +37,7 @@ func (Hackathon) TableName() string {
 type HackathonStage struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	HackathonID uint64    `gorm:"uniqueIndex:uk_hackathon_stage;not null" json:"hackathon_id"`
-	Stage       string    `gorm:"type:enum('registration','checkin','team_formation','submission','voting');not null" json:"stage"`
+	Stage       string    `gorm:"uniqueIndex:uk_hackathon_stage;type:enum('registration','checkin','team_formation','submission','voting');not null" json:"stage"`
 	StartTime   time.Time `gorm:"not null" json:"start_time"`
 	EndTime     time.Time `gorm:"not null" json:"end_time"`
 	CreatedAt   time.Time `json:"created_at"`

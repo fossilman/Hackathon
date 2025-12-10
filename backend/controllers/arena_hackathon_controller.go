@@ -58,3 +58,21 @@ func (c *ArenaHackathonController) GetHackathonByID(ctx *gin.Context) {
 	utils.Success(ctx, hackathon)
 }
 
+// GetMyHackathons 获取已报名的活动列表
+func (c *ArenaHackathonController) GetMyHackathons(ctx *gin.Context) {
+	participantID, _ := ctx.Get("participant_id")
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
+	status := ctx.Query("status")
+	keyword := ctx.Query("keyword")
+	sort := ctx.DefaultQuery("sort", "time_desc")
+
+	hackathons, total, err := c.hackathonService.GetMyHackathons(participantID.(uint64), page, pageSize, status, keyword, sort)
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.SuccessWithPagination(ctx, hackathons, page, pageSize, total)
+}
+

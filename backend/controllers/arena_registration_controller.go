@@ -62,6 +62,24 @@ func (c *ArenaRegistrationController) GetRegistrationStatus(ctx *gin.Context) {
 	utils.Success(ctx, result)
 }
 
+// CancelRegistration 取消报名
+func (c *ArenaRegistrationController) CancelRegistration(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	participantID, _ := ctx.Get("participant_id")
+
+	if err := c.registrationService.CancelRegistration(id, participantID.(uint64)); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
 // Checkin 签到
 func (c *ArenaRegistrationController) Checkin(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)

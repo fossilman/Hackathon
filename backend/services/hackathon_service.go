@@ -327,6 +327,43 @@ func (s *HackathonService) GetPublishedHackathons(page, pageSize int, status, ke
 	return hackathons, total, nil
 }
 
+// GetMyHackathons 获取已报名的活动列表（Arena平台）
+func (s *HackathonService) GetMyHackathons(participantID uint64, page, pageSize int, status, keyword, sort string) ([]models.Hackathon, int64, error) {
+	var hackathons []models.Hackathon
+	var total int64
+
+	// 通过报名记录关联查询已报名的活动
+	query := database.DB.Model(&models.Hackathon{}).
+		Joins("INNER JOIN registrations ON registrations.hackathon_id = hackathons.id").
+		Where("hackathons.deleted_at IS NULL AND registrations.participant_id = ?", participantID)
+
+	if status != "" {
+		query = query.Where("hackathons.status = ?", status)
+	}
+
+	if keyword != "" {
+		query = query.Where("hackathons.name LIKE ?", "%"+keyword+"%")
+	}
+
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 排序
+	if sort == "time_asc" {
+		query = query.Order("hackathons.start_time ASC")
+	} else {
+		query = query.Order("hackathons.start_time DESC")
+	}
+
+	offset := (page - 1) * pageSize
+	if err := query.Offset(offset).Limit(pageSize).Find(&hackathons).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return hackathons, total, nil
+}
+
 // CheckStageTime 检查当前时间是否在阶段时间范围内
 func (s *HackathonService) CheckStageTime(hackathonID uint64, stage string) (bool, error) {
 	var stageModel models.HackathonStage

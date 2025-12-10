@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Space, message } from 'antd'
+import { Button, Space, message } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
 import { ethers } from 'ethers'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
-import dayjs from 'dayjs'
+import HackathonCard from '../components/HackathonCard'
 
 interface Hackathon {
   id: number
@@ -20,6 +20,7 @@ export default function Home() {
   const navigate = useNavigate()
   const { walletAddress, connectWallet } = useAuthStore()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
+  const [loading, setLoading] = useState(false)
 
   const fetchHackathons = async () => {
     setLoading(true)
@@ -83,40 +84,44 @@ export default function Home() {
   }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
-        <h1>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }} data-testid="home-page">
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }} data-testid="home-header">
+        <h1 data-testid="home-title">
           <TrophyOutlined /> Hackathon Arena
         </h1>
         {walletAddress ? (
-          <Space>
-            <span>{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+          <Space data-testid="home-wallet-info">
+            <span data-testid="home-wallet-address">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
           </Space>
         ) : (
-          <Button type="primary" onClick={handleConnectWallet}>
+          <Button 
+            type="primary" 
+            onClick={handleConnectWallet}
+            data-testid="home-connect-button"
+            aria-label="连接钱包"
+          >
             连接钱包
           </Button>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-        {hackathons.map((hackathon) => (
-          <Card
-            key={hackathon.id}
-            title={hackathon.name}
-            extra={<span>{statusMap[hackathon.status] || hackathon.status}</span>}
-            hoverable
-            onClick={() => navigate(`/hackathons/${hackathon.id}`)}
-          >
-            <p style={{ color: '#666', marginBottom: 8 }}>
-              {dayjs(hackathon.start_time).format('YYYY-MM-DD')} - {dayjs(hackathon.end_time).format('YYYY-MM-DD')}
-            </p>
-            <p style={{ fontSize: '14px', color: '#999' }}>
-              {hackathon.description.substring(0, 100)}...
-            </p>
-          </Card>
-        ))}
-      </div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px' }} data-testid="home-loading">加载中...</div>
+      ) : (
+        <div 
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}
+          data-testid="home-hackathon-list"
+        >
+          {hackathons.map((hackathon) => (
+            <HackathonCard
+              key={hackathon.id}
+              hackathon={hackathon}
+              statusMap={statusMap}
+              testIdPrefix="home-hackathon"
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

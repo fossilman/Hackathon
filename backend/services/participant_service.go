@@ -5,9 +5,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
+	"hackathon-backend/config"
 	"hackathon-backend/database"
 	"hackathon-backend/models"
 	"hackathon-backend/utils"
@@ -71,9 +73,19 @@ func (s *ParticipantService) VerifySignature(walletAddress, signature string) (*
 		return nil, "", errors.New("请先获取nonce")
 	}
 
-	// 验证签名
-	if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
-		return nil, "", fmt.Errorf("签名验证失败: %w", err)
+	// 检查是否为测试钱包地址
+	isTestWallet := s.isTestWallet(walletAddress)
+	
+	if !isTestWallet {
+		// 非测试钱包，进行正常的签名验证
+		if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
+			return nil, "", fmt.Errorf("签名验证失败: %w", err)
+		}
+	} else {
+		// 测试钱包，只验证签名格式，不验证签名内容
+		if !s.isValidTestSignature(signature) {
+			return nil, "", errors.New("测试钱包签名格式无效")
+		}
 	}
 
 	// 更新最后登录时间
@@ -132,5 +144,36 @@ func (s *ParticipantService) verifyEthereumSignature(walletAddress, nonce, signa
 	}
 
 	return nil
+}
+
+// isTestWallet 检查钱包地址是否为测试钱包
+func (s *ParticipantService) isTestWallet(walletAddress string) bool {
+	if config.AppConfig == nil {
+		return false
+	}
+	
+	// 转换为小写进行比较（不区分大小写）
+	addressLower := strings.ToLower(walletAddress)
+	for _, testWallet := range config.AppConfig.TestWallets {
+		if strings.ToLower(testWallet) == addressLower {
+			return true
+		}
+	}
+	return false
+}
+
+// isValidTestSignature 验证测试钱包签名格式（只验证格式，不验证内容）
+func (s *ParticipantService) isValidTestSignature(signature string) bool {
+	// 移除0x前缀
+	sig := strings.TrimPrefix(signature, "0x")
+	
+	// 签名应该是130个十六进制字符（65字节 = 64字节签名 + 1字节恢复ID）
+	if len(sig) != 130 {
+		return false
+	}
+	
+	// 检查是否为有效的十六进制字符串
+	matched, _ := regexp.MatchString("^[0-9a-fA-F]{130}$", sig)
+	return matched
 }
 

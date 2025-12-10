@@ -34,10 +34,14 @@ func SetupArenaRoutes(router *gin.Engine) {
 		// 需要认证的路由
 		api.Use(middleware.ParticipantAuthMiddleware())
 		{
+			// 我的活动
+			api.GET("/my-hackathons", arenaHackathonController.GetMyHackathons)
+
 			// 报名相关
 			registration := api.Group("/hackathons/:id")
 			{
 				registration.POST("/register", arenaRegistrationController.Register)
+				registration.DELETE("/register", arenaRegistrationController.CancelRegistration)
 				registration.GET("/registration-status", arenaRegistrationController.GetRegistrationStatus)
 				registration.POST("/checkin", arenaRegistrationController.Checkin)
 				registration.GET("/checkin-status", arenaRegistrationController.GetCheckinStatus)
