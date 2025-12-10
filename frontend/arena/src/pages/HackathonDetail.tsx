@@ -9,19 +9,24 @@ import dayjs from 'dayjs'
 export default function HackathonDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { token } = useAuthStore()
+  const { token, participantId } = useAuthStore()
   const [hackathon, setHackathon] = useState<any>(null)
   const [registered, setRegistered] = useState(false)
   const [checkedIn, setCheckedIn] = useState(false)
+  const [userTeam, setUserTeam] = useState<any>(null)
+  const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   useEffect(() => {
     if (id) {
       fetchDetail()
-      if (token) {
-        checkStatus()
-      }
     }
-  }, [id, token])
+  }, [id])
+
+  useEffect(() => {
+    if (hackathon && token) {
+      checkStatus()
+    }
+  }, [hackathon, token, id])
 
   const fetchDetail = async () => {
     try {
@@ -38,6 +43,29 @@ export default function HackathonDetail() {
       setRegistered(regStatus.registered)
       const checkinStatus = await request.get(`/hackathons/${id}/checkin-status`)
       setCheckedIn(checkinStatus.checked_in)
+      
+      // 如果是提交阶段，检查是否有提交
+      if (hackathon?.status === 'submission') {
+        await checkSubmission()
+      }
+    } catch (error) {
+      // 忽略错误
+    }
+  }
+
+  const checkSubmission = async () => {
+    try {
+      // 获取用户队伍信息
+      const team = await request.get(`/hackathons/${id}/teams/my-team`)
+      setUserTeam(team)
+      
+      // 检查是否已有提交
+      const submissions = await request.get(`/hackathons/${id}/submissions`)
+      const submissionList = Array.isArray(submissions) ? submissions : (submissions.list || [])
+      const teamSubmission = submissionList.find((s: any) => s.team_id === team?.id)
+      if (teamSubmission) {
+        setExistingSubmission(teamSubmission)
+      }
     } catch (error) {
       // 忽略错误
     }
@@ -93,6 +121,14 @@ export default function HackathonDetail() {
     results: '公布结果',
   }
 
+  // 获取当前阶段信息
+  const getCurrentStage = () => {
+    if (!hackathon?.stages || !hackathon?.status) return null
+    return hackathon.stages.find((stage: any) => stage.stage === hackathon.status)
+  }
+
+  const currentStage = getCurrentStage()
+
   return (
     <div className="page-content" data-testid="hackathon-detail-page">
       <div className="page-container" data-testid="hackathon-detail-container">
@@ -115,16 +151,30 @@ export default function HackathonDetail() {
           data-testid="hackathon-detail-card"
         >
           <Descriptions column={2} bordered data-testid="hackathon-detail-info">
-            <Descriptions.Item label="开始时间">
+            <Descriptions.Item label="活动开始时间">
               <span data-testid="hackathon-detail-start-time">
                 {dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')}
               </span>
             </Descriptions.Item>
-            <Descriptions.Item label="结束时间">
+            <Descriptions.Item label="活动结束时间">
               <span data-testid="hackathon-detail-end-time">
                 {dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}
               </span>
             </Descriptions.Item>
+            {currentStage && (
+              <>
+                <Descriptions.Item label={`${statusMap[hackathon.status] || hackathon.status}阶段开始时间`}>
+                  <span data-testid="hackathon-detail-stage-start-time">
+                    {dayjs(currentStage.start_time).format('YYYY-MM-DD HH:mm')}
+                  </span>
+                </Descriptions.Item>
+                <Descriptions.Item label={`${statusMap[hackathon.status] || hackathon.status}阶段结束时间`}>
+                  <span data-testid="hackathon-detail-stage-end-time">
+                    {dayjs(currentStage.end_time).format('YYYY-MM-DD HH:mm')}
+                  </span>
+                </Descriptions.Item>
+              </>
+            )}
             <Descriptions.Item label="描述" span={2}>
               <div 
                 data-testid="hackathon-detail-description"
@@ -196,9 +246,9 @@ export default function HackathonDetail() {
               <Button 
                 onClick={() => navigate(`/hackathons/${id}/submit`)}
                 data-testid="hackathon-detail-submit-button"
-                aria-label="提交作品"
+                aria-label={existingSubmission ? "修改提交" : "提交作品"}
               >
-                提交作品
+                {existingSubmission ? '修改提交' : '提交作品'}
               </Button>
             </Space>
           )}

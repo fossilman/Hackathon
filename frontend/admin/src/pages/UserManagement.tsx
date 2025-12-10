@@ -12,15 +12,15 @@ import {
   Card,
   Tag,
 } from 'antd'
-import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined, UndoOutlined } from '@ant-design/icons'
 import request from '../api/request'
 
 interface User {
   id: number
   name: string
-  email: string
   role: string
   phone: string
+  status: number // 1-启用，0-禁用
 }
 
 const roleMap: Record<string, { label: string; color: string }> = {
@@ -48,7 +48,7 @@ export default function UserManagement() {
     setLoading(true)
     try {
       const data = await request.get('/users', {
-        params: { page, page_size: pageSize },
+        params: { page, page_size: pageSize, include_deleted: true },
       })
       setUsers(data.list || [])
       setPagination({
@@ -62,6 +62,7 @@ export default function UserManagement() {
       setLoading(false)
     }
   }
+
 
   useEffect(() => {
     fetchUsers(pagination.current, pagination.pageSize)
@@ -83,10 +84,20 @@ export default function UserManagement() {
   const handleDelete = async (id: number) => {
     try {
       await request.delete(`/users/${id}`)
-      message.success('删除成功')
+      message.success('禁用成功')
       fetchUsers(pagination.current, pagination.pageSize)
     } catch (error) {
-      message.error('删除失败')
+      message.error('禁用失败')
+    }
+  }
+
+  const handleRestore = async (id: number) => {
+    try {
+      await request.post(`/users/${id}/restore`)
+      message.success('启用成功')
+      fetchUsers(pagination.current, pagination.pageSize)
+    } catch (error) {
+      message.error('启用失败')
     }
   }
 
@@ -146,12 +157,6 @@ export default function UserManagement() {
       width: 120,
     },
     {
-      title: '邮箱',
-      dataIndex: 'email',
-      key: 'email',
-      width: 200,
-    },
-    {
       title: '角色',
       dataIndex: 'role',
       key: 'role',
@@ -168,53 +173,83 @@ export default function UserManagement() {
       width: 150,
     },
     {
+      title: '状态',
+      key: 'status',
+      width: 100,
+      render: (_: any, record: User) => {
+        if (record.status === 0) {
+          return <Tag color="red">已禁用</Tag>
+        }
+        return <Tag color="green">正常</Tag>
+      },
+    },
+    {
       title: '操作',
       key: 'action',
-      width: 150,
+      width: 200,
       fixed: 'right' as const,
-      render: (_: any, record: User) => (
-        <Space size="small" data-testid={`user-management-actions-${record.id}`}>
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-            data-testid={`user-management-edit-button-${record.id}`}
-            aria-label={`编辑用户 ${record.name}`}
-          >
-            编辑
-          </Button>
-          <Button
-            type="link"
-            icon={<LockOutlined />}
-            onClick={() => handleResetPassword(record)}
-            size="small"
-            data-testid={`user-management-reset-password-button-${record.id}`}
-            aria-label={`重置用户 ${record.name} 的密码`}
-          >
-            重置密码
-          </Button>
-          <Popconfirm
-            title="确定要删除这个用户吗？"
-            description="此操作不可恢复"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
-            data-testid={`user-management-delete-confirm-${record.id}`}
-          >
-            <Button
-              type="link"
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              data-testid={`user-management-delete-button-${record.id}`}
-              aria-label={`删除用户 ${record.name}`}
-            >
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: User) => {
+        const isDisabled = record.status === 0
+        return (
+          <Space size="small" data-testid={`user-management-actions-${record.id}`} wrap>
+            {!isDisabled && (
+              <>
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => handleEdit(record)}
+                  size="small"
+                  data-testid={`user-management-edit-button-${record.id}`}
+                  aria-label={`编辑用户 ${record.name}`}
+                >
+                  编辑
+                </Button>
+                <Button
+                  type="link"
+                  icon={<LockOutlined />}
+                  onClick={() => handleResetPassword(record)}
+                  size="small"
+                  data-testid={`user-management-reset-password-button-${record.id}`}
+                  aria-label={`重置用户 ${record.name} 的密码`}
+                >
+                  重置密码
+                </Button>
+                <Popconfirm
+                  title="确定要禁用这个用户吗？"
+                  description="禁用后用户将无法登录"
+                  onConfirm={() => handleDelete(record.id)}
+                  okText="确定"
+                  cancelText="取消"
+                  data-testid={`user-management-delete-confirm-${record.id}`}
+                >
+                  <Button
+                    type="link"
+                    danger
+                    icon={<DeleteOutlined />}
+                    size="small"
+                    data-testid={`user-management-delete-button-${record.id}`}
+                    aria-label={`禁用用户 ${record.name}`}
+                  >
+                    禁用
+                  </Button>
+                </Popconfirm>
+              </>
+            )}
+            {isDisabled && (
+              <Button
+                type="link"
+                icon={<UndoOutlined />}
+                onClick={() => handleRestore(record.id)}
+                size="small"
+                data-testid={`user-management-restore-button-${record.id}`}
+                aria-label={`恢复用户 ${record.name}`}
+              >
+                启用
+              </Button>
+            )}
+          </Space>
+        )
+      },
     },
   ]
 
@@ -289,18 +324,18 @@ export default function UserManagement() {
             />
           </Form.Item>
           <Form.Item
-            name="email"
-            label="邮箱"
+            name="phone"
+            label="手机号"
             rules={[
-              { required: true, message: '请输入邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' },
+              { required: true, message: '请输入手机号' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
             ]}
           >
             <Input 
-              placeholder="请输入邮箱" 
+              placeholder="请输入手机号" 
               disabled={!!editingUser}
-              data-testid="user-management-form-email-input"
-              aria-label="邮箱输入框"
+              data-testid="user-management-form-phone-input"
+              aria-label="手机号输入框"
             />
           </Form.Item>
           {!editingUser && (
@@ -333,13 +368,6 @@ export default function UserManagement() {
               <Select.Option value="organizer" data-testid="user-management-form-role-organizer">主办方</Select.Option>
               <Select.Option value="sponsor" data-testid="user-management-form-role-sponsor">赞助商</Select.Option>
             </Select>
-          </Form.Item>
-          <Form.Item name="phone" label="手机号">
-            <Input 
-              placeholder="请输入手机号" 
-              data-testid="user-management-form-phone-input"
-              aria-label="手机号输入框"
-            />
           </Form.Item>
         </Form>
       </Modal>

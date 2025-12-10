@@ -24,11 +24,26 @@ export default function Layout() {
   const menuItems: MenuProps['items'] = []
 
   // 根据角色显示不同的菜单
-  if (user?.role === 'admin' || user?.role === 'organizer') {
+  if (user?.role === 'admin') {
+    // Admin角色：仪表盘、人员管理
     menuItems.push({
       key: '/dashboard',
       icon: <TrophyOutlined />,
-      label: '仪表盘',
+      label: '活动概览',
+      'data-testid': 'admin-menu-dashboard',
+    })
+    menuItems.push({
+      key: '/users',
+      icon: <UserOutlined />,
+      label: '人员管理',
+      'data-testid': 'admin-menu-users',
+    })
+  } else if (user?.role === 'organizer') {
+    // 主办方角色：仪表盘、活动管理
+    menuItems.push({
+      key: '/dashboard',
+      icon: <TrophyOutlined />,
+      label: '活动概览',
       'data-testid': 'admin-menu-dashboard',
     })
     menuItems.push({
@@ -37,33 +52,25 @@ export default function Layout() {
       label: '活动管理',
       'data-testid': 'admin-menu-hackathons',
     })
-  }
-
-  if (user?.role === 'admin') {
-    menuItems.splice(1, 0, {
-      key: '/users',
-      icon: <UserOutlined />,
-      label: '人员管理',
-      'data-testid': 'admin-menu-users',
+  } else if (user?.role === 'sponsor') {
+    // 赞助商角色：仅仪表盘
+    menuItems.push({
+      key: '/dashboard',
+      icon: <TrophyOutlined />,
+      label: '活动概览',
+      'data-testid': 'admin-menu-dashboard',
     })
   }
 
-  // 赞助商第一期不显示菜单项（仅显示个人中心）
-  if (user?.role === 'sponsor') {
-    // 赞助商第一期功能待定，不显示菜单
-  }
+  // 所有角色都有个人中心菜单
+  menuItems.push({
+    key: '/profile',
+    icon: <UserOutlined />,
+    label: '个人中心',
+    'data-testid': 'admin-menu-profile',
+  })
 
   const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <SettingOutlined />,
-      label: '个人设置',
-      onClick: () => navigate('/profile'),
-      'data-testid': 'admin-menu-profile',
-    },
-    {
-      type: 'divider',
-    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,

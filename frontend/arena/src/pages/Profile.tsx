@@ -1,25 +1,53 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Button, Space, message, Spin } from 'antd'
-import { WalletOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { Card, Form, Input, Button, Space, message } from 'antd'
+import { UserOutlined, WalletOutlined } from '@ant-design/icons'
 import { useAuthStore } from '../store/authStore'
+import request from '../api/request'
 
 export default function Profile() {
   const navigate = useNavigate()
-  const { walletAddress, clearAuth } = useAuthStore()
+  const { walletAddress, participant, setParticipant } = useAuthStore()
+  const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
 
   useEffect(() => {
     if (!walletAddress) {
       message.error('请先登录')
       navigate('/')
+      return
     }
+    fetchProfile()
   }, [walletAddress, navigate])
 
-  const handleDisconnect = () => {
-    clearAuth()
-    message.success('已断开连接')
-    navigate('/')
+  const fetchProfile = async () => {
+    try {
+      setFetching(true)
+      const data = await request.get('/profile')
+      form.setFieldsValue({
+        nickname: data.nickname || '',
+      })
+      setParticipant(data)
+    } catch (error) {
+      message.error('获取个人信息失败')
+    } finally {
+      setFetching(false)
+    }
+  }
+
+  const handleUpdate = async (values: any) => {
+    setLoading(true)
+    try {
+      await request.patch('/profile', values)
+      message.success('更新成功')
+      const updatedParticipant = { ...participant, ...values } as any
+      setParticipant(updatedParticipant)
+    } catch (error: any) {
+      message.error(error.message || '更新失败')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (!walletAddress) {
@@ -36,45 +64,50 @@ export default function Profile() {
           </h1>
         </div>
 
-        <Card data-testid="profile-info-card">
-        <Space direction="vertical" size="large" style={{ width: '100%' }} data-testid="profile-info-content">
-          <div data-testid="profile-address-section">
-            <div 
-              style={{ marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}
-              data-testid="profile-address-label"
-            >
-              钱包地址
-            </div>
-            <div
-              style={{
-                padding: '12px',
-                background: 'var(--bg-secondary)',
-                borderRadius: '4px',
-                fontFamily: 'monospace',
-                fontSize: '16px',
-                wordBreak: 'break-all',
-              }}
-              data-testid="profile-address"
-              aria-label={`钱包地址: ${walletAddress}`}
-            >
-              {walletAddress}
-            </div>
-          </div>
+        <Card data-testid="profile-info-card" loading={fetching}>
+        <Form 
+          form={form} 
+          onFinish={handleUpdate} 
+          layout="vertical" 
+          data-testid="profile-form"
+        >
+          <Form.Item
+            name="nickname"
+            label="用户昵称"
+            rules={[{ max: 50, message: '昵称长度不能超过50个字符' }]}
+            data-testid="profile-nickname-item"
+          >
+            <Input 
+              placeholder="请输入用户昵称（可选）"
+              prefix={<UserOutlined />}
+              data-testid="profile-nickname-input"
+              aria-label="用户昵称输入框"
+            />
+          </Form.Item>
 
-          <div data-testid="profile-actions">
+          <Form.Item label="钱包地址" data-testid="profile-address-item">
+            <Input 
+              value={walletAddress}
+              disabled
+              prefix={<WalletOutlined />}
+              data-testid="profile-address-input"
+              aria-label="钱包地址"
+            />
+          </Form.Item>
+
+          <Form.Item data-testid="profile-actions">
             <Button
               type="primary"
-              danger
-              icon={<LogoutOutlined />}
-              onClick={handleDisconnect}
+              htmlType="submit"
+              loading={loading}
               block
-              data-testid="profile-disconnect-button"
-              aria-label="断开钱包连接"
+              data-testid="profile-update-button"
+              aria-label="更新个人信息"
             >
-              断开连接
+              更新
             </Button>
-          </div>
-        </Space>
+          </Form.Item>
+        </Form>
         </Card>
       </div>
     </div>

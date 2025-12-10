@@ -95,7 +95,7 @@ export default function Dashboard() {
         style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}
         data-testid="dashboard-title"
       >
-        仪表盘
+        活动概览
       </h2>
 
       {/* 系统概览 */}

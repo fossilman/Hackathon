@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Space, message } from 'antd'
+import { Button, message } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
 import { ethers } from 'ethers'
 import request from '../api/request'
@@ -18,7 +18,7 @@ interface Hackathon {
 
 export default function Home() {
   const navigate = useNavigate()
-  const { walletAddress, connectWallet } = useAuthStore()
+  const { walletAddress, connectWallet, setParticipant } = useAuthStore()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
 
@@ -58,12 +58,22 @@ export default function Home() {
         const signature = await signer.signMessage(message)
 
         // 验证签名
-        const { token, participant } = await request.post('/auth/verify', {
+        const { token, participant: participantData } = await request.post('/auth/verify', {
           wallet_address: address,
           signature,
         })
 
-        connectWallet(address, token, participant.id)
+        connectWallet(address, token, participantData.id, participantData)
+        
+        // 获取完整的 participant 信息（包括 nickname）
+        try {
+          const fullParticipant = await request.get('/profile')
+          setParticipant(fullParticipant)
+        } catch (error) {
+          // 如果获取失败，使用基本信息
+          console.warn('获取完整用户信息失败，使用基本信息')
+        }
+        
         message.success('连接成功')
       } catch (error: any) {
         message.error(error.message || '连接失败')
@@ -83,26 +93,26 @@ export default function Home() {
     results: '公布结果',
   }
 
+  // 活动状态配色（与 Admin 系统保持一致）
+  const statusColorMap: Record<string, string> = {
+    preparation: 'default',
+    published: 'blue',
+    registration: 'cyan',
+    checkin: 'orange',
+    team_formation: 'purple',
+    submission: 'geekblue',
+    voting: 'magenta',
+    results: 'green',
+  }
+
   return (
     <div className="page-content" data-testid="home-page">
       <div className="page-header" data-testid="home-header">
         <h1 className="page-title" data-testid="home-title" style={{ fontSize: '28px' }}>
           <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
-          Hackathon Arena
+          活动列表
         </h1>
-        {walletAddress ? (
-          <Space data-testid="home-wallet-info">
-            <span 
-              data-testid="home-wallet-address"
-              style={{ 
-                color: 'var(--text-secondary)',
-                fontSize: '14px'
-              }}
-            >
-              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </span>
-          </Space>
-        ) : (
+        {!walletAddress && (
           <Button 
             type="primary" 
             onClick={handleConnectWallet}
@@ -136,6 +146,7 @@ export default function Home() {
               key={hackathon.id}
               hackathon={hackathon}
               statusMap={statusMap}
+              statusColorMap={statusColorMap}
               testIdPrefix="home-hackathon"
             />
           ))}

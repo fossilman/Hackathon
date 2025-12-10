@@ -8,20 +8,30 @@ import {
   Space,
   Divider,
   Modal,
+  Table,
+  Popconfirm,
 } from 'antd'
-import { UserOutlined, LockOutlined } from '@ant-design/icons'
+import { UserOutlined, LockOutlined, DeleteOutlined } from '@ant-design/icons'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
+
+interface Wallet {
+  id: number
+  address: string
+  created_at: string
+}
 
 export default function Profile() {
   const [form] = Form.useForm()
   const [passwordForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [passwordModalVisible, setPasswordModalVisible] = useState(false)
+  const [wallets, setWallets] = useState<Wallet[]>([])
   const { user, setAuth } = useAuthStore()
 
   useEffect(() => {
     fetchProfile()
+    fetchWallets()
   }, [])
 
   const fetchProfile = async () => {
@@ -33,20 +43,41 @@ export default function Profile() {
     }
   }
 
+  const fetchWallets = async () => {
+    try {
+      const data = await request.get('/profile/wallets')
+      setWallets(data || [])
+    } catch (error) {
+      message.error('获取钱包地址列表失败')
+    }
+  }
+
+  const handleDeleteWallet = async (id: number) => {
+    try {
+      await request.delete(`/profile/wallets/${id}`)
+      message.success('删除钱包地址成功')
+      fetchWallets()
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '删除钱包地址失败')
+    }
+  }
+
   const handleUpdateProfile = async (values: any) => {
     setLoading(true)
     try {
-      await request.patch('/profile', values)
+      // 过滤掉 role 字段，不允许修改角色
+      const { role, ...updateData } = values
+      await request.patch('/profile', updateData)
       message.success('更新成功')
       // 更新store中的用户信息
       const token = useAuthStore.getState().token
       if (user && token) {
-        const updatedUser = { ...user, ...values }
+        const updatedUser = { ...user, ...updateData }
         setAuth(token, updatedUser)
       }
       fetchProfile()
-    } catch (error) {
-      message.error('更新失败')
+    } catch (error: any) {
+      message.error(error?.response?.data?.message || '更新失败')
     } finally {
       setLoading(false)
     }
@@ -99,21 +130,13 @@ export default function Profile() {
             />
           </Form.Item>
 
-          <Form.Item
-            name="email"
-            label="邮箱"
-          >
-            <Input 
-              placeholder="邮箱" 
-              disabled
-              data-testid="profile-form-email-input"
-              aria-label="邮箱输入框"
-            />
-          </Form.Item>
 
           <Form.Item
             name="phone"
             label="手机号"
+            rules={[
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+            ]}
           >
             <Input 
               placeholder="请输入手机号" 
@@ -156,6 +179,61 @@ export default function Profile() {
             </Space>
           </Form.Item>
         </Form>
+      </Card>
+
+      <Card
+        title={
+          <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="profile-wallets-title">
+            钱包地址管理
+          </div>
+        }
+        style={{ marginTop: '24px' }}
+        data-testid="profile-wallets-card"
+      >
+        <Table
+          dataSource={wallets}
+          rowKey="id"
+          columns={[
+            {
+              title: '钱包地址',
+              dataIndex: 'address',
+              key: 'address',
+              ellipsis: true,
+            },
+            {
+              title: '绑定时间',
+              dataIndex: 'created_at',
+              key: 'created_at',
+              width: 180,
+              render: (time: string) => new Date(time).toLocaleString('zh-CN'),
+            },
+            {
+              title: '操作',
+              key: 'action',
+              width: 100,
+              render: (_: any, record: Wallet) => (
+                <Popconfirm
+                  title="确定要删除这个钱包地址吗？"
+                  onConfirm={() => handleDeleteWallet(record.id)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button
+                    type="link"
+                    danger
+                    icon={<DeleteOutlined />}
+                    size="small"
+                    data-testid={`profile-wallets-delete-button-${record.id}`}
+                  >
+                    删除
+                  </Button>
+                </Popconfirm>
+              ),
+            },
+          ]}
+          pagination={false}
+          data-testid="profile-wallets-table"
+        />
       </Card>
 
       <Modal

@@ -19,6 +19,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 		auth := api.Group("/auth")
 		{
 			auth.POST("/login", adminAuthController.Login)
+			auth.POST("/login/wallet", adminAuthController.LoginWithWallet)
 			auth.POST("/logout", middleware.AuthMiddleware(), adminAuthController.Logout)
 		}
 
@@ -34,6 +35,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 				users.GET("/:id", adminUserController.GetUserByID)
 				users.PATCH("/:id", adminUserController.UpdateUser)
 				users.DELETE("/:id", adminUserController.DeleteUser)
+				users.POST("/:id/restore", adminUserController.RestoreUser)
 				users.POST("/:id/reset-password", adminUserController.ResetPassword)
 			}
 
@@ -43,6 +45,9 @@ func SetupAdminRoutes(router *gin.Engine) {
 				profile.GET("", adminAuthController.GetProfile)
 				profile.PATCH("", adminAuthController.UpdateProfile)
 				profile.POST("/change-password", adminAuthController.ChangePassword)
+				// 钱包地址管理
+				profile.GET("/wallets", adminAuthController.GetWallets)
+				profile.DELETE("/wallets/:id", adminAuthController.DeleteWallet)
 			}
 
 			// 仪表盘（Organizer和Admin都可以）

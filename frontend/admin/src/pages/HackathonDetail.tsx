@@ -111,6 +111,10 @@ export default function HackathonDetail() {
   const isCreator = hackathon?.organizer_id === user?.id
   const canEdit = isCreator && hackathon?.status === 'preparation'
   const canManageStages = isCreator
+  
+  // 检查阶段时间是否已设置（需要所有5个阶段都设置）
+  const hasStageTimes = stages && stages.length >= 5
+  const canPublish = isCreator && hackathon?.status === 'preparation' && hasStageTimes
 
   const stageLabels: Record<string, string> = {
     registration: '报名阶段',
@@ -162,8 +166,10 @@ export default function HackathonDetail() {
                   type="primary"
                   icon={<RocketOutlined />}
                   onClick={handlePublish}
+                  disabled={!canPublish}
                   data-testid="hackathon-detail-publish-button"
                   aria-label="发布活动"
+                  title={!hasStageTimes ? '请先设置所有阶段时间' : ''}
                 >
                   发布活动
                 </Button>
@@ -315,9 +321,11 @@ export default function HackathonDetail() {
                 <Button
                   type="primary"
                   onClick={() => handleSwitchStage(nextStage.to)}
+                  disabled={nextStage.to === 'published' && !hasStageTimes}
                   style={{ marginLeft: '16px' }}
                   data-testid="hackathon-detail-switch-stage-button"
                   aria-label={`切换到 ${nextStage.label}`}
+                  title={nextStage.to === 'published' && !hasStageTimes ? '请先设置所有阶段时间' : ''}
                 >
                   切换到 {nextStage.label}
                 </Button>

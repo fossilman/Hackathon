@@ -256,6 +256,25 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 		return errors.New("只能发布处于预备状态的活动")
 	}
 
+	// 检查活动阶段时间是否已设置
+	var stages []models.HackathonStage
+	if err := database.DB.Where("hackathon_id = ?", id).Find(&stages).Error; err != nil {
+		return fmt.Errorf("检查阶段时间失败: %w", err)
+	}
+
+	// 必须设置所有5个阶段的开始和结束时间
+	requiredStages := []string{"registration", "checkin", "team_formation", "submission", "voting"}
+	stageMap := make(map[string]bool)
+	for _, stage := range stages {
+		stageMap[stage.Stage] = true
+	}
+
+	for _, requiredStage := range requiredStages {
+		if !stageMap[requiredStage] {
+			return errors.New("活动阶段时间未设置，请先设置所有阶段时间后再发布")
+		}
+	}
+
 	return database.DB.Model(&hackathon).Update("status", "published").Error
 }
 

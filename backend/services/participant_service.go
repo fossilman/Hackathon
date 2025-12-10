@@ -177,3 +177,22 @@ func (s *ParticipantService) isValidTestSignature(signature string) bool {
 	return matched
 }
 
+// GetProfile 获取参赛者信息
+func (s *ParticipantService) GetProfile(participantID uint64) (*models.Participant, error) {
+	var participant models.Participant
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", participantID).First(&participant).Error; err != nil {
+		return nil, err
+	}
+	return &participant, nil
+}
+
+// UpdateProfile 更新参赛者信息
+func (s *ParticipantService) UpdateProfile(participantID uint64, updates map[string]interface{}) error {
+	// 不允许修改钱包地址
+	if _, ok := updates["wallet_address"]; ok {
+		return errors.New("不允许修改钱包地址")
+	}
+
+	return database.DB.Model(&models.Participant{}).Where("id = ? AND deleted_at IS NULL", participantID).Updates(updates).Error
+}
+

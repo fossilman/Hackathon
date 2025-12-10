@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Table, Button, Select, Space, message, Card, Tag } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { PlusOutlined, EyeOutlined, EditOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined } from '@ant-design/icons'
 import request from '../api/request'
 import dayjs from 'dayjs'
 import { useAuthStore } from '../store/authStore'
@@ -110,35 +110,20 @@ export default function HackathonList() {
       key: 'action',
       width: 150,
       fixed: 'right' as const,
-      render: (_: any, record: Hackathon) => {
-        const canEdit = isOrganizer && record.status === 'preparation' && record.organizer_id === user?.id
-        return (
-          <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => navigate(`/hackathons/${record.id}`)}
-              size="small"
-              data-testid={`hackathon-list-view-button-${record.id}`}
-              aria-label={`查看活动 ${record.name}`}
-            >
-              查看
-            </Button>
-            {canEdit && (
-              <Button
-                type="link"
-                icon={<EditOutlined />}
-                onClick={() => navigate(`/hackathons/${record.id}/edit`)}
-                size="small"
-                data-testid={`hackathon-list-edit-button-${record.id}`}
-                aria-label={`编辑活动 ${record.name}`}
-              >
-                编辑
-              </Button>
-            )}
-          </Space>
-        )
-      },
+      render: (_: any, record: Hackathon) => (
+        <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
+          <Button
+            type="link"
+            icon={<EyeOutlined />}
+            onClick={() => navigate(`/hackathons/${record.id}`)}
+            size="small"
+            data-testid={`hackathon-list-view-button-${record.id}`}
+            aria-label={`查看活动 ${record.name}`}
+          >
+            查看
+          </Button>
+        </Space>
+      ),
     },
   ]
 

@@ -34,6 +34,13 @@ func SetupArenaRoutes(router *gin.Engine) {
 		// 需要认证的路由
 		api.Use(middleware.ParticipantAuthMiddleware())
 		{
+			// 个人中心
+			profile := api.Group("/profile")
+			{
+				profile.GET("", arenaAuthController.GetProfile)
+				profile.PATCH("", arenaAuthController.UpdateProfile)
+			}
+
 			// 我的活动
 			api.GET("/my-hackathons", arenaHackathonController.GetMyHackathons)
 
@@ -52,6 +59,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 			{
 				teams.POST("", arenaTeamController.CreateTeam)
 				teams.GET("", arenaTeamController.GetTeamList)
+				teams.GET("/my-team", arenaTeamController.GetUserTeam)
 			}
 
 			api.GET("/teams/:id", arenaTeamController.GetTeamByID)
@@ -70,6 +78,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 
 			api.GET("/submissions/:id", arenaSubmissionController.GetSubmissionByID)
 			api.PUT("/submissions/:id", arenaSubmissionController.UpdateSubmission)
+			api.GET("/submissions/:id/history", arenaSubmissionController.GetSubmissionHistory)
 
 			// 投票相关
 			api.POST("/submissions/:id/vote", arenaVoteController.Vote)

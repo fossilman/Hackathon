@@ -10,6 +10,7 @@ import (
 type Participant struct {
 	ID            uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
 	WalletAddress string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"wallet_address"`
+	Nickname      string         `gorm:"type:varchar(50)" json:"nickname"` // 用户昵称
 	Nonce         string         `gorm:"type:varchar(255)" json:"-"`
 	LastLoginAt  *time.Time     `json:"last_login_at"`
 	CreatedAt    time.Time      `json:"created_at"`

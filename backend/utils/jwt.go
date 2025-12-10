@@ -9,19 +9,35 @@ import (
 )
 
 type Claims struct {
-	UserID   uint64 `json:"user_id"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-	WalletAddress string `json:"wallet_address,omitempty"` // 用于参赛者
+	UserID        uint64 `json:"user_id"`
+	Phone         string `json:"phone,omitempty"`         // 手机号（可选）
+	Role          string `json:"role"`
+	WalletAddress string `json:"wallet_address,omitempty"` // 钱包地址（可选）
 	jwt.RegisteredClaims
 }
 
-// GenerateToken 生成JWT Token
-func GenerateToken(userID uint64, email, role string) (string, error) {
+// GenerateToken 生成JWT Token（手机号登录）
+func GenerateToken(userID uint64, phone, role string) (string, error) {
 	claims := Claims{
 		UserID:   userID,
-		Email:    email,
+		Phone:    phone,
 		Role:     role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(config.AppConfig.JWTExpireHours) * time.Hour)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(config.AppConfig.JWTSecret))
+}
+
+// GenerateWalletToken 生成Web3钱包登录JWT Token
+func GenerateWalletToken(userID uint64, walletAddress, role string) (string, error) {
+	claims := Claims{
+		UserID:        userID,
+		WalletAddress: walletAddress,
+		Role:          role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(config.AppConfig.JWTExpireHours) * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

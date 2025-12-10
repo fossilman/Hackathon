@@ -54,14 +54,16 @@ export default function MyHackathons() {
     results: '公布结果',
   }
 
+  // 活动状态配色（与 Admin 系统保持一致）
   const statusColorMap: Record<string, string> = {
-    published: 'default',
-    registration: 'blue',
-    checkin: 'cyan',
+    preparation: 'default',
+    published: 'blue',
+    registration: 'cyan',
+    checkin: 'orange',
     team_formation: 'purple',
-    submission: 'orange',
-    voting: 'green',
-    results: 'red',
+    submission: 'geekblue',
+    voting: 'magenta',
+    results: 'green',
   }
 
   if (!token) {

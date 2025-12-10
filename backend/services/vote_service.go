@@ -136,7 +136,7 @@ func (s *VoteService) GetResults(hackathonID uint64) ([]map[string]interface{}, 
 
 	// 获取奖项设置
 	var awards []models.HackathonAward
-	if err := database.DB.Where("hackathon_id = ?", hackathonID).Order("rank ASC").Find(&awards).Error; err != nil {
+	if err := database.DB.Where("hackathon_id = ?", hackathonID).Order("`rank` ASC").Find(&awards).Error; err != nil {
 		return nil, err
 	}
 

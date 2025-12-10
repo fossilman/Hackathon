@@ -23,14 +23,14 @@ func main() {
 	}
 	defer database.CloseDB()
 
-	// 从命令行参数获取邮箱和密码，如果没有则使用默认值
-	email := "admin@hackathon.com"
+	// 从命令行参数获取手机号和密码，如果没有则使用默认值
+	phone := "13800138000"
 	password := "admin123456"
 	name := "系统管理员"
 	role := "admin"
 
 	if len(os.Args) > 1 {
-		email = os.Args[1]
+		phone = os.Args[1]
 	}
 	if len(os.Args) > 2 {
 		password = os.Args[2]
@@ -47,11 +47,13 @@ func main() {
 		log.Fatal("角色必须是 admin, organizer 或 sponsor")
 	}
 
-	// 检查用户是否已存在
-	var existingUser models.User
-	if err := database.DB.Where("email = ?", email).First(&existingUser).Error; err == nil {
-		fmt.Printf("用户 %s 已存在，ID: %d\n", email, existingUser.ID)
-		return
+	// 检查用户是否已存在（通过手机号）
+	if phone != "" {
+		var existingUser models.User
+		if err := database.DB.Where("phone = ? AND deleted_at IS NULL", phone).First(&existingUser).Error; err == nil {
+			fmt.Printf("手机号 %s 的用户已存在，ID: %d\n", phone, existingUser.ID)
+			return
+		}
 	}
 
 	// 加密密码
@@ -63,7 +65,7 @@ func main() {
 	// 创建用户
 	user := models.User{
 		Name:     name,
-		Email:    email,
+		Phone:    phone,
 		Password: hashedPassword,
 		Role:     role,
 		Status:   1,
@@ -74,7 +76,7 @@ func main() {
 	}
 
 	fmt.Printf("✅ 用户创建成功！\n")
-	fmt.Printf("   邮箱: %s\n", email)
+	fmt.Printf("   手机号: %s\n", phone)
 	fmt.Printf("   密码: %s\n", password)
 	fmt.Printf("   姓名: %s\n", name)
 	fmt.Printf("   角色: %s\n", role)

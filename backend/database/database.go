@@ -57,6 +57,7 @@ func AutoMigrate() error {
 		&models.Team{},
 		&models.TeamMember{},
 		&models.Submission{},
+		&models.SubmissionHistory{},
 		&models.Vote{},
 	)
 }

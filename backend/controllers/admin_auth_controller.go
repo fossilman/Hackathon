@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"hackathon-backend/services"
 	"hackathon-backend/utils"
@@ -16,10 +18,10 @@ func NewAdminAuthController() *AdminAuthController {
 	}
 }
 
-// Login 登录
+// Login 登录（手机号+密码）
 func (c *AdminAuthController) Login(ctx *gin.Context) {
 	var req struct {
-		Email    string `json:"email" binding:"required,email"`
+		Phone    string `json:"phone" binding:"required"`
 		Password string `json:"password" binding:"required"`
 	}
 
@@ -28,7 +30,7 @@ func (c *AdminAuthController) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, token, err := c.userService.Login(req.Email, req.Password)
+	user, token, err := c.userService.Login(req.Phone, req.Password)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
@@ -39,8 +41,45 @@ func (c *AdminAuthController) Login(ctx *gin.Context) {
 		"user": gin.H{
 			"id":    user.ID,
 			"name":  user.Name,
-			"email": user.Email,
-			"role":   user.Role,
+			"phone": user.Phone,
+			"role":  user.Role,
+		},
+	})
+}
+
+// LoginWithWallet Web3钱包登录
+func (c *AdminAuthController) LoginWithWallet(ctx *gin.Context) {
+	var req struct {
+		WalletAddress string `json:"wallet_address" binding:"required"`
+		Phone         string `json:"phone" binding:"required"`
+		Signature     string `json:"signature" binding:"required"` // 签名验证（后续可添加）
+	}
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	// TODO: 验证签名（后续实现）
+	// 目前先简单验证钱包地址格式
+	if len(req.WalletAddress) < 20 {
+		utils.BadRequest(ctx, "无效的钱包地址")
+		return
+	}
+
+	user, token, err := c.userService.LoginWithWallet(req.WalletAddress, req.Phone)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, gin.H{
+		"token": token,
+		"user": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"phone": user.Phone,
+			"role":  user.Role,
 		},
 	})
 }
@@ -73,6 +112,12 @@ func (c *AdminAuthController) UpdateProfile(ctx *gin.Context) {
 		return
 	}
 
+	// 不允许修改角色
+	if _, ok := updates["role"]; ok {
+		utils.BadRequest(ctx, "不允许修改角色")
+		return
+	}
+
 	if err := c.userService.UpdateCurrentUser(userID.(uint64), updates); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
@@ -96,6 +141,34 @@ func (c *AdminAuthController) ChangePassword(ctx *gin.Context) {
 	}
 
 	if err := c.userService.UpdatePassword(userID.(uint64), req.OldPassword, req.NewPassword); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// GetWallets 获取当前用户的钱包地址列表
+func (c *AdminAuthController) GetWallets(ctx *gin.Context) {
+	userID, _ := ctx.Get("user_id")
+	wallets, err := c.userService.GetUserWallets(userID.(uint64))
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, wallets)
+}
+
+// DeleteWallet 删除钱包地址
+func (c *AdminAuthController) DeleteWallet(ctx *gin.Context) {
+	userID, _ := ctx.Get("user_id")
+	walletID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的钱包ID")
+		return
+	}
+
+	if err := c.userService.UnbindWallet(userID.(uint64), walletID); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

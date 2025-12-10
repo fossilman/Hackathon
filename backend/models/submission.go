@@ -45,3 +45,23 @@ func (Vote) TableName() string {
 	return "votes"
 }
 
+// SubmissionHistory 作品修改记录表
+type SubmissionHistory struct {
+	ID            uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	SubmissionID uint64    `gorm:"index;not null" json:"submission_id"`
+	ParticipantID uint64    `gorm:"index;not null" json:"participant_id"`
+	Name          string    `gorm:"type:varchar(100)" json:"name"`
+	Description   string    `gorm:"type:text" json:"description"`
+	Link          string    `gorm:"type:varchar(500)" json:"link"`
+	CreatedAt     time.Time `json:"created_at"`
+
+	// 关联关系
+	Submission  Submission  `gorm:"foreignKey:SubmissionID" json:"submission,omitempty"`
+	Participant Participant `gorm:"foreignKey:ParticipantID" json:"participant,omitempty"`
+}
+
+// TableName 指定表名
+func (SubmissionHistory) TableName() string {
+	return "submission_histories"
+}
+

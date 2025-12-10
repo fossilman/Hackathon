@@ -95,7 +95,7 @@ func (s *SubmissionService) GetSubmissionByID(submissionID uint64) (*models.Subm
 }
 
 // UpdateSubmission 更新作品（提交阶段内）
-func (s *SubmissionService) UpdateSubmission(submissionID, teamID uint64, submission *models.Submission) error {
+func (s *SubmissionService) UpdateSubmission(submissionID, teamID, participantID uint64, submission *models.Submission) error {
 	// 检查作品是否存在
 	var existing models.Submission
 	if err := database.DB.Where("id = ? AND team_id = ?", submissionID, teamID).First(&existing).Error; err != nil {
@@ -122,7 +122,31 @@ func (s *SubmissionService) UpdateSubmission(submissionID, teamID uint64, submis
 		return errors.New("不在提交时间范围内")
 	}
 
+	// 保存修改记录
+	history := models.SubmissionHistory{
+		SubmissionID:  submissionID,
+		ParticipantID: participantID,
+		Name:          existing.Name,
+		Description:   existing.Description,
+		Link:          existing.Link,
+	}
+	if err := database.DB.Create(&history).Error; err != nil {
+		return errors.New("保存修改记录失败: " + err.Error())
+	}
+
 	// 更新作品
 	return database.DB.Model(&existing).Updates(submission).Error
+}
+
+// GetSubmissionHistory 获取作品修改记录
+func (s *SubmissionService) GetSubmissionHistory(submissionID uint64) ([]models.SubmissionHistory, error) {
+	var histories []models.SubmissionHistory
+	if err := database.DB.Where("submission_id = ?", submissionID).
+		Preload("Participant").
+		Order("created_at DESC").
+		Find(&histories).Error; err != nil {
+		return nil, err
+	}
+	return histories, nil
 }
 

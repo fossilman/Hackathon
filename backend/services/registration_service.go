@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"hackathon-backend/database"
@@ -14,6 +15,15 @@ type RegistrationService struct{}
 
 // Register 报名参加活动
 func (s *RegistrationService) Register(hackathonID, participantID uint64) error {
+	// 检查参赛者是否存在
+	var participant models.Participant
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", participantID).First(&participant).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("参赛者不存在")
+		}
+		return fmt.Errorf("查询参赛者失败: %w", err)
+	}
+
 	// 检查活动状态
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
@@ -38,6 +48,17 @@ func (s *RegistrationService) Register(hackathonID, participantID uint64) error 
 	var existing models.Registration
 	if err := database.DB.Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).First(&existing).Error; err == nil {
 		return errors.New("已经报名过该活动")
+	}
+
+	// 检查是否达到最大参与人数限制
+	if hackathon.MaxParticipants > 0 {
+		var registeredCount int64
+		if err := database.DB.Model(&models.Registration{}).Where("hackathon_id = ?", hackathonID).Count(&registeredCount).Error; err != nil {
+			return fmt.Errorf("查询报名人数失败: %w", err)
+		}
+		if registeredCount >= int64(hackathon.MaxParticipants) {
+			return errors.New("活动报名人数已满")
+		}
 	}
 
 	// 创建报名记录

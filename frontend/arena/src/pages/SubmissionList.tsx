@@ -46,6 +46,19 @@ export default function SubmissionList() {
     }
   }
 
+  const handleCancelVote = async (submissionId: number) => {
+    try {
+      await request.delete(`/submissions/${submissionId}/vote`)
+      message.success('撤回投票成功')
+      const newVotedIds = new Set(votedIds)
+      newVotedIds.delete(submissionId)
+      setVotedIds(newVotedIds)
+      fetchSubmissions()
+    } catch (error: any) {
+      message.error(error.message || '撤回投票失败')
+    }
+  }
+
   return (
     <div className="page-content" data-testid="submission-list-page">
       <div className="page-container" data-testid="submission-list-container">
@@ -60,17 +73,29 @@ export default function SubmissionList() {
             <List.Item
               data-testid={`submission-list-item-${submission.id}`}
               actions={[
-                <Button
-                  key={`vote-${submission.id}`}
-                  type={votedIds.has(submission.id) ? 'default' : 'primary'}
-                  icon={<LikeOutlined />}
-                  onClick={() => handleVote(submission.id)}
-                  disabled={votedIds.has(submission.id)}
-                  data-testid={`submission-list-vote-button-${submission.id}`}
-                  aria-label={votedIds.has(submission.id) ? `已投票: ${submission.name}` : `投票: ${submission.name}`}
-                >
-                  {votedIds.has(submission.id) ? '已投票' : '投票'}
-                </Button>,
+                votedIds.has(submission.id) ? (
+                  <Button
+                    key={`cancel-vote-${submission.id}`}
+                    danger
+                    icon={<LikeOutlined />}
+                    onClick={() => handleCancelVote(submission.id)}
+                    data-testid={`submission-list-cancel-vote-button-${submission.id}`}
+                    aria-label={`撤回投票: ${submission.name}`}
+                  >
+                    撤回投票
+                  </Button>
+                ) : (
+                  <Button
+                    key={`vote-${submission.id}`}
+                    type="primary"
+                    icon={<LikeOutlined />}
+                    onClick={() => handleVote(submission.id)}
+                    data-testid={`submission-list-vote-button-${submission.id}`}
+                    aria-label={`投票: ${submission.name}`}
+                  >
+                    投票
+                  </Button>
+                ),
               ]}
             >
               <List.Item.Meta

@@ -23,10 +23,9 @@ func NewAdminUserController() *AdminUserController {
 func (c *AdminUserController) CreateUser(ctx *gin.Context) {
 	var req struct {
 		Name      string  `json:"name" binding:"required"`
-		Email     string  `json:"email" binding:"required,email"`
+		Phone     string  `json:"phone" binding:"required"`
 		Password  string  `json:"password" binding:"required,min=8"`
 		Role      string  `json:"role" binding:"required"`
-		Phone     string  `json:"phone"`
 		SponsorID *uint64 `json:"sponsor_id"`
 	}
 	
@@ -44,10 +43,9 @@ func (c *AdminUserController) CreateUser(ctx *gin.Context) {
 	// 创建用户对象
 	user := models.User{
 		Name:      req.Name,
-		Email:     req.Email,
+		Phone:     req.Phone,
 		Password:  req.Password, // 会在service中加密
 		Role:      req.Role,
-		Phone:     req.Phone,
 		SponsorID: req.SponsorID,
 		Status:    1,
 	}
@@ -68,8 +66,9 @@ func (c *AdminUserController) GetUserList(ctx *gin.Context) {
 	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
 	role := ctx.Query("role")
 	keyword := ctx.Query("keyword")
+	includeDeleted := ctx.Query("include_deleted") == "true"
 
-	users, total, err := c.userService.GetUserList(page, pageSize, role, keyword)
+	users, total, err := c.userService.GetUserList(page, pageSize, role, keyword, includeDeleted)
 	if err != nil {
 		utils.InternalServerError(ctx, err.Error())
 		return
@@ -110,10 +109,6 @@ func (c *AdminUserController) UpdateUser(ctx *gin.Context) {
 	}
 
 	// 检查是否尝试修改不允许的字段
-	if _, ok := updates["email"]; ok {
-		utils.BadRequest(ctx, "不允许修改邮箱")
-		return
-	}
 	if _, ok := updates["role"]; ok {
 		utils.BadRequest(ctx, "不允许修改角色")
 		return
@@ -170,6 +165,22 @@ func (c *AdminUserController) ResetPassword(ctx *gin.Context) {
 	}
 
 	if err := c.userService.ResetPassword(id, req.Password); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
+}
+
+// RestoreUser 恢复已删除的用户
+func (c *AdminUserController) RestoreUser(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的用户ID")
+		return
+	}
+
+	if err := c.userService.RestoreUser(id); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

@@ -34,7 +34,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// 将用户信息存储到上下文
 		c.Set("user_id", claims.UserID)
-		c.Set("email", claims.Email)
+		c.Set("phone", claims.Phone)
+		c.Set("wallet_address", claims.WalletAddress)
 		c.Set("role", claims.Role)
 
 		c.Next()

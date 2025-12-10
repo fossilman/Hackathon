@@ -2,6 +2,7 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { Layout as AntLayout, Button, Space, Avatar, Menu } from 'antd'
 import { TrophyOutlined, WalletOutlined, LogoutOutlined, UserOutlined, AppstoreOutlined } from '@ant-design/icons'
 import { useAuthStore } from '../store/authStore'
+import { getUserDisplayName } from '../utils/userDisplay'
 import { ethers } from 'ethers'
 import { message } from 'antd'
 import request from '../api/request'
@@ -10,7 +11,7 @@ const { Header, Content } = AntLayout
 
 export default function Layout() {
   const navigate = useNavigate()
-  const { walletAddress, token, connectWallet, clearAuth } = useAuthStore()
+  const { walletAddress, token, participant, connectWallet, setParticipant, clearAuth } = useAuthStore()
 
   const handleConnectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -30,12 +31,22 @@ export default function Layout() {
         const signature = await signer.signMessage(messageText)
 
         // 验证签名
-        const { token: authToken, participant } = await request.post('/auth/verify', {
+        const { token: authToken, participant: participantData } = await request.post('/auth/verify', {
           wallet_address: address,
           signature,
         })
 
-        connectWallet(address, authToken, participant.id)
+        connectWallet(address, authToken, participantData.id, participantData)
+        
+        // 获取完整的 participant 信息（包括 nickname）
+        try {
+          const fullParticipant = await request.get('/profile')
+          setParticipant(fullParticipant)
+        } catch (error) {
+          // 如果获取失败，使用基本信息
+          console.warn('获取完整用户信息失败，使用基本信息')
+        }
+        
         message.success('连接成功')
       } catch (error: any) {
         message.error(error.message || '连接失败')
@@ -90,7 +101,7 @@ export default function Layout() {
               letterSpacing: '0.5px',
             }}
           >
-            Hackathon Arena
+            Hackathon Arena Platform
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} data-testid="arena-header-actions">
@@ -121,23 +132,13 @@ export default function Layout() {
                   backgroundColor: 'rgba(255, 255, 255, 0.2)',
                   color: '#fff',
                 }}
-                icon={<WalletOutlined />}
-                data-testid="arena-wallet-avatar"
-                aria-label="钱包头像"
+                icon={<UserOutlined />}
+                data-testid="arena-user-avatar"
+                aria-label="用户头像"
               />
-              <span style={{ fontSize: '14px', opacity: 0.9 }} data-testid="arena-wallet-address">
-                {formatAddress(walletAddress)}
+              <span style={{ fontSize: '14px', opacity: 0.9 }} data-testid="arena-user-name">
+                {getUserDisplayName(participant, walletAddress)}
               </span>
-              <Button
-                type="text"
-                icon={<LogoutOutlined />}
-                style={{ color: '#fff' }}
-                onClick={handleDisconnect}
-                data-testid="arena-disconnect-button"
-                aria-label="断开连接"
-              >
-                断开
-              </Button>
             </Space>
           ) : (
             <Button

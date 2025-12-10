@@ -105,3 +105,62 @@ go run scripts/clear_test_data.go
 ✓ 所有测试数据已成功清空!
 ```
 
+## migrate_team_index.go - 修改 teams 表唯一索引迁移脚本
+
+### 功能
+用于修改 `teams` 表的唯一索引结构，从基于 `hackathon_id` 和 `name` 的唯一索引改为基于 `hackathon_id` 和 `leader_id` 的唯一索引。
+
+### 迁移内容
+
+1. **删除旧的唯一索引**：`uk_hackathon_name`（基于 `hackathon_id` 和 `name`）
+2. **创建新的唯一索引**：`uk_hackathon_leader`（基于 `hackathon_id` 和 `leader_id`）
+
+### 使用方法
+
+```bash
+cd backend
+go run scripts/migrate_team_index.go
+```
+
+### 迁移说明
+
+**迁移前：**
+- 唯一索引：`uk_hackathon_name (hackathon_id, name)`
+- 限制：同一活动下队伍名称必须唯一
+- 问题：不允许同一活动下多个队伍使用相同的名称
+
+**迁移后：**
+- 唯一索引：`uk_hackathon_leader (hackathon_id, leader_id)`
+- 限制：一个队长在一个活动中只能创建一个队伍
+- 优势：允许同一活动下多个队伍使用相同的名称，队伍的唯一性由队长ID保证
+
+### 注意事项
+
+1. **数据安全**：此脚本会修改数据库索引结构，建议在执行前备份数据库
+2. **幂等性**：脚本会自动检查索引是否存在，可以安全地多次运行
+3. **兼容性**：确保数据库配置正确（在 `config.yaml` 或环境变量中）
+4. **执行时机**：建议在部署新代码前执行此迁移脚本
+
+### 输出示例
+
+```
+开始迁移：修改 teams 表的唯一索引...
+发现旧的 uk_hackathon_name 唯一索引，开始删除...
+✓ 已删除旧索引 uk_hackathon_name
+创建新的 uk_hackathon_leader 唯一索引...
+✓ 已创建新的组合唯一索引 uk_hackathon_leader (hackathon_id, leader_id)
+✓ 索引迁移成功！
+
+说明：
+  - 已删除旧的 uk_hackathon_name 唯一索引（基于 hackathon_id 和 name）
+  - 已创建新的 uk_hackathon_leader 唯一索引（基于 hackathon_id 和 leader_id）
+  - 现在允许同一活动下多个队伍使用相同的名称
+  - 一个队长在一个活动中只能创建一个队伍
+```
+
+### 相关变更
+
+此迁移脚本对应 IDEA-201 PART5 的需求变更：
+- 一个活动可以创建多个队伍，队伍名称可以相同
+- 队伍的唯一性由队长的ID保证
+

@@ -83,6 +83,7 @@ func (c *ArenaAuthController) Verify(ctx *gin.Context) {
 		"participant": gin.H{
 			"id":             participant.ID,
 			"wallet_address": participant.WalletAddress,
+			"nickname":       participant.Nickname,
 		},
 	})
 }
@@ -120,5 +121,34 @@ func isValidSignature(signature string) bool {
 	// 检查是否为有效的十六进制字符串
 	matched, _ := regexp.MatchString("^[0-9a-fA-F]{130}$", sig)
 	return matched
+}
+
+// GetProfile 获取当前参赛者信息
+func (c *ArenaAuthController) GetProfile(ctx *gin.Context) {
+	participantID, _ := ctx.Get("participant_id")
+	participant, err := c.participantService.GetProfile(participantID.(uint64))
+	if err != nil {
+		utils.NotFound(ctx, "参赛者不存在")
+		return
+	}
+	utils.Success(ctx, participant)
+}
+
+// UpdateProfile 更新当前参赛者信息
+func (c *ArenaAuthController) UpdateProfile(ctx *gin.Context) {
+	participantID, _ := ctx.Get("participant_id")
+
+	var updates map[string]interface{}
+	if err := ctx.ShouldBindJSON(&updates); err != nil {
+		utils.BadRequest(ctx, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := c.participantService.UpdateProfile(participantID.(uint64), updates); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
 }
 

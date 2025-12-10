@@ -7,11 +7,14 @@ import (
 )
 
 // Team 队伍表
+// 唯一索引 uk_hackathon_leader (hackathon_id, leader_id) 确保：
+// - 一个队长在一个活动中只能创建一个队伍
+// - 同一个队长可以在不同活动中创建不同的队伍
 type Team struct {
 	ID          uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
-	HackathonID uint64         `gorm:"uniqueIndex:uk_hackathon_name;not null" json:"hackathon_id"`
+	HackathonID uint64         `gorm:"uniqueIndex:uk_hackathon_leader;not null" json:"hackathon_id"`
 	Name        string         `gorm:"type:varchar(50);not null" json:"name"`
-	LeaderID    uint64         `gorm:"index;not null" json:"leader_id"`
+	LeaderID    uint64         `gorm:"uniqueIndex:uk_hackathon_leader;not null" json:"leader_id"`
 	MaxSize     int            `gorm:"default:3" json:"max_size"`
 	Status      string         `gorm:"type:enum('recruiting','locked');default:'recruiting'" json:"status"`
 	CreatedAt   time.Time      `json:"created_at"`

@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 interface User {
   id: number
   name: string
-  email: string
+  phone: string
   role: string
 }
 

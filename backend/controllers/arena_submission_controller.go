@@ -126,17 +126,42 @@ func (c *ArenaSubmissionController) UpdateSubmission(ctx *gin.Context) {
 		return
 	}
 
-	// 检查是否是队长
-	if teamMember.Role != "leader" {
-		utils.Forbidden(ctx, "只有队长可以修改作品")
-		return
-	}
-
-	if err := c.submissionService.UpdateSubmission(id, teamMember.TeamID, &submission); err != nil {
+	// 队长和队员都可以修改作品
+	participantIDUint, _ := participantID.(uint64)
+	if err := c.submissionService.UpdateSubmission(id, teamMember.TeamID, participantIDUint, &submission); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
 	utils.Success(ctx, nil)
+}
+
+// GetSubmissionHistory 获取作品修改记录
+func (c *ArenaSubmissionController) GetSubmissionHistory(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的作品ID")
+		return
+	}
+
+	participantID, _ := ctx.Get("participant_id")
+
+	// 查找用户所在的队伍
+	var teamMember models.TeamMember
+	if err := database.DB.Joins("JOIN teams ON team_members.team_id = teams.id").
+		Joins("JOIN submissions ON submissions.team_id = teams.id").
+		Where("team_members.participant_id = ? AND submissions.id = ?", participantID, id).
+		First(&teamMember).Error; err != nil {
+		utils.BadRequest(ctx, "您没有权限查看此作品的修改记录")
+		return
+	}
+
+	histories, err := c.submissionService.GetSubmissionHistory(id)
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, histories)
 }
 

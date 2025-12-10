@@ -71,10 +71,11 @@ export default function HackathonStages() {
         if (!range || !range[0] || !range[1]) {
           return null
         }
+        // 使用 RFC3339 格式：YYYY-MM-DDTHH:mm:ssZ
         return {
           stage: option.value,
-          start_time: range[0].format('YYYY-MM-DD HH:mm:ss'),
-          end_time: range[1].format('YYYY-MM-DD HH:mm:ss'),
+          start_time: range[0].toISOString(),
+          end_time: range[1].toISOString(),
         }
       }).filter(Boolean)
 

@@ -167,6 +167,25 @@ func (c *ArenaTeamController) DissolveTeam(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
+// GetUserTeam 获取用户在指定活动中的队伍信息
+func (c *ArenaTeamController) GetUserTeam(ctx *gin.Context) {
+	hackathonID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	participantID, _ := ctx.Get("participant_id")
+
+	team, err := c.teamService.GetUserTeam(hackathonID, participantID.(uint64))
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, team)
+}
+
 // UpdateTeam 更新队伍信息
 func (c *ArenaTeamController) UpdateTeam(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
