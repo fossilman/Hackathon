@@ -45,3 +45,17 @@
 + 赞助商可以看到活动概览菜单，且能够访问
 + 赞助商申请页面，去除查询申请结果的手机号输入框，查询结果按钮与提交申请按钮平行
 + 赞助商申请页面增加赞助商Logo输入框
+### PART7
++ 活动详情页，只在发布阶段展示海报，其他阶段不展示
++ 活动集锦页面，查看详情报错：Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ASC' at line 1
+### PART8
+请帮我美化Admin系统与Arena系统的所有页面，要求：
+- 保持原有功能不变
+- 使用更规范的代码结构
+- 优化布局、间距、层级
+- 使用更统一的视觉风格（Tailwind / CSS）
+- 提高可读性与可维护性
+- 自动修复冗余代码与不必要组件
+- 自动优化 className，使其更简洁、可复用
+- 如果 UI 太生硬，请使用更现代化的视觉风格（柔和阴影、圆角、层次）
+- 两个系统风格保持高度统一，尽可能使用共享的抽象组件，风格以Admin系统为准

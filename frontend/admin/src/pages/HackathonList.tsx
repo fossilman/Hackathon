@@ -161,11 +161,11 @@ export default function HackathonList() {
       <div className="page-header">
         <div>
           <h2 className="page-title" data-testid="hackathon-list-title">{t('hackathon.list')}</h2>
-          <Space style={{ marginTop: '8px' }} data-testid="hackathon-list-filters">
+          <Space style={{ marginTop: 'var(--spacing-md)' }} size="middle" data-testid="hackathon-list-filters" className="search-input-wrapper">
             <Input
+              className="search-input"
               placeholder={t('hackathon.searchPlaceholder')}
               prefix={<SearchOutlined />}
-              style={{ width: 300 }}
               value={keyword}
               onChange={(e) => handleSearchChange(e.target.value)}
               onClear={handleSearchClear}
@@ -203,7 +203,7 @@ export default function HackathonList() {
           </Button>
         )}
       </div>
-      <Card data-testid="hackathon-list-table-card">
+      <Card data-testid="hackathon-list-table-card" style={{ marginTop: 'var(--spacing-xl)' }}>
         <Table
           columns={columns}
           dataSource={hackathons}

@@ -4,6 +4,7 @@ import { Button, message } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { ethers } from 'ethers'
+import { PageHeader } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import HackathonCard from '../components/HackathonCard'
@@ -56,8 +57,8 @@ export default function Home() {
 
         // 签名
         const signer = await provider.getSigner()
-        const message = `Please sign this message to authenticate: ${nonce}`
-        const signature = await signer.signMessage(message)
+        const messageText = `Please sign this message to authenticate: ${nonce}`
+        const signature = await signer.signMessage(messageText)
 
         // 验证签名
         const { token, participant: participantData } = await request.post('/auth/verify', {
@@ -109,12 +110,15 @@ export default function Home() {
 
   return (
     <div className="page-content" data-testid="home-page">
-      <div className="page-header" data-testid="home-header">
-        <h1 className="page-title" data-testid="home-title" style={{ fontSize: '28px' }}>
+      <PageHeader
+        title={
+          <>
           <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
           {t('home.title')}
-        </h1>
-        {!walletAddress && (
+          </>
+        }
+        actions={
+          !walletAddress ? (
           <Button 
             type="primary" 
             onClick={handleConnectWallet}
@@ -123,8 +127,10 @@ export default function Home() {
           >
             {t('common.connectWallet')}
           </Button>
-        )}
-      </div>
+          ) : undefined
+        }
+        testId="home-header"
+      />
 
       {loading ? (
         <div 

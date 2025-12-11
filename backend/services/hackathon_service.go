@@ -942,7 +942,7 @@ func (s *HackathonService) GetArchiveDetail(hackathonID uint64) (map[string]inte
 
 	// 获取比赛结果（获奖队伍）
 	var awards []models.HackathonAward
-	if err := database.DB.Where("hackathon_id = ?", hackathonID).Order("rank ASC").Find(&awards).Error; err != nil {
+	if err := database.DB.Where("hackathon_id = ?", hackathonID).Order("`rank` ASC").Find(&awards).Error; err != nil {
 		return nil, err
 	}
 

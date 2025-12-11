@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Table, Tag, message, Row, Col, Statistic } from 'antd'
+import { Card, Table, Tag, message, Row, Col } from 'antd'
 import { TrophyOutlined, TeamOutlined, FileTextOutlined, LikeOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { StatCard, PageHeader } from '@shared/components'
 import request from '../api/request'
 
 export default function Results() {
@@ -90,44 +91,44 @@ export default function Results() {
   return (
     <div className="page-content" data-testid="results-page">
       <div className="page-container" data-testid="results-container">
-        <div className="page-header" data-testid="results-header">
-          <h2 className="page-title" data-testid="results-title">
+        <PageHeader
+          title={
+            <>
             <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
             {t('results.title')}
-          </h2>
-        </div>
+            </>
+          }
+          testId="results-header"
+        />
 
         {/* 统计信息卡片 */}
         <Row gutter={[16, 16]} style={{ marginBottom: 24 }} data-testid="results-statistics">
           <Col xs={24} sm={12} lg={8}>
-            <Card className="stat-card" data-testid="results-stat-votes">
-              <Statistic
+            <StatCard
                 title={t('results.totalVotes')}
                 value={statistics.total_votes || 0}
                 prefix={<LikeOutlined />}
-                valueStyle={{ color: 'var(--primary-color)' }}
+              iconColor="var(--primary-color)"
+              testId="results-stat-votes"
               />
-            </Card>
           </Col>
           <Col xs={24} sm={12} lg={8}>
-            <Card className="stat-card" data-testid="results-stat-teams">
-              <Statistic
+            <StatCard
                 title={t('results.totalTeams')}
                 value={statistics.total_teams || 0}
                 prefix={<TeamOutlined />}
-                valueStyle={{ color: 'var(--success-color)' }}
+              iconColor="var(--success-color)"
+              testId="results-stat-teams"
               />
-            </Card>
           </Col>
           <Col xs={24} sm={12} lg={8}>
-            <Card className="stat-card" data-testid="results-stat-submissions">
-              <Statistic
+            <StatCard
                 title={t('results.totalSubmissions')}
                 value={statistics.total_submissions || 0}
                 prefix={<FileTextOutlined />}
-                valueStyle={{ color: 'var(--warning-color)' }}
+              iconColor="var(--warning-color)"
+              testId="results-stat-submissions"
               />
-            </Card>
           </Col>
         </Row>
 

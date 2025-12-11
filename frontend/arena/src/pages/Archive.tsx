@@ -3,6 +3,7 @@ import { Card, Row, Col, Input, Select, Button, Pagination, Tag, message, Spin, 
 import { SearchOutlined, TrophyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
+import { PageHeader } from '@shared/components'
 import request from '../api/request'
 import dayjs from 'dayjs'
 
@@ -82,16 +83,16 @@ export default function Archive() {
   // 如果是详情页面
   if (id && archiveDetail) {
     return (
-      <div className="page-content" style={{ padding: '24px' }}>
-        <div className="page-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div className="page-content">
+        <div className="page-container">
           <Button
             onClick={() => navigate('/hackathons/archive')}
-            style={{ marginBottom: '24px' }}
+            style={{ marginBottom: 'var(--spacing-xl)' }}
           >
             {t('archive.backToList')}
           </Button>
           <Card loading={detailLoading}>
-            <h1 style={{ fontSize: '28px', fontWeight: 600, marginBottom: '24px' }}>
+            <h1 className="page-title" style={{ marginBottom: 'var(--spacing-xl)' }}>
               {archiveDetail.hackathon?.name}
             </h1>
             <Descriptions column={2} bordered>
@@ -100,17 +101,19 @@ export default function Archive() {
                 {dayjs(archiveDetail.hackathon?.end_time).format('YYYY-MM-DD')}
               </Descriptions.Item>
               <Descriptions.Item label={t('archive.stats')}>
-                {t('archive.registration')}: {archiveDetail.stats?.registration_count || 0} | 
-                {t('archive.checkin')}: {archiveDetail.stats?.checkin_count || 0} | 
-                {t('archive.teams')}: {archiveDetail.stats?.team_count || 0} | 
-                {t('archive.submissions')}: {archiveDetail.stats?.submission_count || 0}
+                <div style={{ display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
+                  <span>{t('archive.registration')}: <strong>{archiveDetail.stats?.registration_count || 0}</strong></span>
+                  <span>{t('archive.checkin')}: <strong>{archiveDetail.stats?.checkin_count || 0}</strong></span>
+                  <span>{t('archive.teams')}: <strong>{archiveDetail.stats?.team_count || 0}</strong></span>
+                  <span>{t('archive.submissions')}: <strong>{archiveDetail.stats?.submission_count || 0}</strong></span>
+                </div>
               </Descriptions.Item>
               <Descriptions.Item label={t('archive.description')} span={2}>
                 <div dangerouslySetInnerHTML={{ __html: archiveDetail.hackathon?.description }} />
               </Descriptions.Item>
             </Descriptions>
 
-            <Divider>{t('archive.submissionList')}</Divider>
+            <Divider style={{ margin: 'var(--spacing-2xl) 0' }}>{t('archive.submissionList')}</Divider>
             <Table
               dataSource={archiveDetail.submissions || []}
               rowKey="id"
@@ -125,16 +128,32 @@ export default function Archive() {
 
             {archiveDetail.final_results && archiveDetail.final_results.length > 0 && (
               <>
-                <Divider>{t('archive.results')}</Divider>
+                <Divider style={{ margin: 'var(--spacing-2xl) 0' }}>{t('archive.results')}</Divider>
                 {archiveDetail.final_results.map((result: any, index: number) => (
-                  <Card key={index} style={{ marginBottom: '16px' }}>
-                    <h3>{result.award_name}</h3>
-                    <div>{t('archive.prize')}: {result.prize}</div>
+                  <Card key={index} style={{ marginBottom: 'var(--spacing-lg)' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)' }}>
+                      {result.award_name}
+                    </h3>
+                    <div style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+                      {t('archive.prize')}: <strong style={{ color: 'var(--primary-color)' }}>{result.prize}</strong>
+                    </div>
                     {result.winners && result.winners.length > 0 && (
-                      <div style={{ marginTop: '12px' }}>
+                      <div style={{ marginTop: 'var(--spacing-lg)' }}>
                         {result.winners.map((winner: any, wIndex: number) => (
-                          <div key={wIndex} style={{ marginTop: '8px' }}>
-                            <strong>{winner.team_name}</strong> - {winner.submission_name} ({t('archive.voteCount')}: {winner.vote_count})
+                          <div 
+                            key={wIndex} 
+                            style={{ 
+                              marginTop: 'var(--spacing-md)',
+                              padding: 'var(--spacing-md)',
+                              background: 'var(--bg-secondary)',
+                              borderRadius: 'var(--radius-md)',
+                              border: '1px solid var(--border-light)'
+                            }}
+                          >
+                            <strong style={{ color: 'var(--text-primary)' }}>{winner.team_name}</strong> - {winner.submission_name} 
+                            <span style={{ color: 'var(--text-secondary)', marginLeft: 'var(--spacing-sm)' }}>
+                              ({t('archive.voteCount')}: {winner.vote_count})
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -150,18 +169,21 @@ export default function Archive() {
   }
 
   return (
-    <div className="page-content" style={{ padding: '24px' }}>
-      <div className="page-container" style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '16px' }}>
-            <TrophyOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
+    <div className="page-content">
+      <div className="page-container">
+        <PageHeader
+          title={
+            <>
+              <TrophyOutlined style={{ marginRight: 'var(--spacing-sm)', color: 'var(--primary-color)' }} />
             {t('archive.title')}
-          </h1>
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+            </>
+          }
+          actions={
+            <div className="search-input-wrapper">
             <Search
+                className="search-input"
               placeholder={t('archive.searchPlaceholder')}
               allowClear
-              style={{ width: 300 }}
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onSearch={handleSearch}
@@ -178,40 +200,44 @@ export default function Archive() {
               <Option value="half_year">{t('archive.halfYear')}</Option>
             </Select>
           </div>
-        </div>
+          }
+          testId="archive-header"
+        />
 
         <Spin spinning={loading}>
           {hackathons.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)', color: 'var(--text-tertiary)' }}>
               {t('archive.noEndedHackathons')}
             </div>
           ) : (
             <>
-              <Row gutter={[16, 16]}>
+              <div className="grid-container">
                 {hackathons.map((hackathon) => (
-                  <Col xs={24} sm={12} lg={8} key={hackathon.id}>
                     <Card
+                    key={hackathon.id}
                       hoverable
                       onClick={() => navigate(`/hackathons/archive/${hackathon.id}`)}
-                      style={{ height: '100%' }}
+                    style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                    bodyStyle={{ flex: 1, display: 'flex', flexDirection: 'column' }}
                     >
-                      <div style={{ marginBottom: '12px' }}>
-                        <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '8px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                      <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: 600, marginBottom: 'var(--spacing-sm)', color: 'var(--text-primary)' }}>
                           {hackathon.name}
                         </h3>
-                        <div style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: 'var(--spacing-md)' }}>
                           {dayjs(hackathon.start_time).format('YYYY-MM-DD')} - {dayjs(hackathon.end_time).format('YYYY-MM-DD')}
                         </div>
                         <Tag color="green">{t('archive.ended')}</Tag>
                       </div>
-                      <div style={{ color: '#999', fontSize: '12px', marginTop: '12px' }}>
-                        {hackathon.description?.substring(0, 100)}
-                        {hackathon.description?.length > 100 ? '...' : ''}
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: '14px', flex: 1, lineHeight: '1.6' }}>
+                        {hackathon.description?.substring(0, 120)}
+                        {hackathon.description && hackathon.description.length > 120 ? '...' : ''}
                       </div>
                       <Button
                         type="primary"
                         block
-                        style={{ marginTop: '16px' }}
+                        style={{ marginTop: 'var(--spacing-lg)' }}
                         onClick={(e) => {
                           e.stopPropagation()
                           navigate(`/hackathons/archive/${hackathon.id}`)
@@ -219,10 +245,10 @@ export default function Archive() {
                       >
                         {t('archive.viewDetail')}
                       </Button>
+                    </div>
                     </Card>
-                  </Col>
                 ))}
-              </Row>
+              </div>
               <div style={{ marginTop: '24px', textAlign: 'center' }}>
                 <Pagination
                   current={pagination.current}

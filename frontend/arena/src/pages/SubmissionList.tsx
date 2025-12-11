@@ -30,7 +30,7 @@ export default function SubmissionList() {
   const fetchMyVotes = async () => {
     try {
       const votes = await request.get(`/hackathons/${id}/votes`)
-      const ids = new Set(votes.map((v: any) => v.submission_id))
+      const ids = new Set<number>(votes.map((v: any) => v.submission_id))
       setVotedIds(ids)
     } catch (error) {
       // 忽略错误

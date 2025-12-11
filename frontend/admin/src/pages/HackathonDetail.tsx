@@ -11,7 +11,6 @@ import {
   Divider,
   Row,
   Col,
-  Statistic,
   Table,
   Tabs,
   Timeline,
@@ -31,6 +30,7 @@ import {
   SettingOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { StatCard } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
@@ -352,7 +352,7 @@ export default function HackathonDetail() {
         </Descriptions>
 
         {/* 活动海报二维码（仅已发布的活动显示） */}
-        {hackathon.status !== 'preparation' && (posterInfo || hackathon.status === 'published') && (
+        {hackathon.status === 'published' && (
           <>
             <Divider orientation="left" style={{ marginTop: '32px' }}>
               <span style={{ fontSize: '16px', fontWeight: 600 }}>{t('hackathon.poster')}</span>
@@ -417,64 +417,44 @@ export default function HackathonDetail() {
         </Divider>
         <Row gutter={[16, 16]} style={{ marginTop: '16px' }} data-testid="hackathon-detail-stats">
           <Col xs={12} sm={8} lg={6}>
-            <Card
-              data-testid="hackathon-detail-stat-registration"
+            <StatCard
+              title={t('hackathon.registrationCount')}
+              value={stats?.registration_count || 0}
+              prefix={<UserOutlined />}
               hoverable
               onClick={() => handleOpenDetail('registrations')}
-              style={{ cursor: 'pointer' }}
-            >
-              <Statistic
-                title={t('hackathon.registrationCount')}
-                value={stats?.registration_count || 0}
-                prefix={<UserOutlined />}
-                data-testid="hackathon-detail-stat-registration-value"
+              testId="hackathon-detail-stat-registration"
               />
-            </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card
-              data-testid="hackathon-detail-stat-checkin"
+            <StatCard
+              title={t('hackathon.checkinCount')}
+              value={stats?.checkin_count || 0}
+              prefix={<UserOutlined />}
               hoverable
               onClick={() => handleOpenDetail('checkins')}
-              style={{ cursor: 'pointer' }}
-            >
-              <Statistic
-                title={t('hackathon.checkinCount')}
-                value={stats?.checkin_count || 0}
-                prefix={<UserOutlined />}
-                data-testid="hackathon-detail-stat-checkin-value"
+              testId="hackathon-detail-stat-checkin"
               />
-            </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card
-              data-testid="hackathon-detail-stat-team"
+            <StatCard
+              title={t('hackathon.teamCount')}
+              value={stats?.team_count || 0}
+              prefix={<TeamOutlined />}
               hoverable
               onClick={() => handleOpenDetail('teams')}
-              style={{ cursor: 'pointer' }}
-            >
-              <Statistic
-                title={t('hackathon.teamCount')}
-                value={stats?.team_count || 0}
-                prefix={<TeamOutlined />}
-                data-testid="hackathon-detail-stat-team-value"
+              testId="hackathon-detail-stat-team"
               />
-            </Card>
           </Col>
           <Col xs={12} sm={8} lg={6}>
-            <Card
-              data-testid="hackathon-detail-stat-submission"
+            <StatCard
+              title={t('hackathon.submissionCount')}
+              value={stats?.submission_count || 0}
+              prefix={<FileTextOutlined />}
               hoverable
               onClick={() => handleOpenDetail('submissions')}
-              style={{ cursor: 'pointer' }}
-            >
-              <Statistic
-                title={t('hackathon.submissionCount')}
-                value={stats?.submission_count || 0}
-                prefix={<FileTextOutlined />}
-                data-testid="hackathon-detail-stat-submission-value"
+              testId="hackathon-detail-stat-submission"
               />
-            </Card>
           </Col>
         </Row>
 
@@ -550,13 +530,13 @@ export default function HackathonDetail() {
         footer={null}
         width={800}
       >
-        <div style={{ marginBottom: '16px' }}>
+        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
           <Input.Search
+            className="search-input"
             placeholder={t('common.search')}
             value={detailKeyword}
             onChange={(e) => setDetailKeyword(e.target.value)}
             onSearch={handleDetailSearch}
-            style={{ width: 300 }}
           />
         </div>
         <Table

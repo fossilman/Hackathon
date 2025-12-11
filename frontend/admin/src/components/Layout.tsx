@@ -97,35 +97,44 @@ export default function Layout() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#fff',
-          padding: '0 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: 'var(--gradient-primary)',
+          color: 'var(--text-inverse)',
+          padding: '0 var(--spacing-xl)',
+          boxShadow: 'var(--shadow-md)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
+          height: '64px',
         }}
         data-testid="admin-header"
       >
         <div
           style={{
-            color: '#fff',
+            color: 'var(--text-inverse)',
             fontSize: '20px',
             fontWeight: 600,
             letterSpacing: '0.5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
           }}
           data-testid="admin-header-title"
         >
-          🏆 Hackathon Admin Platform
+          <TrophyOutlined style={{ fontSize: '24px' }} />
+          <span>Hackathon Admin Platform</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} data-testid="admin-header-actions">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }} data-testid="admin-header-actions">
           <LanguageSwitcher />
-          <span style={{ fontSize: '14px', opacity: 0.9 }} data-testid="admin-user-name">{user?.name}</span>
+          <span style={{ fontSize: '14px', opacity: 0.95, fontWeight: 500 }} data-testid="admin-user-name">{user?.name}</span>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Button
               type="text"
               icon={<LogoutOutlined />}
-              style={{ color: '#fff' }}
+              style={{ 
+                color: 'var(--text-inverse)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: 'var(--radius-md)',
+              }}
               data-testid="admin-user-menu-button"
               aria-label={t('nav.userMenu')}
             >
@@ -136,10 +145,11 @@ export default function Layout() {
       </Header>
       <AntLayout>
         <Sider
-          width={220}
+          width={240}
           style={{
-            background: '#fff',
-            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.06)',
+            background: 'var(--bg-primary)',
+            boxShadow: 'var(--shadow-sm)',
+            borderRight: '1px solid var(--border-light)',
           }}
           data-testid="admin-sider"
         >
@@ -151,15 +161,16 @@ export default function Layout() {
             style={{
               height: '100%',
               borderRight: 0,
-              paddingTop: '16px',
+              paddingTop: 'var(--spacing-lg)',
+              background: 'transparent',
             }}
             data-testid="admin-sidebar-menu"
           />
         </Sider>
         <Content
           style={{
-            padding: '24px',
-            background: '#f5f7fa',
+            padding: 'var(--spacing-2xl)',
+            background: 'var(--bg-tertiary)',
             minHeight: 'calc(100vh - 64px)',
           }}
           data-testid="admin-content"

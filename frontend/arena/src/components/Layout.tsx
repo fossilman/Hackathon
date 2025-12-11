@@ -103,13 +103,14 @@ export default function Layout() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: '#fff',
-          padding: '0 24px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+          background: 'var(--gradient-primary)',
+          color: 'var(--text-inverse)',
+          padding: '0 var(--spacing-xl)',
+          boxShadow: 'var(--shadow-md)',
           position: 'sticky',
           top: 0,
           zIndex: 100,
+          height: '64px',
         }}
         data-testid="arena-header"
       >
@@ -117,16 +118,19 @@ export default function Layout() {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: 'var(--spacing-sm)',
             cursor: 'pointer',
+            transition: 'opacity var(--transition-fast)',
           }}
           onClick={() => navigate('/')}
+          onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+          onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
           data-testid="arena-header-title"
         >
           <TrophyOutlined style={{ fontSize: '24px' }} />
           <span
             style={{
-              color: '#fff',
+              color: 'var(--text-inverse)',
               fontSize: '20px',
               fontWeight: 600,
               letterSpacing: '0.5px',
@@ -135,15 +139,19 @@ export default function Layout() {
             Hackathon Arena Platform
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} data-testid="arena-header-actions">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }} data-testid="arena-header-actions">
           <LanguageSwitcher />
           {walletAddress ? (
-            <Space>
+            <Space size="middle">
               {/* 菜单顺序：我的活动，活动集锦，个人中心 */}
               <Button
                 type="text"
                 icon={<AppstoreOutlined />}
-                style={{ color: '#fff' }}
+                style={{ 
+                  color: 'var(--text-inverse)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 'var(--radius-md)',
+                }}
                 onClick={() => navigate('/my-hackathons')}
                 data-testid="nav-my-hackathons"
                 aria-label={t('nav.myHackathons')}
@@ -153,7 +161,11 @@ export default function Layout() {
               <Button
                 type="text"
                 icon={<HistoryOutlined />}
-                style={{ color: '#fff' }}
+                style={{ 
+                  color: 'var(--text-inverse)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 'var(--radius-md)',
+                }}
                 onClick={() => navigate('/hackathons/archive')}
                 data-testid="nav-archive"
                 aria-label={t('nav.archive')}
@@ -163,7 +175,14 @@ export default function Layout() {
               {/* 合并个人中心和用户名显示 */}
               <Button
                 type="text"
-                style={{ color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}
+                style={{ 
+                  color: 'var(--text-inverse)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 'var(--spacing-sm)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 'var(--radius-md)',
+                }}
                 onClick={() => navigate('/profile')}
                 data-testid="nav-profile"
                 aria-label={t('nav.profile')}
@@ -172,7 +191,7 @@ export default function Layout() {
                   size="small"
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                    color: '#fff',
+                    color: 'var(--text-inverse)',
                   }}
                   icon={<UserOutlined />}
                   data-testid="arena-user-avatar"
@@ -183,7 +202,11 @@ export default function Layout() {
                 <Button
                   type="text"
                   icon={<LogoutOutlined />}
-                  style={{ color: '#fff' }}
+                  style={{ 
+                    color: 'var(--text-inverse)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: 'var(--radius-md)',
+                  }}
                   data-testid="arena-user-menu-button"
                   aria-label={t('nav.userMenu')}
                 >
@@ -199,7 +222,8 @@ export default function Layout() {
               style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 borderColor: 'rgba(255, 255, 255, 0.3)',
-                color: '#fff',
+                color: 'var(--text-inverse)',
+                backdropFilter: 'blur(10px)',
               }}
               data-testid="arena-connect-button"
               aria-label={t('common.connectWallet')}
@@ -211,7 +235,7 @@ export default function Layout() {
       </Header>
       <Content
         style={{
-          background: '#f5f7fa',
+          background: 'var(--bg-tertiary)',
           minHeight: 'calc(100vh - 64px)',
           display: 'flex',
           flexDirection: 'column',
@@ -225,13 +249,15 @@ export default function Layout() {
         {/* 长期赞助商展示 - 在所有页面底部，透明容器，仅显示Logo */}
         {sponsors.length > 0 && (
           <div style={{ 
-            padding: '24px', 
+            padding: 'var(--spacing-xl)', 
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            gap: '32px',
+            gap: 'var(--spacing-2xl)',
             flexWrap: 'wrap',
-            background: 'transparent'
+            background: 'transparent',
+            borderTop: '1px solid var(--border-light)',
+            marginTop: 'auto',
           }}>
             {sponsors.map((sponsor) => (
               <img
@@ -242,8 +268,12 @@ export default function Layout() {
                   height: '60px', 
                   maxWidth: '200px', 
                   objectFit: 'contain',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  opacity: 0.8,
+                  transition: 'opacity var(--transition-base)',
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
                 onClick={() => {
                   // 可以添加跳转逻辑
                 }}
