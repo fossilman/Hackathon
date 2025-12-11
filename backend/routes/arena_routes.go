@@ -29,6 +29,16 @@ func SetupArenaRoutes(router *gin.Engine) {
 		{
 			hackathons.GET("", arenaHackathonController.GetHackathonList)
 			hackathons.GET("/:id", arenaHackathonController.GetHackathonByID)
+			hackathons.GET("/archive", arenaHackathonController.GetArchiveList)
+			hackathons.GET("/archive/:id", arenaHackathonController.GetArchiveDetail)
+		}
+
+		// 赞助商相关（无需认证）
+		sponsorController := controllers.NewSponsorController()
+		sponsors := api.Group("/sponsors")
+		{
+			sponsors.GET("/long-term", sponsorController.GetLongTermSponsors)
+			sponsors.GET("/events/:id", sponsorController.GetEventSponsors)
 		}
 
 		// 需要认证的路由

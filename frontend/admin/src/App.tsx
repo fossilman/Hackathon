@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
 import zhCN from 'antd/locale/zh_CN'
+import enUS from 'antd/locale/en_US'
+import { useTranslation } from 'react-i18next'
+import './i18n'
 import Login from './pages/Login'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
@@ -10,25 +13,29 @@ import HackathonDetail from './pages/HackathonDetail'
 import HackathonCreate from './pages/HackathonCreate'
 import HackathonStages from './pages/HackathonStages'
 import Profile from './pages/Profile'
+import SponsorApply from './pages/SponsorApply'
+import SponsorReview from './pages/SponsorReview'
 import { useAuthStore } from './store/authStore'
 import ProtectedRoute from './components/ProtectedRoute'
 
 // 首页重定向组件
 function IndexRedirect() {
-  const { user } = useAuthStore()
-  if (user?.role === 'sponsor') {
-    return <Navigate to="/profile" replace />
-  }
   return <Navigate to="/dashboard" replace />
 }
 
 function App() {
   const { token } = useAuthStore()
+  const { i18n } = useTranslation()
+
+  // 根据i18n语言设置Ant Design语言
+  const antdLocale = i18n.language === 'en-US' ? enUS : zhCN
 
   return (
-    <ConfigProvider locale={zhCN}>
+    <ConfigProvider locale={antdLocale}>
       <Routes>
         <Route path="/login" element={<Login />} />
+        {/* 赞助商申请页面 - 无需登录 */}
+        <Route path="/sponsor/apply" element={<SponsorApply />} />
         <Route
           path="/"
           element={token ? <Layout /> : <Navigate to="/login" />}
@@ -40,7 +47,7 @@ function App() {
           <Route
             path="dashboard"
             element={
-              <ProtectedRoute allowedRoles={['admin', 'organizer']}>
+              <ProtectedRoute allowedRoles={['admin', 'organizer', 'sponsor']}>
                 <Dashboard />
               </ProtectedRoute>
             }
@@ -98,6 +105,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'organizer', 'sponsor']}>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="sponsors/pending"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <SponsorReview />
               </ProtectedRoute>
             }
           />

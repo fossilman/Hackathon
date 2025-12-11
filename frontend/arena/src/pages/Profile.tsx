@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Card, Form, Input, Button, Space, message } from 'antd'
 import { UserOutlined, WalletOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 
 export default function Profile() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { walletAddress, participant, setParticipant } = useAuthStore()
   const [form] = Form.useForm()
@@ -14,12 +16,12 @@ export default function Profile() {
 
   useEffect(() => {
     if (!walletAddress) {
-      message.error('请先登录')
+      message.error(t('profile.notLoggedIn'))
       navigate('/')
       return
     }
     fetchProfile()
-  }, [walletAddress, navigate])
+  }, [walletAddress, navigate, t])
 
   const fetchProfile = async () => {
     try {
@@ -30,7 +32,7 @@ export default function Profile() {
       })
       setParticipant(data)
     } catch (error) {
-      message.error('获取个人信息失败')
+      message.error(t('profile.fetchFailed'))
     } finally {
       setFetching(false)
     }
@@ -40,11 +42,11 @@ export default function Profile() {
     setLoading(true)
     try {
       await request.patch('/profile', values)
-      message.success('更新成功')
+      message.success(t('profile.updateSuccess'))
       const updatedParticipant = { ...participant, ...values } as any
       setParticipant(updatedParticipant)
     } catch (error: any) {
-      message.error(error.message || '更新失败')
+      message.error(error.message || t('profile.updateFailed'))
     } finally {
       setLoading(false)
     }
@@ -60,7 +62,7 @@ export default function Profile() {
         <div className="page-header" data-testid="profile-header">
           <h1 className="page-title" data-testid="profile-title">
             <UserOutlined style={{ marginRight: '8px', color: 'var(--primary-color)' }} />
-            个人中心
+            {t('profile.title')}
           </h1>
         </div>
 
@@ -73,25 +75,25 @@ export default function Profile() {
         >
           <Form.Item
             name="nickname"
-            label="用户昵称"
-            rules={[{ max: 50, message: '昵称长度不能超过50个字符' }]}
+            label={t('profile.nickname')}
+            rules={[{ max: 50, message: t('profile.nicknameMaxLength') }]}
             data-testid="profile-nickname-item"
           >
             <Input 
-              placeholder="请输入用户昵称（可选）"
+              placeholder={t('profile.nicknamePlaceholder')}
               prefix={<UserOutlined />}
               data-testid="profile-nickname-input"
-              aria-label="用户昵称输入框"
+              aria-label={t('profile.nickname')}
             />
           </Form.Item>
 
-          <Form.Item label="钱包地址" data-testid="profile-address-item">
+          <Form.Item label={t('profile.walletAddress')} data-testid="profile-address-item">
             <Input 
               value={walletAddress}
               disabled
               prefix={<WalletOutlined />}
               data-testid="profile-address-input"
-              aria-label="钱包地址"
+              aria-label={t('profile.walletAddress')}
             />
           </Form.Item>
 
@@ -102,9 +104,9 @@ export default function Profile() {
               loading={loading}
               block
               data-testid="profile-update-button"
-              aria-label="更新个人信息"
+              aria-label={t('profile.update')}
             >
-              更新
+              {t('profile.update')}
             </Button>
           </Form.Item>
         </Form>

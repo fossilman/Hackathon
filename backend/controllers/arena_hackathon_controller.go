@@ -76,3 +76,36 @@ func (c *ArenaHackathonController) GetMyHackathons(ctx *gin.Context) {
 	utils.SuccessWithPagination(ctx, hackathons, page, pageSize, total)
 }
 
+// GetArchiveList 获取活动集锦列表（已结束的活动）
+func (c *ArenaHackathonController) GetArchiveList(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "10"))
+	keyword := ctx.Query("keyword")
+	timeRange := ctx.Query("time_range") // 最近一个月、最近三个月、最近半年、全部
+
+	hackathons, total, err := c.hackathonService.GetArchiveHackathons(page, pageSize, keyword, timeRange)
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.SuccessWithPagination(ctx, hackathons, page, pageSize, total)
+}
+
+// GetArchiveDetail 获取活动集锦详情（包括作品、投票结果、比赛结果）
+func (c *ArenaHackathonController) GetArchiveDetail(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	archive, err := c.hackathonService.GetArchiveDetail(id)
+	if err != nil {
+		utils.NotFound(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, archive)
+}
+

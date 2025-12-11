@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Space, message, Tag, Empty, Spin } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import HackathonCard from '../components/HackathonCard'
@@ -16,6 +17,7 @@ interface Hackathon {
 }
 
 export default function MyHackathons() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { token, walletAddress } = useAuthStore()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
@@ -23,12 +25,12 @@ export default function MyHackathons() {
 
   useEffect(() => {
     if (!token) {
-      message.error('请先登录')
+      message.error(t('myHackathons.notLoggedIn'))
       navigate('/')
       return
     }
     fetchHackathons()
-  }, [token, navigate])
+  }, [token, navigate, t])
 
   const fetchHackathons = async () => {
     setLoading(true)
@@ -38,20 +40,20 @@ export default function MyHackathons() {
       })
       setHackathons(data.list || [])
     } catch (error) {
-      message.error('获取我的活动失败')
+      message.error(t('myHackathons.fetchFailed'))
     } finally {
       setLoading(false)
     }
   }
 
   const statusMap: Record<string, string> = {
-    published: '发布',
-    registration: '报名',
-    checkin: '签到',
-    team_formation: '组队',
-    submission: '提交',
-    voting: '投票',
-    results: '公布结果',
+    published: t('hackathon.statusPublished'),
+    registration: t('hackathon.statusRegistration'),
+    checkin: t('hackathon.statusCheckin'),
+    team_formation: t('hackathon.statusTeamFormation'),
+    submission: t('hackathon.statusSubmission'),
+    voting: t('hackathon.statusVoting'),
+    results: t('hackathon.statusResults'),
   }
 
   // 活动状态配色（与 Admin 系统保持一致）
@@ -75,7 +77,7 @@ export default function MyHackathons() {
       <div className="page-header" data-testid="my-hackathons-header">
         <h1 className="page-title" data-testid="my-hackathons-title" style={{ fontSize: '28px' }}>
           <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
-          我的活动
+          {t('myHackathons.title')}
         </h1>
       </div>
 
@@ -83,7 +85,7 @@ export default function MyHackathons() {
         {hackathons.length === 0 ? (
           <div className="page-container">
             <Empty
-              description="您还没有报名任何活动"
+              description={t('myHackathons.noHackathons')}
               data-testid="my-hackathons-empty"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
             >
@@ -91,9 +93,9 @@ export default function MyHackathons() {
                 type="primary" 
                 onClick={() => navigate('/')}
                 data-testid="my-hackathons-empty-browse-button"
-                aria-label="去浏览活动"
+                aria-label={t('myHackathons.browseHackathons')}
               >
-                去浏览活动
+                {t('myHackathons.browseHackathons')}
               </Button>
             </Empty>
           </div>

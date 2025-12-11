@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Card, Table, Tag, message, Row, Col, Statistic } from 'antd'
 import { TrophyOutlined, TeamOutlined, FileTextOutlined, LikeOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 
 export default function Results() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const [results, setResults] = useState<any[]>([])
   const [statistics, setStatistics] = useState<any>({})
@@ -21,13 +23,13 @@ export default function Results() {
       setResults(data.rankings || [])
       setStatistics(data.statistics || {})
     } catch (error: any) {
-      message.error(error.message || '获取结果失败')
+      message.error(error.message || t('results.fetchFailed'))
     }
   }
 
   const columns = [
     { 
-      title: '排名', 
+      title: t('results.rank'), 
       dataIndex: 'rank', 
       key: 'rank',
       width: 80,
@@ -47,19 +49,19 @@ export default function Results() {
       )
     },
     { 
-      title: '队伍名称', 
+      title: t('results.teamName'), 
       dataIndex: ['team', 'name'], 
       key: 'team_name',
       render: (text: any) => <span data-testid={`results-table-team-${text}`}>{text}</span>
     },
     { 
-      title: '作品名称', 
+      title: t('results.submissionName'), 
       dataIndex: ['submission', 'name'], 
       key: 'submission_name',
       render: (text: any) => <span data-testid={`results-table-submission-${text}`}>{text}</span>
     },
     { 
-      title: '得票数', 
+      title: t('results.voteCount'), 
       dataIndex: 'vote_count', 
       key: 'vote_count',
       width: 100,
@@ -71,7 +73,7 @@ export default function Results() {
       )
     },
     {
-      title: '奖项',
+      title: t('results.award'),
       key: 'award',
       render: (_: any, record: any) => (
         record.award ? (
@@ -91,7 +93,7 @@ export default function Results() {
         <div className="page-header" data-testid="results-header">
           <h2 className="page-title" data-testid="results-title">
             <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
-            比赛结果
+            {t('results.title')}
           </h2>
         </div>
 
@@ -100,7 +102,7 @@ export default function Results() {
           <Col xs={24} sm={12} lg={8}>
             <Card className="stat-card" data-testid="results-stat-votes">
               <Statistic
-                title="总投票数"
+                title={t('results.totalVotes')}
                 value={statistics.total_votes || 0}
                 prefix={<LikeOutlined />}
                 valueStyle={{ color: 'var(--primary-color)' }}
@@ -110,7 +112,7 @@ export default function Results() {
           <Col xs={24} sm={12} lg={8}>
             <Card className="stat-card" data-testid="results-stat-teams">
               <Statistic
-                title="参与队伍数"
+                title={t('results.totalTeams')}
                 value={statistics.total_teams || 0}
                 prefix={<TeamOutlined />}
                 valueStyle={{ color: 'var(--success-color)' }}
@@ -120,7 +122,7 @@ export default function Results() {
           <Col xs={24} sm={12} lg={8}>
             <Card className="stat-card" data-testid="results-stat-submissions">
               <Statistic
-                title="提交作品数"
+                title={t('results.totalSubmissions')}
                 value={statistics.total_submissions || 0}
                 prefix={<FileTextOutlined />}
                 valueStyle={{ color: 'var(--warning-color)' }}
@@ -131,7 +133,7 @@ export default function Results() {
 
         {/* 排名表格 */}
         <Card 
-          title="排名榜单" 
+          title={t('results.ranking')} 
           data-testid="results-card"
           style={{ marginTop: 24 }}
         >

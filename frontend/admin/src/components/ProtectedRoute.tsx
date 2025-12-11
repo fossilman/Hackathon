@@ -21,7 +21,7 @@ export default function ProtectedRoute({
     if (user.role === 'sponsor') {
       return <Navigate to="/profile" replace />
     }
-    // 其他角色重定向到仪表盘
+    // 其他角色重定向到活动概览
     return <Navigate to="/dashboard" replace />
   }
 

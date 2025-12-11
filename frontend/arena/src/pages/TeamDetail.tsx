@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, List, Space, message, Modal, Descriptions, Tag, Popconfirm } from 'antd'
 import { UserOutlined, TeamOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import { getUserDisplayName } from '../utils/userDisplay'
 
 export default function TeamDetail() {
+  const { t } = useTranslation()
   const { id, teamId } = useParams()
   const navigate = useNavigate()
   const { participantId } = useAuthStore()
@@ -25,7 +27,7 @@ export default function TeamDetail() {
       const data = await request.get(`/teams/${teamId}`)
       setTeam(data)
     } catch (error) {
-      message.error('获取队伍详情失败')
+      message.error(t('team.fetchDetailFailed'))
       navigate(`/hackathons/${id}/teams`)
     } finally {
       setLoading(false)
@@ -35,29 +37,29 @@ export default function TeamDetail() {
   const handleLeaveTeam = async () => {
     try {
       await request.post(`/teams/${teamId}/leave`)
-      message.success('退出队伍成功')
+      message.success(t('team.leaveSuccess'))
       navigate(`/hackathons/${id}/teams`)
     } catch (error: any) {
-      message.error(error.message || '退出队伍失败')
+      message.error(error.message || t('team.leaveFailed'))
     }
   }
 
   const handleDissolveTeam = async () => {
     try {
       await request.delete(`/teams/${teamId}`)
-      message.success('解散队伍成功')
+      message.success(t('team.dissolveSuccess'))
       navigate(`/hackathons/${id}/teams`)
     } catch (error: any) {
-      message.error(error.message || '解散队伍失败')
+      message.error(error.message || t('team.dissolveFailed'))
     }
   }
 
   if (loading) {
-    return <div>加载中...</div>
+    return <div>{t('common.loading')}</div>
   }
 
   if (!team) {
-    return <div>队伍不存在</div>
+    return <div>{t('team.notFound')}</div>
   }
 
   const isLeader = team.leader_id === participantId
@@ -78,11 +80,11 @@ export default function TeamDetail() {
             <Space>
               {isLeader && (
                 <Popconfirm
-                  title="确定要解散队伍吗？"
-                  description={hasOtherMembers ? "队伍中有其他队员，不能解散队伍" : "解散后队伍将被删除"}
+                  title={t('team.dissolveConfirmTitle')}
+                  description={hasOtherMembers ? t('team.dissolveConfirmDescriptionHasMembers') : t('team.dissolveConfirmDescription')}
                   onConfirm={handleDissolveTeam}
-                  okText="确定"
-                  cancelText="取消"
+                  okText={t('confirm')}
+                  cancelText={t('cancel')}
                   disabled={hasOtherMembers}
                 >
                   <Button 
@@ -90,50 +92,50 @@ export default function TeamDetail() {
                     disabled={hasOtherMembers}
                     data-testid="team-detail-dissolve-button"
                   >
-                    解散队伍
+                    {t('team.dissolve')}
                   </Button>
                 </Popconfirm>
               )}
               {isMember && !isLeader && (
                 <Popconfirm
-                  title="确定要退出队伍吗？"
-                  description="退出后将无法再访问该队伍"
+                  title={t('team.leaveConfirmTitle')}
+                  description={t('team.leaveConfirmDescription')}
                   onConfirm={handleLeaveTeam}
-                  okText="确定"
-                  cancelText="取消"
+                  okText={t('confirm')}
+                  cancelText={t('cancel')}
                 >
                   <Button 
                     danger
                     data-testid="team-detail-leave-button"
                   >
-                    退出队伍
+                    {t('team.leave')}
                   </Button>
                 </Popconfirm>
               )}
               <Button onClick={() => navigate(`/hackathons/${id}/teams`)}>
-                返回列表
+                {t('team.backToList')}
               </Button>
             </Space>
           }
           data-testid="team-detail-card"
         >
           <Descriptions column={2} bordered data-testid="team-detail-info">
-            <Descriptions.Item label="队伍名称">
+            <Descriptions.Item label={t('team.teamName')}>
               <span data-testid="team-detail-name">{team.name}</span>
             </Descriptions.Item>
-            <Descriptions.Item label="队伍状态">
+            <Descriptions.Item label={t('team.status')}>
               <Tag color={team.status === 'recruiting' ? 'blue' : 'default'} data-testid="team-detail-status">
-                {team.status === 'recruiting' ? '招募中' : '已锁定'}
+                {team.status === 'recruiting' ? t('team.statusRecruiting') : t('team.statusLocked')}
               </Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="成员数量">
+            <Descriptions.Item label={t('team.memberCount')}>
               <span data-testid="team-detail-member-count">
                 {team.members?.length || 0}/{team.max_size}
               </span>
             </Descriptions.Item>
-            <Descriptions.Item label="创建时间">
+            <Descriptions.Item label={t('team.createdAt')}>
               <span data-testid="team-detail-created-at">
-                {new Date(team.created_at).toLocaleString('zh-CN')}
+                {new Date(team.created_at).toLocaleString()}
               </span>
             </Descriptions.Item>
           </Descriptions>
@@ -141,7 +143,7 @@ export default function TeamDetail() {
           <div style={{ marginTop: 24 }}>
             <h3 style={{ marginBottom: 16 }}>
               <UserOutlined style={{ marginRight: 8 }} />
-              成员列表
+              {t('team.memberList')}
             </h3>
             <List
               dataSource={team.members || []}
@@ -151,11 +153,11 @@ export default function TeamDetail() {
                   actions={[
                     member.role === 'leader' && (
                       <Tag color="gold" key="leader">
-                        队长
+                        {t('team.leader')}
                       </Tag>
                     ),
                     member.role === 'member' && (
-                      <Tag key="member">队员</Tag>
+                      <Tag key="member">{t('team.member')}</Tag>
                     ),
                   ]}
                 >
@@ -167,7 +169,7 @@ export default function TeamDetail() {
                     }
                     description={
                       <span data-testid={`team-detail-member-joined-${member.id}`}>
-                        加入时间: {new Date(member.joined_at).toLocaleString('zh-CN')}
+                        {t('team.joinedAt')}: {new Date(member.joined_at).toLocaleString()}
                       </span>
                     }
                   />

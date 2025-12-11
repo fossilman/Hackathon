@@ -13,6 +13,7 @@ import {
   Tag,
 } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined, UndoOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 
 interface User {
@@ -23,13 +24,8 @@ interface User {
   status: number // 1-启用，0-禁用
 }
 
-const roleMap: Record<string, { label: string; color: string }> = {
-  organizer: { label: '主办方', color: 'blue' },
-  sponsor: { label: '赞助商', color: 'green' },
-  admin: { label: '管理员', color: 'red' },
-}
-
 export default function UserManagement() {
+  const { t } = useTranslation()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(false)
   const [modalVisible, setModalVisible] = useState(false)
@@ -44,6 +40,12 @@ export default function UserManagement() {
     total: 0,
   })
 
+  const roleMap: Record<string, { label: string; color: string }> = {
+    organizer: { label: t('user.roleOrganizer'), color: 'blue' },
+    sponsor: { label: t('user.roleSponsor'), color: 'green' },
+    admin: { label: t('user.roleAdmin'), color: 'red' },
+  }
+
   const fetchUsers = async (page = 1, pageSize = 100) => {
     setLoading(true)
     try {
@@ -57,7 +59,7 @@ export default function UserManagement() {
         total: data.pagination?.total || data.total || 0,
       })
     } catch (error) {
-      message.error('获取用户列表失败')
+      message.error(t('user.fetchFailed'))
     } finally {
       setLoading(false)
     }
@@ -84,20 +86,20 @@ export default function UserManagement() {
   const handleDelete = async (id: number) => {
     try {
       await request.delete(`/users/${id}`)
-      message.success('禁用成功')
+      message.success(t('user.disableSuccess'))
       fetchUsers(pagination.current, pagination.pageSize)
     } catch (error) {
-      message.error('禁用失败')
+      message.error(t('user.disableFailed'))
     }
   }
 
   const handleRestore = async (id: number) => {
     try {
       await request.post(`/users/${id}/restore`)
-      message.success('启用成功')
+      message.success(t('user.enableSuccess'))
       fetchUsers(pagination.current, pagination.pageSize)
     } catch (error) {
-      message.error('启用失败')
+      message.error(t('user.enableFailed'))
     }
   }
 
@@ -113,11 +115,11 @@ export default function UserManagement() {
       await request.post(`/users/${resettingUser.id}/reset-password`, {
         password: values.password,
       })
-      message.success('密码重置成功')
+      message.success(t('user.resetPasswordSuccess'))
       setPasswordModalVisible(false)
       passwordForm.resetFields()
     } catch (error) {
-      message.error('密码重置失败')
+      message.error(t('user.resetPasswordFailed'))
     }
   }
 
@@ -125,10 +127,10 @@ export default function UserManagement() {
     try {
       if (editingUser) {
         await request.patch(`/users/${editingUser.id}`, values)
-        message.success('更新成功')
+        message.success(t('user.updateSuccess'))
       } else {
         await request.post('/users', values)
-        message.success('创建成功')
+        message.success(t('user.createSuccess'))
       }
       setModalVisible(false)
       form.resetFields()
@@ -139,7 +141,7 @@ export default function UserManagement() {
         await fetchUsers(pagination.current, pagination.pageSize)
       }
     } catch (error) {
-      message.error(editingUser ? '更新失败' : '创建失败')
+      message.error(editingUser ? t('user.updateFailed') : t('user.createFailed'))
     }
   }
 
@@ -151,13 +153,13 @@ export default function UserManagement() {
       width: 80,
     },
     {
-      title: '姓名',
+      title: t('user.name'),
       dataIndex: 'name',
       key: 'name',
       width: 120,
     },
     {
-      title: '角色',
+      title: t('user.role'),
       dataIndex: 'role',
       key: 'role',
       width: 120,
@@ -167,24 +169,24 @@ export default function UserManagement() {
       },
     },
     {
-      title: '手机号',
+      title: t('user.phone'),
       dataIndex: 'phone',
       key: 'phone',
       width: 150,
     },
     {
-      title: '状态',
+      title: t('user.status'),
       key: 'status',
       width: 100,
       render: (_: any, record: User) => {
         if (record.status === 0) {
-          return <Tag color="red">已禁用</Tag>
+          return <Tag color="red">{t('user.disabled')}</Tag>
         }
-        return <Tag color="green">正常</Tag>
+        return <Tag color="green">{t('user.enabled')}</Tag>
       },
     },
     {
-      title: '操作',
+      title: t('user.actions'),
       key: 'action',
       width: 200,
       fixed: 'right' as const,
@@ -200,9 +202,9 @@ export default function UserManagement() {
                   onClick={() => handleEdit(record)}
                   size="small"
                   data-testid={`user-management-edit-button-${record.id}`}
-                  aria-label={`编辑用户 ${record.name}`}
+                  aria-label={`${t('user.edit')} ${record.name}`}
                 >
-                  编辑
+                  {t('user.edit')}
                 </Button>
                 <Button
                   type="link"
@@ -210,16 +212,16 @@ export default function UserManagement() {
                   onClick={() => handleResetPassword(record)}
                   size="small"
                   data-testid={`user-management-reset-password-button-${record.id}`}
-                  aria-label={`重置用户 ${record.name} 的密码`}
+                  aria-label={`${t('user.resetPassword')} ${record.name}`}
                 >
-                  重置密码
+                  {t('user.resetPassword')}
                 </Button>
                 <Popconfirm
-                  title="确定要禁用这个用户吗？"
-                  description="禁用后用户将无法登录"
+                  title={t('user.confirmDisable')}
+                  description={t('user.disableDescription')}
                   onConfirm={() => handleDelete(record.id)}
-                  okText="确定"
-                  cancelText="取消"
+                  okText={t('confirm')}
+                  cancelText={t('cancel')}
                   data-testid={`user-management-delete-confirm-${record.id}`}
                 >
                   <Button
@@ -228,9 +230,9 @@ export default function UserManagement() {
                     icon={<DeleteOutlined />}
                     size="small"
                     data-testid={`user-management-delete-button-${record.id}`}
-                    aria-label={`禁用用户 ${record.name}`}
+                    aria-label={`${t('user.disable')} ${record.name}`}
                   >
-                    禁用
+                    {t('user.disable')}
                   </Button>
                 </Popconfirm>
               </>
@@ -242,9 +244,9 @@ export default function UserManagement() {
                 onClick={() => handleRestore(record.id)}
                 size="small"
                 data-testid={`user-management-restore-button-${record.id}`}
-                aria-label={`恢复用户 ${record.name}`}
+                aria-label={`${t('user.enable')} ${record.name}`}
               >
-                启用
+                {t('user.enable')}
               </Button>
             )}
           </Space>
@@ -256,16 +258,16 @@ export default function UserManagement() {
   return (
     <div className="page-container" data-testid="user-management-page">
       <div className="page-header">
-        <h2 className="page-title" data-testid="user-management-title">人员管理</h2>
+        <h2 className="page-title" data-testid="user-management-title">{t('user.title')}</h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={handleCreate}
           size="large"
           data-testid="user-management-create-button"
-          aria-label="添加用户"
+          aria-label={t('user.addUser')}
         >
-          添加用户
+          {t('user.addUser')}
         </Button>
       </div>
       <Card data-testid="user-management-table-card">
@@ -280,7 +282,7 @@ export default function UserManagement() {
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条记录`,
+            showTotal: (total) => t('user.totalRecords', { total }),
             pageSizeOptions: ['10', '20', '50', '100'],
             onChange: (page, pageSize) => {
               fetchUsers(page, pageSize)
@@ -293,7 +295,7 @@ export default function UserManagement() {
         />
       </Card>
       <Modal
-        title={editingUser ? '编辑用户' : '添加用户'}
+        title={editingUser ? t('user.editUser') : t('user.addUser')}
         open={modalVisible}
         onCancel={() => {
           setModalVisible(false)
@@ -303,7 +305,7 @@ export default function UserManagement() {
         width={600}
         destroyOnClose
         data-testid="user-management-form-modal"
-        aria-label={editingUser ? '编辑用户对话框' : '添加用户对话框'}
+        aria-label={editingUser ? t('user.editUser') : t('user.addUser')}
       >
         <Form 
           form={form} 
@@ -314,66 +316,66 @@ export default function UserManagement() {
         >
           <Form.Item
             name="name"
-            label="姓名"
-            rules={[{ required: true, message: '请输入姓名' }]}
+            label={t('user.name')}
+            rules={[{ required: true, message: t('user.nameRequired') }]}
           >
             <Input 
-              placeholder="请输入姓名" 
+              placeholder={t('user.namePlaceholder')} 
               data-testid="user-management-form-name-input"
-              aria-label="姓名输入框"
+              aria-label={t('user.name')}
             />
           </Form.Item>
           <Form.Item
             name="phone"
-            label="手机号"
+            label={t('user.phone')}
             rules={[
-              { required: true, message: '请输入手机号' },
-              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+              { required: true, message: t('user.phoneRequired') },
+              { pattern: /^1[3-9]\d{9}$/, message: t('user.phoneInvalid') },
             ]}
           >
             <Input 
-              placeholder="请输入手机号" 
+              placeholder={t('user.phonePlaceholder')} 
               disabled={!!editingUser}
               data-testid="user-management-form-phone-input"
-              aria-label="手机号输入框"
+              aria-label={t('user.phone')}
             />
           </Form.Item>
           {!editingUser && (
             <Form.Item
               name="password"
-              label="密码"
+              label={t('user.password')}
               rules={[
-                { required: true, message: '请输入密码' },
-                { min: 8, message: '密码至少8位' },
+                { required: true, message: t('user.passwordRequired') },
+                { min: 8, message: t('user.passwordMin') },
               ]}
             >
               <Input.Password 
-                placeholder="请输入密码（至少8位）" 
+                placeholder={t('user.passwordPlaceholder')} 
                 data-testid="user-management-form-password-input"
-                aria-label="密码输入框"
+                aria-label={t('user.password')}
               />
             </Form.Item>
           )}
           <Form.Item
             name="role"
-            label="角色"
-            rules={[{ required: true, message: '请选择角色' }]}
+            label={t('user.role')}
+            rules={[{ required: true, message: t('user.roleRequired') }]}
           >
             <Select 
-              placeholder="请选择角色" 
+              placeholder={t('user.rolePlaceholder')} 
               disabled={!!editingUser}
               data-testid="user-management-form-role-select"
-              aria-label="角色选择框"
+              aria-label={t('user.role')}
             >
-              <Select.Option value="organizer" data-testid="user-management-form-role-organizer">主办方</Select.Option>
-              <Select.Option value="sponsor" data-testid="user-management-form-role-sponsor">赞助商</Select.Option>
+              <Select.Option value="organizer" data-testid="user-management-form-role-organizer">{t('user.roleOrganizer')}</Select.Option>
+              <Select.Option value="sponsor" data-testid="user-management-form-role-sponsor">{t('user.roleSponsor')}</Select.Option>
             </Select>
           </Form.Item>
         </Form>
       </Modal>
 
       <Modal
-        title={`重置密码 - ${resettingUser?.name}`}
+        title={`${t('user.resetPasswordTitle')} - ${resettingUser?.name}`}
         open={passwordModalVisible}
         onCancel={() => {
           setPasswordModalVisible(false)
@@ -383,7 +385,7 @@ export default function UserManagement() {
         width={500}
         destroyOnClose
         data-testid="user-management-reset-password-modal"
-        aria-label="重置密码对话框"
+        aria-label={t('user.resetPasswordTitle')}
       >
         <Form
           form={passwordForm}
@@ -394,16 +396,16 @@ export default function UserManagement() {
         >
           <Form.Item
             name="password"
-            label="新密码"
+            label={t('user.newPassword')}
             rules={[
-              { required: true, message: '请输入新密码' },
-              { min: 8, message: '密码至少8位' },
+              { required: true, message: t('user.newPasswordRequired') },
+              { min: 8, message: t('user.passwordMin') },
             ]}
           >
             <Input.Password 
-              placeholder="请输入新密码（至少8位）" 
+              placeholder={t('user.newPasswordPlaceholder')} 
               data-testid="user-management-reset-password-input"
-              aria-label="新密码输入框"
+              aria-label={t('user.newPassword')}
             />
           </Form.Item>
         </Form>

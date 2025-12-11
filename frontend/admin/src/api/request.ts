@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { message } from 'antd'
 import { useAuthStore } from '../store/authStore'
+import i18n from '../i18n'
 
 const request = axios.create({
   baseURL: '/api/v1/admin',
@@ -26,8 +27,8 @@ request.interceptors.response.use(
     if (code === 200) {
       return data
     } else {
-      message.error(msg || '请求失败')
-      return Promise.reject(new Error(msg || '请求失败'))
+      message.error(msg || i18n.t('common.requestFailed'))
+      return Promise.reject(new Error(msg || i18n.t('common.requestFailed')))
     }
   },
   (error) => {
@@ -35,7 +36,7 @@ request.interceptors.response.use(
       useAuthStore.getState().clearAuth()
       window.location.href = '/login'
     }
-    message.error(error.response?.data?.message || '请求失败')
+    message.error(error.response?.data?.message || i18n.t('common.requestFailed'))
     return Promise.reject(error)
   }
 )

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, Space, message, Tag, Descriptions } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
 
 export default function HackathonDetail() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const { token, participantId } = useAuthStore()
@@ -15,6 +17,7 @@ export default function HackathonDetail() {
   const [checkedIn, setCheckedIn] = useState(false)
   const [userTeam, setUserTeam] = useState<any>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
+  const [sponsors, setSponsors] = useState<any[]>([])
 
   useEffect(() => {
     if (id) {
@@ -32,8 +35,15 @@ export default function HackathonDetail() {
     try {
       const data = await request.get(`/hackathons/${id}`)
       setHackathon(data)
+      // 获取活动的指定赞助商
+      try {
+        const sponsorData = await request.get(`/sponsors/events/${id}`)
+        setSponsors(sponsorData || [])
+      } catch (error) {
+        // 忽略错误
+      }
     } catch (error) {
-      message.error('获取活动详情失败')
+      message.error(t('hackathonDetail.fetchFailed'))
     }
   }
 
@@ -74,30 +84,30 @@ export default function HackathonDetail() {
   const handleRegister = async () => {
     try {
       await request.post(`/hackathons/${id}/register`)
-      message.success('报名成功')
+      message.success(t('hackathonDetail.registerSuccess'))
       setRegistered(true)
     } catch (error: any) {
-      message.error(error.message || '报名失败')
+      message.error(error.message || t('hackathonDetail.registerFailed'))
     }
   }
 
   const handleCheckin = async () => {
     try {
       await request.post(`/hackathons/${id}/checkin`)
-      message.success('签到成功')
+      message.success(t('hackathonDetail.checkinSuccess'))
       setCheckedIn(true)
     } catch (error: any) {
-      message.error(error.message || '签到失败')
+      message.error(error.message || t('hackathonDetail.checkinFailed'))
     }
   }
 
   const handleCancelRegistration = async () => {
     try {
       await request.delete(`/hackathons/${id}/register`)
-      message.success('取消报名成功')
+      message.success(t('hackathonDetail.cancelRegisterSuccess'))
       setRegistered(false)
     } catch (error: any) {
-      message.error(error.message || '取消报名失败')
+      message.error(error.message || t('hackathonDetail.cancelRegisterFailed'))
     }
   }
 
@@ -105,20 +115,20 @@ export default function HackathonDetail() {
     return (
       <div className="page-content">
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-secondary)' }}>
-          加载中...
+          {t('hackathonDetail.loading')}
         </div>
       </div>
     )
   }
 
   const statusMap: Record<string, string> = {
-    published: '发布',
-    registration: '报名',
-    checkin: '签到',
-    team_formation: '组队',
-    submission: '提交',
-    voting: '投票',
-    results: '公布结果',
+    published: t('hackathon.statusPublished'),
+    registration: t('hackathon.statusRegistration'),
+    checkin: t('hackathon.statusCheckin'),
+    team_formation: t('hackathon.statusTeamFormation'),
+    submission: t('hackathon.statusSubmission'),
+    voting: t('hackathon.statusVoting'),
+    results: t('hackathon.statusResults'),
   }
 
   // 获取当前阶段信息
@@ -151,31 +161,31 @@ export default function HackathonDetail() {
           data-testid="hackathon-detail-card"
         >
           <Descriptions column={2} bordered data-testid="hackathon-detail-info">
-            <Descriptions.Item label="活动开始时间">
+            <Descriptions.Item label={t('hackathonDetail.startTime')}>
               <span data-testid="hackathon-detail-start-time">
                 {dayjs(hackathon.start_time).format('YYYY-MM-DD HH:mm')}
               </span>
             </Descriptions.Item>
-            <Descriptions.Item label="活动结束时间">
+            <Descriptions.Item label={t('hackathonDetail.endTime')}>
               <span data-testid="hackathon-detail-end-time">
                 {dayjs(hackathon.end_time).format('YYYY-MM-DD HH:mm')}
               </span>
             </Descriptions.Item>
             {currentStage && (
               <>
-                <Descriptions.Item label={`${statusMap[hackathon.status] || hackathon.status}阶段开始时间`}>
+                <Descriptions.Item label={t('hackathonDetail.stageStartTime', { stage: statusMap[hackathon.status] || hackathon.status })}>
                   <span data-testid="hackathon-detail-stage-start-time">
                     {dayjs(currentStage.start_time).format('YYYY-MM-DD HH:mm')}
                   </span>
                 </Descriptions.Item>
-                <Descriptions.Item label={`${statusMap[hackathon.status] || hackathon.status}阶段结束时间`}>
+                <Descriptions.Item label={t('hackathonDetail.stageEndTime', { stage: statusMap[hackathon.status] || hackathon.status })}>
                   <span data-testid="hackathon-detail-stage-end-time">
                     {dayjs(currentStage.end_time).format('YYYY-MM-DD HH:mm')}
                   </span>
                 </Descriptions.Item>
               </>
             )}
-            <Descriptions.Item label="描述" span={2}>
+            <Descriptions.Item label={t('hackathonDetail.description')} span={2}>
               <div 
                 data-testid="hackathon-detail-description"
                 dangerouslySetInnerHTML={{ __html: hackathon.description }}
@@ -187,15 +197,40 @@ export default function HackathonDetail() {
             </Descriptions.Item>
           </Descriptions>
 
+          {/* 活动指定赞助商展示 */}
+          {sponsors.length > 0 && (
+            <div style={{ marginTop: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '12px', color: '#666', fontSize: '14px', fontWeight: 600 }}>{t('hackathonDetail.eventSponsors')}</div>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {sponsors.map((sponsor) => (
+                  <img
+                    key={sponsor.id}
+                    src={sponsor.logo_url}
+                    alt={sponsor.user?.name || 'Sponsor'}
+                    style={{ 
+                      height: '60px', 
+                      maxWidth: '200px', 
+                      objectFit: 'contain',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => {
+                      // 可以添加跳转逻辑
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div style={{ marginTop: 24 }} data-testid="hackathon-detail-actions">
           {!token && (
             <Button 
               type="primary" 
-              onClick={() => message.info('请先连接钱包')}
+              onClick={() => message.info(t('hackathonDetail.connectWalletFirst'))}
               data-testid="hackathon-detail-connect-button"
-              aria-label="连接钱包"
+              aria-label={t('hackathonDetail.connectWallet')}
             >
-              连接钱包
+              {t('hackathonDetail.connectWallet')}
             </Button>
           )}
           {token && hackathon.status === 'registration' && !registered && (
@@ -203,21 +238,21 @@ export default function HackathonDetail() {
               type="primary" 
               onClick={handleRegister} 
               data-testid="hackathon-detail-register-button"
-              aria-label="报名参加活动"
+              aria-label={t('hackathonDetail.register')}
             >
-              报名
+              {t('hackathonDetail.register')}
             </Button>
           )}
           {token && hackathon.status === 'registration' && registered && (
             <Space data-testid="hackathon-detail-registered-actions">
-              <Tag color="green" data-testid="hackathon-detail-registered-tag">已报名</Tag>
+              <Tag color="green" data-testid="hackathon-detail-registered-tag">{t('hackathonDetail.registered')}</Tag>
               <Button 
                 danger 
                 onClick={handleCancelRegistration} 
                 data-testid="hackathon-detail-cancel-register-button"
-                aria-label="取消报名"
+                aria-label={t('hackathonDetail.cancelRegister')}
               >
-                取消报名
+                {t('hackathonDetail.cancelRegister')}
               </Button>
             </Space>
           )}
@@ -226,9 +261,9 @@ export default function HackathonDetail() {
               type="primary" 
               onClick={handleCheckin}
               data-testid="hackathon-detail-checkin-button"
-              aria-label="签到"
+              aria-label={t('hackathonDetail.checkin')}
             >
-              签到
+              {t('hackathonDetail.checkin')}
             </Button>
           )}
           {token && hackathon.status === 'team_formation' && checkedIn && (
@@ -236,9 +271,9 @@ export default function HackathonDetail() {
               type="primary" 
               onClick={() => navigate(`/hackathons/${id}/teams`)}
               data-testid="hackathon-detail-team-button"
-              aria-label="组队"
+              aria-label={t('hackathonDetail.teamFormation')}
             >
-              组队
+              {t('hackathonDetail.teamFormation')}
             </Button>
           )}
           {token && hackathon.status === 'submission' && (
@@ -246,9 +281,9 @@ export default function HackathonDetail() {
               <Button 
                 onClick={() => navigate(`/hackathons/${id}/submit`)}
                 data-testid="hackathon-detail-submit-button"
-                aria-label={existingSubmission ? "修改提交" : "提交作品"}
+                aria-label={existingSubmission ? t('hackathonDetail.modifySubmit') : t('hackathonDetail.submit')}
               >
-                {existingSubmission ? '修改提交' : '提交作品'}
+                {existingSubmission ? t('hackathonDetail.modifySubmit') : t('hackathonDetail.submit')}
               </Button>
             </Space>
           )}
@@ -256,18 +291,18 @@ export default function HackathonDetail() {
             <Button 
               onClick={() => navigate(`/hackathons/${id}/submissions`)}
               data-testid="hackathon-detail-vote-button"
-              aria-label="查看作品并投票"
+              aria-label={t('hackathonDetail.viewSubmissions')}
             >
-              查看作品并投票
+              {t('hackathonDetail.viewSubmissions')}
             </Button>
           )}
           {hackathon.status === 'results' && (
             <Button 
               onClick={() => navigate(`/hackathons/${id}/results`)}
               data-testid="hackathon-detail-results-button"
-              aria-label="查看结果"
+              aria-label={t('hackathonDetail.viewResults')}
             >
-              查看结果
+              {t('hackathonDetail.viewResults')}
             </Button>
           )}
         </div>

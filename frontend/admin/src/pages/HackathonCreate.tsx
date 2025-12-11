@@ -15,6 +15,7 @@ import {
   Table,
 } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import dayjs from 'dayjs'
 
@@ -28,24 +29,33 @@ const CITIES = [
   '乌鲁木齐', '拉萨', '银川', '西宁', '呼和浩特'
 ]
 
+interface Prize {
+  name: string
+  description?: string
+  image_url?: string
+}
+
 interface Award {
   name: string
   prize: string
   quantity: number
   rank: number
+  prizes?: Prize[]
 }
 
 export default function HackathonCreate() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [locationType, setLocationType] = useState('online')
   const [awards, setAwards] = useState<Award[]>([
-    { name: '一等奖', prize: '1000USD', quantity: 1, rank: 1 },
-    { name: '二等奖', prize: '500USD', quantity: 2, rank: 2 },
-    { name: '三等奖', prize: '200USD', quantity: 3, rank: 3 },
+    { name: '', prize: '1000USD', quantity: 1, rank: 1, prizes: [{ name: '', description: '' }] },
+    { name: '', prize: '500USD', quantity: 2, rank: 2, prizes: [{ name: '', description: '' }] },
+    { name: '', prize: '200USD', quantity: 3, rank: 3, prizes: [{ name: '', description: '' }] },
   ])
+  const [autoAssignStages, setAutoAssignStages] = useState(true)
   const isEdit = !!id
 
   useEffect(() => {
@@ -56,7 +66,8 @@ export default function HackathonCreate() {
 
   const fetchDetail = async () => {
     try {
-      const data = await request.get(`/hackathons/${id}`)
+      const response = await request.get(`/hackathons/${id}`)
+      const data = response as any
       form.setFieldsValue({
         ...data,
         timeRange: [dayjs(data.start_time), dayjs(data.end_time)],
@@ -67,7 +78,7 @@ export default function HackathonCreate() {
         setAwards(data.awards)
       }
     } catch (error) {
-      message.error('获取活动详情失败')
+      message.error(t('hackathon.fetchDetailFailed'))
     }
   }
 
@@ -82,18 +93,19 @@ export default function HackathonCreate() {
         end_time: endTime.format('YYYY-MM-DD') + 'T23:59:59Z',
         timeRange: undefined,
         awards: awards,
+        auto_assign_stages: autoAssignStages,
       }
 
       if (isEdit) {
         await request.put(`/hackathons/${id}`, payload)
-        message.success('更新成功')
+        message.success(t('hackathon.updateSuccess'))
       } else {
         await request.post('/hackathons', payload)
-        message.success('创建成功')
+        message.success(t('hackathon.createSuccess'))
       }
       navigate('/hackathons')
     } catch (error) {
-      message.error(isEdit ? '更新失败' : '创建失败')
+      message.error(isEdit ? t('hackathon.updateFailed') : t('hackathon.createFailed'))
     } finally {
       setLoading(false)
     }
@@ -119,7 +131,7 @@ export default function HackathonCreate() {
       <Card
         title={
           <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="hackathon-create-title">
-            {isEdit ? '编辑活动' : '创建活动'}
+            {isEdit ? t('hackathon.edit') : t('hackathon.create')}
           </div>
         }
         data-testid="hackathon-create-card"
@@ -134,26 +146,26 @@ export default function HackathonCreate() {
         >
           <Form.Item
             name="name"
-            label="活动名称"
-            rules={[{ required: true, message: '请输入活动名称' }]}
+            label={t('hackathon.name')}
+            rules={[{ required: true, message: t('hackathon.nameRequired') }]}
           >
             <Input 
-              placeholder="请输入活动名称" 
+              placeholder={t('hackathon.namePlaceholder')} 
               data-testid="hackathon-create-form-name-input"
-              aria-label="活动名称输入框"
+              aria-label={t('hackathon.name')}
             />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="活动描述"
-            rules={[{ required: true, message: '请输入活动描述' }]}
+            label={t('hackathon.description')}
+            rules={[{ required: true, message: t('hackathon.descriptionRequired') }]}
           >
             <Input.TextArea 
               rows={4}
-              placeholder="请输入活动描述"
+              placeholder={t('hackathon.descriptionPlaceholder')}
               data-testid="hackathon-create-form-description-input"
-              aria-label="活动描述输入框"
+              aria-label={t('hackathon.description')}
             />
           </Form.Item>
 
@@ -161,32 +173,32 @@ export default function HackathonCreate() {
             <Col span={12}>
               <Form.Item
                 name="timeRange"
-                label="活动时间"
-                rules={[{ required: true, message: '请选择活动时间' }]}
+                label={t('hackathon.startTime')}
+                rules={[{ required: true, message: t('hackathon.endTimeRequired') }]}
               >
                 <RangePicker
                   format="YYYY-MM-DD"
                   style={{ width: '100%' }}
                   data-testid="hackathon-create-form-time-range-picker"
-                  aria-label="活动时间选择器"
+                  aria-label={t('hackathon.startTime')}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="location_type"
-                label="地点类型"
-                rules={[{ required: true, message: '请选择地点类型' }]}
+                label={t('hackathon.locationType')}
+                rules={[{ required: true, message: t('hackathon.locationTypeRequired') }]}
               >
                 <Select 
-                  placeholder="请选择地点类型"
+                  placeholder={t('hackathon.locationTypePlaceholder')}
                   onChange={(value) => setLocationType(value)}
                   data-testid="hackathon-create-form-location-type-select"
-                  aria-label="地点类型选择框"
+                  aria-label={t('hackathon.locationType')}
                 >
-                  <Select.Option value="online" data-testid="hackathon-create-form-location-online">线上</Select.Option>
-                  <Select.Option value="offline" data-testid="hackathon-create-form-location-offline">线下</Select.Option>
-                  <Select.Option value="hybrid" data-testid="hackathon-create-form-location-hybrid">混合</Select.Option>
+                  <Select.Option value="online" data-testid="hackathon-create-form-location-online">{t('hackathon.locationOnline')}</Select.Option>
+                  <Select.Option value="offline" data-testid="hackathon-create-form-location-offline">{t('hackathon.locationOffline')}</Select.Option>
+                  <Select.Option value="hybrid" data-testid="hackathon-create-form-location-hybrid">{t('hackathon.locationHybrid')}</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -197,31 +209,31 @@ export default function HackathonCreate() {
               <Col span={12}>
                 <Form.Item
                   name="city"
-                  label="城市"
-                  rules={[{ required: true, message: '请选择城市' }]}
+                  label={t('hackathon.city')}
+                  rules={[{ required: true, message: t('hackathon.cityRequired') }]}
                 >
                   <Select 
-                    placeholder="请选择城市"
+                    placeholder={t('hackathon.cityPlaceholder')}
                     showSearch
                     filterOption={(input, option) =>
                       (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                     }
                     options={CITIES.map(city => ({ label: city, value: city }))}
                     data-testid="hackathon-create-form-city-select"
-                    aria-label="城市选择框"
+                    aria-label={t('hackathon.city')}
                   />
                 </Form.Item>
               </Col>
               <Col span={12}>
                 <Form.Item
                   name="location_detail"
-                  label="具体地址"
-                  rules={[{ required: true, message: '请输入具体地址' }]}
+                  label={t('hackathon.address')}
+                  rules={[{ required: true, message: t('hackathon.addressRequired') }]}
                 >
                   <Input 
-                    placeholder="请输入具体地址" 
+                    placeholder={t('hackathon.addressPlaceholder')} 
                     data-testid="hackathon-create-form-location-detail-input"
-                    aria-label="具体地址输入框"
+                    aria-label={t('hackathon.address')}
                   />
                 </Form.Item>
               </Col>
@@ -231,8 +243,8 @@ export default function HackathonCreate() {
           {(locationType === 'offline' || locationType === 'hybrid') && (
             <Form.Item
               name="map_location"
-              label="地图位置"
-              tooltip="点击地图选择位置（可选）"
+              label={t('hackathon.mapLocation')}
+              tooltip={t('hackathon.mapLocationTooltip')}
             >
               <div 
                 id="map-container"
@@ -249,7 +261,7 @@ export default function HackathonCreate() {
                 }}
                 data-testid="hackathon-create-form-map-container"
               >
-                地图组件（待集成）
+                {t('hackathon.mapComponent')}
               </div>
             </Form.Item>
           )}
@@ -258,43 +270,55 @@ export default function HackathonCreate() {
             <Col span={12}>
               <Form.Item
                 name="max_team_size"
-                label="队伍最大成员数"
+                label={t('hackathon.maxTeamSize')}
                 rules={[
-                  { required: true, message: '请输入队伍最大成员数' },
-                  { type: 'number', min: 1, message: '至少1人' },
+                  { required: true, message: t('hackathon.maxTeamSizeRequired') },
+                  { type: 'number', min: 1, message: t('hackathon.maxTeamSizeMin') },
                 ]}
               >
                 <InputNumber
                   min={1}
                   max={20}
-                  placeholder="请输入队伍最大成员数"
+                  placeholder={t('hackathon.maxTeamSizePlaceholder')}
                   style={{ width: '100%' }}
                   data-testid="hackathon-create-form-max-team-size-input"
-                  aria-label="队伍最大成员数输入框"
+                  aria-label={t('hackathon.maxTeamSize')}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
                 name="max_participants"
-                label="最大参与人数"
-                tooltip="0表示不限制人数"
+                label={t('hackathon.maxParticipants')}
+                tooltip={t('hackathon.maxParticipantsTooltip')}
                 rules={[
-                  { type: 'number', min: 0, message: '最大参与人数不能小于0' },
+                  { type: 'number', min: 0, message: t('hackathon.maxParticipantsMin') },
                 ]}
               >
                 <InputNumber
                   style={{ width: '100%' }}
-                  placeholder="请输入最大参与人数（0表示不限制）"
+                  placeholder={t('hackathon.maxParticipantsPlaceholder')}
                   min={0}
                   data-testid="hackathon-create-form-max-participants-input"
-                  aria-label="最大参与人数输入框"
+                  aria-label={t('hackathon.maxParticipants')}
                 />
               </Form.Item>
             </Col>
           </Row>
 
-          <Form.Item label="奖项设置">
+          <Form.Item label={t('hackathon.timeSettings')}>
+            <div style={{ marginBottom: '16px' }}>
+              <input
+                type="checkbox"
+                checked={autoAssignStages}
+                onChange={(e) => setAutoAssignStages(e.target.checked)}
+                style={{ marginRight: '8px' }}
+              />
+              <label>{t('hackathon.autoAssignStages')}</label>
+            </div>
+          </Form.Item>
+
+          <Form.Item label={t('hackathon.awardSettings')}>
             <div style={{ marginBottom: '16px' }}>
               <Button
                 type="dashed"
@@ -303,7 +327,7 @@ export default function HackathonCreate() {
                 style={{ width: '100%' }}
                 data-testid="hackathon-create-form-add-award-button"
               >
-                添加奖项
+                {t('hackathon.addAward')}
               </Button>
             </div>
             <Table
@@ -312,31 +336,65 @@ export default function HackathonCreate() {
               pagination={false}
               columns={[
                 {
-                  title: '奖项名称',
+                  title: t('hackathon.awardName'),
                   dataIndex: 'name',
                   key: 'name',
                   render: (text, record, index) => (
                     <Input
                       value={text}
                       onChange={(e) => handleAwardChange(index, 'name', e.target.value)}
-                      placeholder="如：一等奖"
+                      placeholder={t('hackathon.awardNamePlaceholder')}
                     />
                   ),
                 },
                 {
-                  title: '奖项金额',
+                  title: t('hackathon.prizeAmount'),
                   dataIndex: 'prize',
                   key: 'prize',
                   render: (text, record, index) => (
                     <Input
                       value={text}
                       onChange={(e) => handleAwardChange(index, 'prize', e.target.value)}
-                      placeholder="如：1000USD"
+                      placeholder={t('hackathon.prizeAmountPlaceholder')}
                     />
                   ),
                 },
                 {
-                  title: '数量',
+                  title: t('hackathon.prizes'),
+                  key: 'prizes',
+                  width: 200,
+                  render: (text, record, index) => (
+                    <div>
+                      {record.prizes && record.prizes.length > 0 ? (
+                        record.prizes.map((prize, pIndex) => (
+                          <div key={pIndex} style={{ marginBottom: '4px' }}>
+                            {prize.name}
+                            {prize.description && ` (${prize.description})`}
+                          </div>
+                        ))
+                      ) : (
+                        <span style={{ color: '#999' }}>{t('hackathon.noPrizes')}</span>
+                      )}
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => {
+                          // 添加奖品功能（简化实现）
+                          const newAwards = [...awards]
+                          if (!newAwards[index].prizes) {
+                            newAwards[index].prizes = []
+                          }
+                          newAwards[index].prizes!.push({ name: '', description: '' })
+                          setAwards(newAwards)
+                        }}
+                      >
+                        {t('hackathon.addPrize')}
+                      </Button>
+                    </div>
+                  ),
+                },
+                {
+                  title: t('hackathon.quantity'),
                   dataIndex: 'quantity',
                   key: 'quantity',
                   width: 100,
@@ -350,7 +408,7 @@ export default function HackathonCreate() {
                   ),
                 },
                 {
-                  title: '操作',
+                  title: t('hackathon.actions'),
                   key: 'action',
                   width: 80,
                   render: (_, record, index) => (
@@ -360,7 +418,7 @@ export default function HackathonCreate() {
                       icon={<DeleteOutlined />}
                       onClick={() => handleRemoveAward(index)}
                     >
-                      删除
+                      {t('hackathon.delete')}
                     </Button>
                   ),
                 },
@@ -377,17 +435,17 @@ export default function HackathonCreate() {
                 loading={loading} 
                 size="large"
                 data-testid="hackathon-create-form-submit-button"
-                aria-label={isEdit ? '更新活动按钮' : '创建活动按钮'}
+                aria-label={isEdit ? t('hackathon.update') : t('hackathon.create')}
               >
-                {isEdit ? '更新' : '创建'}
+                {isEdit ? t('hackathon.update') : t('hackathon.create')}
               </Button>
               <Button 
                 onClick={() => navigate('/hackathons')} 
                 size="large"
                 data-testid="hackathon-create-form-cancel-button"
-                aria-label="取消按钮"
+                aria-label={t('hackathon.cancel')}
               >
-                取消
+                {t('hackathon.cancel')}
               </Button>
             </Space>
           </Form.Item>

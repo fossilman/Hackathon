@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, message } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import { ethers } from 'ethers'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
@@ -17,6 +18,7 @@ interface Hackathon {
 }
 
 export default function Home() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { walletAddress, connectWallet, setParticipant } = useAuthStore()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
@@ -30,7 +32,7 @@ export default function Home() {
       })
       setHackathons(data.list || [])
     } catch (error) {
-      message.error('获取活动列表失败')
+      message.error(t('hackathon.fetchFailed'))
     } finally {
       setLoading(false)
     }
@@ -74,23 +76,23 @@ export default function Home() {
           console.warn('获取完整用户信息失败，使用基本信息')
         }
         
-        message.success('连接成功')
+        message.success(t('common.connected'))
       } catch (error: any) {
-        message.error(error.message || '连接失败')
+        message.error(error.message || t('common.error'))
       }
     } else {
-      message.error('请安装Metamask')
+      message.error(t('common.pleaseInstallMetamask'))
     }
   }
 
   const statusMap: Record<string, string> = {
-    published: '发布',
-    registration: '报名',
-    checkin: '签到',
-    team_formation: '组队',
-    submission: '提交',
-    voting: '投票',
-    results: '公布结果',
+    published: t('hackathon.statusPublished'),
+    registration: t('hackathon.statusRegistration'),
+    checkin: t('hackathon.statusCheckin'),
+    team_formation: t('hackathon.statusTeamFormation'),
+    submission: t('hackathon.statusSubmission'),
+    voting: t('hackathon.statusVoting'),
+    results: t('hackathon.statusResults'),
   }
 
   // 活动状态配色（与 Admin 系统保持一致）
@@ -110,16 +112,16 @@ export default function Home() {
       <div className="page-header" data-testid="home-header">
         <h1 className="page-title" data-testid="home-title" style={{ fontSize: '28px' }}>
           <TrophyOutlined style={{ marginRight: 8, color: 'var(--primary-color)' }} />
-          活动列表
+          {t('home.title')}
         </h1>
         {!walletAddress && (
           <Button 
             type="primary" 
             onClick={handleConnectWallet}
             data-testid="home-connect-button"
-            aria-label="连接钱包"
+            aria-label={t('common.connectWallet')}
           >
-            连接钱包
+            {t('common.connectWallet')}
           </Button>
         )}
       </div>
@@ -134,7 +136,7 @@ export default function Home() {
           }} 
           data-testid="home-loading"
         >
-          加载中...
+          {t('home.loading')}
         </div>
       ) : (
         <div 

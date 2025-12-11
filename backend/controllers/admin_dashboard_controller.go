@@ -16,7 +16,7 @@ func NewAdminDashboardController() *AdminDashboardController {
 	}
 }
 
-// GetDashboard 获取仪表盘数据
+// GetDashboard 获取活动概览数据
 func (c *AdminDashboardController) GetDashboard(ctx *gin.Context) {
 	userID, _ := ctx.Get("user_id")
 	role, _ := ctx.Get("role")

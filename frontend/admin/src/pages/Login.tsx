@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Form, Input, Button, Card, message, Tabs } from 'antd'
+import { Form, Input, Button, Card, message, Tabs, Alert } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { login, loginWithWallet } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import '../index.css'
@@ -16,6 +17,7 @@ declare global {
 
 export default function Login() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [walletLoading, setWalletLoading] = useState(false)
   const { setAuth } = useAuthStore()
@@ -26,7 +28,7 @@ export default function Login() {
     try {
       const data = await login(values)
       setAuth(data.token, data.user)
-      message.success('登录成功')
+      message.success(t('login.loginSuccess'))
       // 根据角色跳转到不同页面
       if (data.user.role === 'sponsor') {
         navigate('/profile', { replace: true })
@@ -37,7 +39,7 @@ export default function Login() {
       // 等待导航完成
       await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error: any) {
-      message.error(error?.response?.data?.message || '登录失败')
+      message.error(error?.response?.data?.message || t('login.loginFailed'))
     } finally {
       setLoading(false)
     }
@@ -47,7 +49,7 @@ export default function Login() {
 
   const handleWalletLogin = async (values: { phone: string }) => {
     if (!window.ethereum) {
-      message.error('请安装 MetaMask 钱包')
+      message.error(t('login.installMetamask'))
       return
     }
 
@@ -58,12 +60,12 @@ export default function Login() {
       const walletAddress = accounts[0]
 
       if (!walletAddress) {
-        message.error('未获取到钱包地址')
+        message.error(t('login.noWalletAddress'))
         return
       }
 
       // 生成签名消息
-      const signMessage = `请签名以登录 Hackathon Admin Platform\n\n钱包地址: ${walletAddress}\n手机号: ${values.phone}\n时间戳: ${Date.now()}`
+      const signMessage = `${t('login.signMessage')}\n\nWallet Address: ${walletAddress}\nPhone: ${values.phone}\nTimestamp: ${Date.now()}`
       
       // 请求签名
       const signature = await window.ethereum.request({
@@ -79,7 +81,7 @@ export default function Login() {
       })
 
       setAuth(data.token, data.user)
-      message.success('登录成功')
+      message.success(t('login.loginSuccess'))
       // 根据角色跳转到不同页面
       if (data.user.role === 'sponsor') {
         navigate('/profile', { replace: true })
@@ -89,9 +91,9 @@ export default function Login() {
       await new Promise(resolve => setTimeout(resolve, 100))
     } catch (error: any) {
       if (error?.code === 4001) {
-        message.error('用户拒绝了签名请求')
+        message.error(t('login.signRejected'))
       } else {
-        message.error(error?.response?.data?.message || '钱包登录失败')
+        message.error(error?.response?.data?.message || t('login.walletLoginFailed'))
       }
     } finally {
       setWalletLoading(false)
@@ -115,7 +117,7 @@ export default function Login() {
           items={[
             {
               key: 'phone',
-              label: '手机号登录',
+              label: t('login.phoneLogin'),
               children: (
                 <Form 
                   onFinish={onFinish} 
@@ -125,27 +127,27 @@ export default function Login() {
                 >
                   <Form.Item
                     name="phone"
-                    label="手机号"
+                    label={t('login.phone')}
                     rules={[
-                      { required: true, message: '请输入手机号' },
-                      { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+                      { required: true, message: t('login.phoneRequired') },
+                      { pattern: /^1[3-9]\d{9}$/, message: t('login.phoneInvalid') },
                     ]}
                   >
                     <Input 
-                      placeholder="请输入手机号" 
+                      placeholder={t('login.phonePlaceholder')} 
                       data-testid="login-phone-input"
-                      aria-label="手机号输入框"
+                      aria-label={t('login.phone')}
                     />
                   </Form.Item>
                   <Form.Item
                     name="password"
-                    label="密码"
-                    rules={[{ required: true, message: '请输入密码' }]}
+                    label={t('login.password')}
+                    rules={[{ required: true, message: t('login.passwordRequired') }]}
                   >
                     <Input.Password 
-                      placeholder="请输入密码" 
+                      placeholder={t('login.passwordPlaceholder')} 
                       data-testid="login-password-input"
-                      aria-label="密码输入框"
+                      aria-label={t('login.password')}
                     />
                   </Form.Item>
                   <Form.Item style={{ marginBottom: 0, marginTop: '24px' }}>
@@ -156,9 +158,9 @@ export default function Login() {
                       loading={loading} 
                       size="large"
                       data-testid="login-submit-button"
-                      aria-label="登录按钮"
+                      aria-label={t('login.submit')}
                     >
-                      登录
+                      {t('login.submit')}
                     </Button>
                   </Form.Item>
                 </Form>
@@ -166,7 +168,7 @@ export default function Login() {
             },
             {
               key: 'wallet',
-              label: '钱包登录',
+              label: t('login.walletLogin'),
               children: (
                 <Form
                   form={walletForm}
@@ -177,16 +179,16 @@ export default function Login() {
                 >
                   <Form.Item
                     name="phone"
-                    label="手机号"
+                    label={t('login.phone')}
                     rules={[
-                      { required: true, message: '请输入手机号' },
-                      { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+                      { required: true, message: t('login.phoneRequired') },
+                      { pattern: /^1[3-9]\d{9}$/, message: t('login.phoneInvalid') },
                     ]}
                   >
                     <Input 
-                      placeholder="请输入手机号" 
+                      placeholder={t('login.phonePlaceholder')} 
                       data-testid="login-wallet-phone-input"
-                      aria-label="手机号输入框"
+                      aria-label={t('login.phone')}
                     />
                   </Form.Item>
                   <Form.Item style={{ marginBottom: 0, marginTop: '24px' }}>
@@ -196,16 +198,51 @@ export default function Login() {
                       size="large"
                       loading={walletLoading}
                       data-testid="login-wallet-button"
-                      aria-label="钱包登录按钮"
+                      aria-label={t('login.walletSubmit')}
                       style={{ width: '100%' }}
                     >
-                      连接钱包登录
+                      {t('login.walletSubmit')}
                     </Button>
                   </Form.Item>
                   <div style={{ marginTop: '16px', color: '#999', fontSize: '12px', textAlign: 'center' }}>
-                    请确保已安装 MetaMask 钱包插件
+                    {t('login.walletTip')}
                   </div>
                 </Form>
+              ),
+            },
+            {
+              key: 'sponsor',
+              label: t('login.sponsorApply'),
+              children: (
+                <div style={{ padding: '24px 0' }}>
+                  <Alert
+                    message={t('sponsor.applyTitle')}
+                    description={t('sponsor.applyDescription')}
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: '24px' }}
+                    data-testid="sponsor-apply-alert"
+                  />
+                  <Button
+                    type="primary"
+                    size="large"
+                    block
+                    onClick={() => navigate('/sponsor/apply')}
+                    data-testid="sponsor-apply-button"
+                    aria-label="前往赞助商申请页面"
+                  >
+                    {t('sponsor.goToApply')}
+                  </Button>
+                  <div style={{ marginTop: '24px', padding: '16px', background: '#f5f5f5', borderRadius: '4px' }}>
+                    <div style={{ fontWeight: 600, marginBottom: '8px' }}>{t('login.applyProcess')}</div>
+                    <ol style={{ margin: 0, paddingLeft: '20px', color: '#666' }}>
+                      <li>{t('login.applyStep1')}</li>
+                      <li>{t('login.applyStep2')}</li>
+                      <li>{t('login.applyStep3')}</li>
+                      <li>{t('login.applyStep4')}</li>
+                    </ol>
+                  </div>
+                </div>
               ),
             },
           ]}

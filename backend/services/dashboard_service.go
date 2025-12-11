@@ -31,7 +31,7 @@ type DashboardData struct {
 	} `json:"user_stats,omitempty"`
 }
 
-// GetDashboard 获取仪表盘数据
+// GetDashboard 获取活动概览数据
 func (s *DashboardService) GetDashboard(userID uint64, role string) (*DashboardData, error) {
 	var dashboard DashboardData
 

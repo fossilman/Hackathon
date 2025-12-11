@@ -48,10 +48,12 @@ func InitDB() error {
 func AutoMigrate() error {
 	return DB.AutoMigrate(
 		&models.User{},
+		&models.UserWallet{},
 		&models.Participant{},
 		&models.Hackathon{},
 		&models.HackathonStage{},
 		&models.HackathonAward{},
+		&models.HackathonPrize{},
 		&models.Registration{},
 		&models.Checkin{},
 		&models.Team{},
@@ -59,6 +61,9 @@ func AutoMigrate() error {
 		&models.Submission{},
 		&models.SubmissionHistory{},
 		&models.Vote{},
+		&models.SponsorApplication{},
+		&models.Sponsor{},
+		&models.HackathonSponsorEvent{},
 	)
 }
 

@@ -1,7 +1,9 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Button, Avatar, Dropdown } from 'antd'
+import { Layout as AntLayout, Menu, Button, Avatar, Dropdown, Space } from 'antd'
 import type { MenuProps } from 'antd'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
+import LanguageSwitcher from './LanguageSwitcher'
 import {
   UserOutlined,
   TrophyOutlined,
@@ -12,6 +14,7 @@ import {
 const { Header, Content, Sider } = AntLayout
 
 export default function Layout() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { user, clearAuth } = useAuthStore()
@@ -25,39 +28,45 @@ export default function Layout() {
 
   // 根据角色显示不同的菜单
   if (user?.role === 'admin') {
-    // Admin角色：仪表盘、人员管理
+    // Admin角色：活动概览、人员管理、赞助商审核
     menuItems.push({
       key: '/dashboard',
       icon: <TrophyOutlined />,
-      label: '活动概览',
+      label: t('nav.dashboard'),
       'data-testid': 'admin-menu-dashboard',
     })
     menuItems.push({
       key: '/users',
       icon: <UserOutlined />,
-      label: '人员管理',
+      label: t('nav.userManagement'),
       'data-testid': 'admin-menu-users',
     })
+    menuItems.push({
+      key: '/sponsors/pending',
+      icon: <SettingOutlined />,
+      label: t('nav.sponsorReview'),
+      'data-testid': 'admin-menu-sponsors',
+    })
   } else if (user?.role === 'organizer') {
-    // 主办方角色：仪表盘、活动管理
+    // 主办方角色：活动概览、活动管理
     menuItems.push({
       key: '/dashboard',
       icon: <TrophyOutlined />,
-      label: '活动概览',
+      label: t('nav.dashboard'),
       'data-testid': 'admin-menu-dashboard',
     })
     menuItems.push({
       key: '/hackathons',
       icon: <TrophyOutlined />,
-      label: '活动管理',
+      label: t('nav.hackathonManagement'),
       'data-testid': 'admin-menu-hackathons',
     })
   } else if (user?.role === 'sponsor') {
-    // 赞助商角色：仅仪表盘
+    // 赞助商角色：活动概览
     menuItems.push({
       key: '/dashboard',
       icon: <TrophyOutlined />,
-      label: '活动概览',
+      label: t('nav.dashboard'),
       'data-testid': 'admin-menu-dashboard',
     })
   }
@@ -66,7 +75,7 @@ export default function Layout() {
   menuItems.push({
     key: '/profile',
     icon: <UserOutlined />,
-    label: '个人中心',
+    label: t('nav.profile'),
     'data-testid': 'admin-menu-profile',
   })
 
@@ -74,7 +83,7 @@ export default function Layout() {
     {
       key: 'logout',
       icon: <LogoutOutlined />,
-      label: '退出登录',
+      label: t('nav.logout'),
       danger: true,
       onClick: handleLogout,
       'data-testid': 'admin-menu-logout',
@@ -110,6 +119,7 @@ export default function Layout() {
           🏆 Hackathon Admin Platform
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }} data-testid="admin-header-actions">
+          <LanguageSwitcher />
           <span style={{ fontSize: '14px', opacity: 0.9 }} data-testid="admin-user-name">{user?.name}</span>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Button
@@ -117,9 +127,9 @@ export default function Layout() {
               icon={<LogoutOutlined />}
               style={{ color: '#fff' }}
               data-testid="admin-user-menu-button"
-              aria-label="用户菜单"
+              aria-label={t('nav.userMenu')}
             >
-              退出
+              {t('nav.logout')}
             </Button>
           </Dropdown>
         </div>

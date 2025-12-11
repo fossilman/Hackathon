@@ -12,6 +12,7 @@ import {
   Popconfirm,
 } from 'antd'
 import { UserOutlined, LockOutlined, DeleteOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 
@@ -22,6 +23,7 @@ interface Wallet {
 }
 
 export default function Profile() {
+  const { t } = useTranslation()
   const [form] = Form.useForm()
   const [passwordForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,7 @@ export default function Profile() {
       const data = await request.get('/profile')
       form.setFieldsValue(data)
     } catch (error) {
-      message.error('获取个人信息失败')
+      message.error(t('profile.fetchFailed'))
     }
   }
 
@@ -48,17 +50,17 @@ export default function Profile() {
       const data = await request.get('/profile/wallets')
       setWallets(data || [])
     } catch (error) {
-      message.error('获取钱包地址列表失败')
+      message.error(t('profile.fetchWalletsFailed'))
     }
   }
 
   const handleDeleteWallet = async (id: number) => {
     try {
       await request.delete(`/profile/wallets/${id}`)
-      message.success('删除钱包地址成功')
+      message.success(t('profile.deleteWalletSuccess'))
       fetchWallets()
     } catch (error: any) {
-      message.error(error?.response?.data?.message || '删除钱包地址失败')
+      message.error(error?.response?.data?.message || t('profile.deleteWalletFailed'))
     }
   }
 
@@ -68,7 +70,7 @@ export default function Profile() {
       // 过滤掉 role 字段，不允许修改角色
       const { role, ...updateData } = values
       await request.patch('/profile', updateData)
-      message.success('更新成功')
+      message.success(t('profile.updateSuccess'))
       // 更新store中的用户信息
       const token = useAuthStore.getState().token
       if (user && token) {
@@ -77,7 +79,7 @@ export default function Profile() {
       }
       fetchProfile()
     } catch (error: any) {
-      message.error(error?.response?.data?.message || '更新失败')
+      message.error(error?.response?.data?.message || t('profile.updateFailed'))
     } finally {
       setLoading(false)
     }
@@ -91,11 +93,11 @@ export default function Profile() {
         old_password: values.old_password,
         new_password: values.new_password,
       })
-      message.success('密码修改成功')
+      message.success(t('profile.changePasswordSuccess'))
       setPasswordModalVisible(false)
       passwordForm.resetFields()
     } catch (error: any) {
-      message.error(error?.response?.data?.message || '密码修改失败')
+      message.error(error?.response?.data?.message || t('profile.changePasswordFailed'))
     } finally {
       setLoading(false)
     }
@@ -106,7 +108,7 @@ export default function Profile() {
       <Card
         title={
           <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="profile-title">
-            <UserOutlined /> 个人中心
+            <UserOutlined /> {t('profile.title')}
           </div>
         }
         data-testid="profile-card"
@@ -120,40 +122,40 @@ export default function Profile() {
         >
           <Form.Item
             name="name"
-            label="姓名"
-            rules={[{ required: true, message: '请输入姓名' }]}
+            label={t('profile.name')}
+            rules={[{ required: true, message: t('profile.nameRequired') }]}
           >
             <Input 
-              placeholder="请输入姓名" 
+              placeholder={t('profile.namePlaceholder')} 
               data-testid="profile-form-name-input"
-              aria-label="姓名输入框"
+              aria-label={t('profile.name')}
             />
           </Form.Item>
 
 
           <Form.Item
             name="phone"
-            label="手机号"
+            label={t('profile.phone')}
             rules={[
-              { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
+              { pattern: /^1[3-9]\d{9}$/, message: t('profile.phoneInvalid') },
             ]}
           >
             <Input 
-              placeholder="请输入手机号" 
+              placeholder={t('profile.phonePlaceholder')} 
               data-testid="profile-form-phone-input"
-              aria-label="手机号输入框"
+              aria-label={t('profile.phone')}
             />
           </Form.Item>
 
           <Form.Item
             name="role"
-            label="角色"
+            label={t('profile.role')}
           >
             <Input 
-              placeholder="角色" 
+              placeholder={t('profile.role')} 
               disabled
               data-testid="profile-form-role-input"
-              aria-label="角色输入框"
+              aria-label={t('profile.role')}
             />
           </Form.Item>
 
@@ -164,17 +166,17 @@ export default function Profile() {
                 htmlType="submit" 
                 loading={loading}
                 data-testid="profile-form-submit-button"
-                aria-label="保存"
+                aria-label={t('profile.save')}
               >
-                保存
+                {t('profile.save')}
               </Button>
               <Button
                 icon={<LockOutlined />}
                 onClick={() => setPasswordModalVisible(true)}
                 data-testid="profile-form-change-password-button"
-                aria-label="修改密码"
+                aria-label={t('profile.changePassword')}
               >
-                修改密码
+                {t('profile.changePassword')}
               </Button>
             </Space>
           </Form.Item>
@@ -184,7 +186,7 @@ export default function Profile() {
       <Card
         title={
           <div style={{ fontSize: '20px', fontWeight: 600 }} data-testid="profile-wallets-title">
-            钱包地址管理
+            {t('profile.walletManagement')}
           </div>
         }
         style={{ marginTop: '24px' }}
@@ -195,28 +197,28 @@ export default function Profile() {
           rowKey="id"
           columns={[
             {
-              title: '钱包地址',
+              title: t('profile.walletAddress'),
               dataIndex: 'address',
               key: 'address',
               ellipsis: true,
             },
             {
-              title: '绑定时间',
+              title: t('profile.bindTime'),
               dataIndex: 'created_at',
               key: 'created_at',
               width: 180,
               render: (time: string) => new Date(time).toLocaleString('zh-CN'),
             },
             {
-              title: '操作',
+              title: t('profile.actions'),
               key: 'action',
               width: 100,
               render: (_: any, record: Wallet) => (
                 <Popconfirm
-                  title="确定要删除这个钱包地址吗？"
+                  title={t('profile.confirmDeleteWallet')}
                   onConfirm={() => handleDeleteWallet(record.id)}
-                  okText="确定"
-                  cancelText="取消"
+                  okText={t('confirm')}
+                  cancelText={t('cancel')}
                 >
                   <Button
                     type="link"
@@ -225,7 +227,7 @@ export default function Profile() {
                     size="small"
                     data-testid={`profile-wallets-delete-button-${record.id}`}
                   >
-                    删除
+                    {t('profile.delete')}
                   </Button>
                 </Popconfirm>
               ),
@@ -237,7 +239,7 @@ export default function Profile() {
       </Card>
 
       <Modal
-        title="修改密码"
+        title={t('profile.changePassword')}
         open={passwordModalVisible}
         onCancel={() => {
           setPasswordModalVisible(false)
@@ -251,12 +253,12 @@ export default function Profile() {
             // 表单验证失败，不关闭对话框
           }
         }}
-        okText="确定"
-        cancelText="取消"
+        okText={t('confirm')}
+        cancelText={t('cancel')}
         width={500}
         destroyOnClose
         data-testid="profile-change-password-modal"
-        aria-label="修改密码对话框"
+        aria-label={t('profile.changePassword')}
       >
         <Form
           form={passwordForm}
@@ -267,51 +269,51 @@ export default function Profile() {
         >
           <Form.Item
             name="old_password"
-            label="原密码"
-            rules={[{ required: true, message: '请输入原密码' }]}
+            label={t('profile.oldPassword')}
+            rules={[{ required: true, message: t('profile.oldPasswordRequired') }]}
           >
             <Input.Password 
-              placeholder="请输入原密码" 
+              placeholder={t('profile.oldPasswordPlaceholder')} 
               data-testid="profile-change-password-form-old-password-input"
-              aria-label="原密码输入框"
+              aria-label={t('profile.oldPassword')}
             />
           </Form.Item>
 
           <Form.Item
             name="new_password"
-            label="新密码"
+            label={t('profile.newPassword')}
             rules={[
-              { required: true, message: '请输入新密码' },
-              { min: 8, message: '密码至少8位' },
+              { required: true, message: t('profile.newPasswordRequired') },
+              { min: 8, message: t('user.passwordMin') },
             ]}
           >
             <Input.Password 
-              placeholder="请输入新密码（至少8位）" 
+              placeholder={t('profile.newPasswordPlaceholder')} 
               data-testid="profile-change-password-form-new-password-input"
-              aria-label="新密码输入框"
+              aria-label={t('profile.newPassword')}
             />
           </Form.Item>
 
           <Form.Item
             name="confirm_password"
-            label="确认新密码"
+            label={t('profile.confirmPassword')}
             dependencies={['new_password']}
             rules={[
-              { required: true, message: '请确认新密码' },
+              { required: true, message: t('profile.confirmPasswordRequired') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('new_password') === value) {
                     return Promise.resolve()
                   }
-                  return Promise.reject(new Error('两次输入的密码不一致'))
+                  return Promise.reject(new Error(t('profile.passwordMismatch')))
                 },
               }),
             ]}
           >
             <Input.Password 
-              placeholder="请再次输入新密码" 
+              placeholder={t('profile.confirmPasswordPlaceholder')} 
               data-testid="profile-change-password-form-confirm-password-input"
-              aria-label="确认新密码输入框"
+              aria-label={t('profile.confirmPassword')}
             />
           </Form.Item>
         </Form>

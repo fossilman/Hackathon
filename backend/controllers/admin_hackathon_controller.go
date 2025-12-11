@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"hackathon-backend/models"
@@ -30,8 +32,9 @@ func (c *AdminHackathonController) CreateHackathon(ctx *gin.Context) {
 
 	var req struct {
 		models.Hackathon
-		Stages []models.HackathonStage `json:"stages"`
-		Awards []models.HackathonAward  `json:"awards"`
+		Stages          []models.HackathonStage `json:"stages"`
+		Awards          []models.HackathonAward  `json:"awards"`
+		AutoAssignStages bool                   `json:"auto_assign_stages"` // 是否自动分配阶段时间
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -44,7 +47,13 @@ func (c *AdminHackathonController) CreateHackathon(ctx *gin.Context) {
 	req.Hackathon.OrganizerID = organizerID.(uint64)
 	req.Hackathon.Status = "preparation"
 
-	if err := c.hackathonService.CreateHackathon(&req.Hackathon, req.Stages, req.Awards); err != nil {
+	// 确保开始时间的时分秒为00:00:00，结束时间的时分秒为23:59:59
+	startTime := req.Hackathon.StartTime
+	req.Hackathon.StartTime = time.Date(startTime.Year(), startTime.Month(), startTime.Day(), 0, 0, 0, 0, startTime.Location())
+	endTime := req.Hackathon.EndTime
+	req.Hackathon.EndTime = time.Date(endTime.Year(), endTime.Month(), endTime.Day(), 23, 59, 59, 0, endTime.Location())
+
+	if err := c.hackathonService.CreateHackathon(&req.Hackathon, req.Stages, req.Awards, req.AutoAssignStages); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
@@ -151,12 +160,13 @@ func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 	userID, _ := ctx.Get("user_id")
 	role, _ := ctx.Get("role")
 
-	if err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string)); err != nil {
+	result, err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string))
+	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
 
-	utils.Success(ctx, nil)
+	utils.Success(ctx, result)
 }
 
 // SwitchStage 切换活动阶段（仅活动创建者可切换）
@@ -349,5 +359,52 @@ func (c *AdminHackathonController) GetHackathonStats(ctx *gin.Context) {
 	}
 
 	utils.Success(ctx, stats)
+}
+
+// GetHackathonStatsDetail 获取活动统计详情（报名人数、签到人数、队伍数量、作品数量）
+func (c *AdminHackathonController) GetHackathonStatsDetail(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	statsType := ctx.Param("type") // registrations, checkins, teams, submissions
+	if statsType == "" {
+		utils.BadRequest(ctx, "统计类型不能为空")
+		return
+	}
+
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "20"))
+	keyword := ctx.Query("keyword")
+
+	detail, total, err := c.hackathonService.GetHackathonStatsDetail(id, statsType, page, pageSize, keyword)
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.SuccessWithPagination(ctx, detail, page, pageSize, total)
+}
+
+// GetPosterQRCode 获取活动海报二维码
+func (c *AdminHackathonController) GetPosterQRCode(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	qrCodeURL, err := c.hackathonService.GetPosterQRCode(id)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, gin.H{
+		"qr_code_url": qrCodeURL,
+		"poster_url":  fmt.Sprintf("/posters/%d", id),
+	})
 }
 

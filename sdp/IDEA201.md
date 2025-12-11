@@ -42,8 +42,50 @@
 ## Arena平台
 + 活动报名报错：Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`demo_db`.`registrations`, CONSTRAINT `fk_registrations_participant` FOREIGN KEY (`participant_id`) REFERENCES `participants` (`id`))
 ## PART4
-### Arena平台
-+ 创建队伍报错：创建队伍失败: Error 1062 (23000): Duplicate entry '468' for key 'teams.uk_hackathon_name'
-
-
+## Admin平台
+### 创建活动页面
++ 增加活动最大人员数字段
 ## Arena平台
++ 已报名人数大于等于活动最大人员数字段后，不能再参加报名
++ 创建队伍报错：创建队伍失败: Error 1062 (23000): Duplicate entry '468' for key 'teams.uk_hackathon_name'
+## PART5
+## Arena平台
++ 一个活动可以创建多个队伍，队伍名称可以相同，队伍的唯一性由队长的ID保证
++ 点击队伍可以看到队伍详情
++ 已创建队伍，或在队伍中，不能点击创建队伍和加入队伍按钮
++ 队长在有队员的时候不能解散队伍
++ 队员可以选择退出队伍
+## PART6
+## Arena平台
+### 提交作品页面
++ 作品描述字段不需要为富文本框
++ 点击提交按钮时无法正常提交作品
++ 只有队长可以初次提交作品
++ 队长和队员可以修改提交的作品，系统会显示作品修改记录 
++ 在已经有提交的内容时，队长和队员可以直接看到提交的信息，提交作品按钮变成修改提交按钮
+## PART7
+## Arena平台
++ 在活动的每个阶段，除了显示活动开始时间和结束时间，还要显示该阶段对应的开始时间和结束时间
+### 投票页面
++ 投票可以撤回
+### 比赛结果页面
++ 报错：Error 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'ASC' at line 1
+## PART8
++ Admin系统与Arena系统的配色，图标等各种前端元素样式均保持一致
+## Admin平台
++ 仪表盘名称改为活动概览
+## Arena平台
+### 个人中心页面
++ 新增一个用户昵称字段，用户可以编辑，在Arena平台中需要展示用户信息的地方，都默认展示用户昵称，如果用户昵称为空，则展示钱包地址缩写
++ 个人中心去除断开连接功能
+### 活页列表页
++ 活动列表页中各个阶段的活动配色与Admin系统中的配色保持一致
+## PART9
+## Admin平台
+### 个人中心
++ 修改信息保存时，返回不允许修改角色，正常可以保存
+## Arena平台
++ 菜单栏：Hackathon Arena 改成 Hackathon Arena Platform
+### 首页
++ Hackathon Arena 改成活动列表
++ 去除钱包地址信息

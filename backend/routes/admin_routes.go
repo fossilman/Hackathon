@@ -12,6 +12,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 	adminUserController := controllers.NewAdminUserController()
 	adminHackathonController := controllers.NewAdminHackathonController()
 	adminDashboardController := controllers.NewAdminDashboardController()
+	sponsorController := controllers.NewSponsorController()
 
 	api := router.Group("/api/v1/admin")
 	{
@@ -21,6 +22,14 @@ func SetupAdminRoutes(router *gin.Engine) {
 			auth.POST("/login", adminAuthController.Login)
 			auth.POST("/login/wallet", adminAuthController.LoginWithWallet)
 			auth.POST("/logout", middleware.AuthMiddleware(), adminAuthController.Logout)
+		}
+
+		// 赞助商申请（无需认证）
+		sponsor := api.Group("/sponsor")
+		{
+			sponsor.POST("/applications", sponsorController.CreateApplication)
+			sponsor.GET("/applications/query", sponsorController.QueryApplication)
+			sponsor.GET("/published-hackathons", sponsorController.GetPublishedHackathons)
 		}
 
 		// 需要认证的路由
@@ -50,8 +59,8 @@ func SetupAdminRoutes(router *gin.Engine) {
 				profile.DELETE("/wallets/:id", adminAuthController.DeleteWallet)
 			}
 
-			// 仪表盘（Organizer和Admin都可以）
-			api.GET("/dashboard", middleware.RoleMiddleware("organizer", "admin"), adminDashboardController.GetDashboard)
+			// 活动概览（Organizer、Admin和Sponsor都可以）
+			api.GET("/dashboard", middleware.RoleMiddleware("organizer", "admin", "sponsor"), adminDashboardController.GetDashboard)
 
 			// 活动管理
 			hackathons := api.Group("/hackathons")
@@ -60,6 +69,8 @@ func SetupAdminRoutes(router *gin.Engine) {
 				hackathons.GET("", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonList)
 				hackathons.GET("/:id", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonByID)
 				hackathons.GET("/:id/stats", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonStats)
+				hackathons.GET("/:id/stats/:type", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonStatsDetail)
+				hackathons.GET("/:id/poster/qrcode", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetPosterQRCode)
 
 				// 创建活动（仅Organizer）
 				hackathons.POST("", middleware.RoleMiddleware("organizer"), adminHackathonController.CreateHackathon)
@@ -78,6 +89,15 @@ func SetupAdminRoutes(router *gin.Engine) {
 				hackathons.POST("/:id/archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.ArchiveHackathon)
 				hackathons.POST("/:id/unarchive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.UnarchiveHackathon)
 				hackathons.POST("/batch-archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.BatchArchiveHackathons)
+			}
+
+			// 赞助商审核（Admin权限）
+			sponsorAdmin := api.Group("/sponsor")
+			sponsorAdmin.Use(middleware.RoleMiddleware("admin"))
+			{
+				sponsorAdmin.GET("/applications/pending", sponsorController.GetPendingApplications)
+				sponsorAdmin.GET("/applications/reviewed", sponsorController.GetReviewedApplications)
+				sponsorAdmin.POST("/applications/:id/review", sponsorController.ReviewApplication)
 			}
 		}
 	}

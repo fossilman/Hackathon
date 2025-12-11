@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, List, Space, message, Modal, Input } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 
 export default function TeamList() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
   const [teams, setTeams] = useState<any[]>([])
@@ -32,7 +34,7 @@ export default function TeamList() {
       }
     } catch (error) {
       console.error('获取队伍列表失败:', error)
-      message.error('获取队伍列表失败')
+      message.error(t('team.fetchFailed'))
       setTeams([])
     }
   }
@@ -49,7 +51,7 @@ export default function TeamList() {
 
   const handleCreateTeam = async () => {
     if (!teamName.trim()) {
-      message.error('请输入队伍名称')
+      message.error(t('team.teamNameRequired'))
       return
     }
     try {
@@ -57,14 +59,14 @@ export default function TeamList() {
         name: teamName.trim(),
         max_size: 3,
       })
-      message.success('创建队伍成功')
+      message.success(t('team.createSuccess'))
       setModalVisible(false)
       setTeamName('')
       // 刷新列表和用户队伍信息
       await Promise.all([fetchTeams(), fetchUserTeam()])
     } catch (error: any) {
       console.error('创建队伍失败:', error)
-      const errorMessage = error?.response?.data?.message || error?.message || '创建队伍失败'
+      const errorMessage = error?.response?.data?.message || error?.message || t('team.createFailed')
       message.error(errorMessage)
       // 即使创建失败，也刷新列表（可能数据库已插入成功）
       fetchTeams()
@@ -75,11 +77,11 @@ export default function TeamList() {
   const handleJoinTeam = async (teamId: number) => {
     try {
       await request.post(`/teams/${teamId}/join`)
-      message.success('加入队伍成功')
+      message.success(t('team.joinSuccess'))
       fetchTeams()
       fetchUserTeam()
     } catch (error: any) {
-      message.error(error.message || '加入队伍失败')
+      message.error(error.message || t('team.joinFailed'))
     }
   }
 
@@ -93,16 +95,16 @@ export default function TeamList() {
     <div className="page-content" data-testid="team-list-page">
       <div className="page-container" data-testid="team-list-container">
         <div className="page-header" data-testid="team-list-header">
-          <h2 className="page-title" data-testid="team-list-title">队伍列表</h2>
+          <h2 className="page-title" data-testid="team-list-title">{t('team.title')}</h2>
           <Button 
             type="primary" 
             icon={<PlusOutlined />} 
             onClick={() => setModalVisible(true)}
             disabled={isInTeam}
             data-testid="team-list-create-button"
-            aria-label="创建队伍"
+            aria-label={t('team.createTeam')}
           >
-            创建队伍
+            {t('team.createTeam')}
           </Button>
         </div>
         <Card data-testid="team-list-card">
@@ -123,7 +125,7 @@ export default function TeamList() {
                 }
                 description={
                   <span data-testid={`team-list-item-${team.id}-members`}>
-                    成员数: {team.members?.length || 0}/{team.max_size}
+                    {t('team.memberCount')}: {team.members?.length || 0}/{team.max_size}
                   </span>
                 }
               />
@@ -131,17 +133,17 @@ export default function TeamList() {
                 <Button 
                   onClick={() => handleViewTeam(team.id)}
                   data-testid={`team-list-view-button-${team.id}`}
-                  aria-label={`查看队伍: ${team.name}`}
+                  aria-label={`${t('team.view')}: ${team.name}`}
                 >
-                  查看
+                  {t('team.view')}
                 </Button>
                 <Button 
                   onClick={() => handleJoinTeam(team.id)}
                   disabled={isInTeam}
                   data-testid={`team-list-join-button-${team.id}`}
-                  aria-label={`加入队伍: ${team.name}`}
+                  aria-label={`${t('team.join')}: ${team.name}`}
                 >
-                  加入
+                  {t('team.join')}
                 </Button>
               </Space>
             </List.Item>
@@ -150,19 +152,19 @@ export default function TeamList() {
         </Card>
 
         <Modal
-        title="创建队伍"
+        title={t('team.createTeam')}
         open={modalVisible}
         onOk={handleCreateTeam}
         onCancel={() => setModalVisible(false)}
         data-testid="team-list-create-modal"
-        aria-label="创建队伍对话框"
+        aria-label={t('team.createTeam')}
       >
         <Input
-          placeholder="队伍名称"
+          placeholder={t('team.teamNamePlaceholder')}
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
           data-testid="team-list-create-modal-name-input"
-          aria-label="队伍名称输入框"
+          aria-label={t('team.teamName')}
         />
         </Modal>
       </div>

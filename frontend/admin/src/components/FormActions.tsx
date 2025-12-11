@@ -1,5 +1,6 @@
 import { Space, Button } from 'antd'
 import { ButtonProps } from 'antd/es/button'
+import { useTranslation } from 'react-i18next'
 
 interface FormActionsProps {
   submitLabel?: string
@@ -17,8 +18,8 @@ interface FormActionsProps {
  * 统一了表单提交和取消按钮的样式和行为
  */
 export default function FormActions({
-  submitLabel = '保存',
-  cancelLabel = '取消',
+  submitLabel,
+  cancelLabel,
   onSubmit,
   onCancel,
   loading = false,
@@ -26,6 +27,10 @@ export default function FormActions({
   cancelButtonProps,
   testId = 'form-actions',
 }: FormActionsProps) {
+  const { t } = useTranslation()
+  const finalSubmitLabel = submitLabel || t('common.save')
+  const finalCancelLabel = cancelLabel || t('cancel')
+  
   return (
     <Space data-testid={testId}>
       <Button
@@ -35,19 +40,19 @@ export default function FormActions({
         size="large"
         onClick={onSubmit}
         data-testid={`${testId}-submit-button`}
-        aria-label={submitLabel}
+        aria-label={finalSubmitLabel}
         {...submitButtonProps}
       >
-        {submitLabel}
+        {finalSubmitLabel}
       </Button>
       <Button
         onClick={onCancel}
         size="large"
         data-testid={`${testId}-cancel-button`}
-        aria-label={cancelLabel}
+        aria-label={finalCancelLabel}
         {...cancelButtonProps}
       >
-        {cancelLabel}
+        {finalCancelLabel}
       </Button>
     </Space>
   )

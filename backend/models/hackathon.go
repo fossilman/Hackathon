@@ -56,15 +56,36 @@ type HackathonAward struct {
 	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	HackathonID uint64    `gorm:"index;not null" json:"hackathon_id"`
 	Name        string    `gorm:"type:varchar(100);not null" json:"name"`
-	Prize       string    `gorm:"type:varchar(255);not null" json:"prize"`
+	Prize       string    `gorm:"type:varchar(255);not null" json:"prize"` // 奖金金额
 	Quantity    int       `gorm:"default:1" json:"quantity"`
 	Rank        int       `gorm:"not null" json:"rank"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
+
+	// 关联关系
+	Prizes []HackathonPrize `gorm:"foreignKey:AwardID" json:"prizes,omitempty"`
 }
 
 // TableName 指定表名
 func (HackathonAward) TableName() string {
 	return "hackathon_awards"
+}
+
+// HackathonPrize 活动奖品表
+type HackathonPrize struct {
+	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	HackathonID uint64    `gorm:"index;not null" json:"hackathon_id"`
+	AwardID     uint64    `gorm:"index;not null" json:"award_id"` // 关联奖项
+	Name        string    `gorm:"type:varchar(100);not null" json:"name"`
+	Description string    `gorm:"type:text" json:"description"`
+	ImageURL    string    `gorm:"type:varchar(500)" json:"image_url"`
+	Order       int       `gorm:"default:0" json:"order"` // 排序
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// TableName 指定表名
+func (HackathonPrize) TableName() string {
+	return "hackathon_prizes"
 }
 

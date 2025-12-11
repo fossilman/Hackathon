@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
-import { Table, Button, Select, Space, message, Card, Tag } from 'antd'
+import { useState, useEffect, useRef } from 'react'
+import { Table, Button, Select, Space, message, Card, Tag, Input } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { PlusOutlined, EyeOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import dayjs from 'dayjs'
 import { useAuthStore } from '../store/authStore'
@@ -16,38 +17,41 @@ interface Hackathon {
   organizer_id?: number
 }
 
-const statusMap: Record<string, { label: string; color: string }> = {
-  preparation: { label: '预备', color: 'default' },
-  published: { label: '发布', color: 'blue' },
-  registration: { label: '报名', color: 'cyan' },
-  checkin: { label: '签到', color: 'orange' },
-  team_formation: { label: '组队', color: 'purple' },
-  submission: { label: '提交', color: 'geekblue' },
-  voting: { label: '投票', color: 'magenta' },
-  results: { label: '公布结果', color: 'green' },
-}
-
 export default function HackathonList() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+
+  const statusMap: Record<string, { label: string; color: string }> = {
+    preparation: { label: t('hackathon.statusPreparation'), color: 'default' },
+    published: { label: t('hackathon.statusPublished'), color: 'blue' },
+    registration: { label: t('hackathon.statusRegistration'), color: 'cyan' },
+    checkin: { label: t('hackathon.statusCheckin'), color: 'orange' },
+    team_formation: { label: t('hackathon.statusTeamFormation'), color: 'purple' },
+    submission: { label: t('hackathon.statusSubmission'), color: 'geekblue' },
+    voting: { label: t('hackathon.statusVoting'), color: 'magenta' },
+    results: { label: t('hackathon.statusResults'), color: 'green' },
+  }
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
-  const [sort, setSort] = useState('created_at_desc')
+  const [keyword, setKeyword] = useState('')
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 100,
     total: 0,
   })
+  const searchTimeoutRef = useRef<NodeJS.Timeout>()
   
   const isOrganizer = user?.role === 'organizer'
 
   const fetchHackathons = async (page = 1, pageSize = 100) => {
     setLoading(true)
     try {
-      const data = await request.get('/hackathons', {
-        params: { page, page_size: pageSize, status, sort },
+      const response = await request.get('/hackathons', {
+        params: { page, page_size: pageSize, status, keyword: keyword || undefined },
       })
+      const data = response as any
       setHackathons(data.list || [])
       setPagination({
         current: page,
@@ -55,17 +59,42 @@ export default function HackathonList() {
         total: data.pagination?.total || data.total || 0,
       })
     } catch (error) {
-      message.error('获取活动列表失败')
+      message.error(t('hackathon.fetchListFailed'))
     } finally {
       setLoading(false)
     }
   }
 
+  // 防抖搜索
+  const handleSearchChange = (value: string) => {
+    setKeyword(value)
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      fetchHackathons(1, pagination.pageSize)
+    }, 500)
+  }
+
+  // 当搜索框清空时，立即触发搜索
+  const handleSearchClear = () => {
+    setKeyword('')
+    fetchHackathons(1, pagination.pageSize)
+  }
+
   useEffect(() => {
-    // 当筛选或排序改变时，重置到第一页
+    // 当筛选改变时，重置到第一页
     fetchHackathons(1, pagination.pageSize)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, sort])
+  }, [status])
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const columns = [
     {
@@ -75,14 +104,14 @@ export default function HackathonList() {
       width: 80,
     },
     {
-      title: '活动名称',
+      title: t('hackathon.name'),
       dataIndex: 'name',
       key: 'name',
       width: 250,
       ellipsis: true,
     },
     {
-      title: '状态',
+      title: t('hackathon.status'),
       dataIndex: 'status',
       key: 'status',
       width: 120,
@@ -92,21 +121,21 @@ export default function HackathonList() {
       },
     },
     {
-      title: '开始时间',
+      title: t('hackathon.startTime'),
       dataIndex: 'start_time',
       key: 'start_time',
       width: 180,
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: '结束时间',
+      title: t('hackathon.endTime'),
       dataIndex: 'end_time',
       key: 'end_time',
       width: 180,
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: '操作',
+      title: t('hackathon.actions'),
       key: 'action',
       width: 150,
       fixed: 'right' as const,
@@ -118,9 +147,9 @@ export default function HackathonList() {
             onClick={() => navigate(`/hackathons/${record.id}`)}
             size="small"
             data-testid={`hackathon-list-view-button-${record.id}`}
-            aria-label={`查看活动 ${record.name}`}
+            aria-label={`${t('hackathon.view')} ${record.name}`}
           >
-            查看
+            {t('hackathon.view')}
           </Button>
         </Space>
       ),
@@ -131,37 +160,33 @@ export default function HackathonList() {
     <div className="page-container" data-testid="hackathon-list-page">
       <div className="page-header">
         <div>
-          <h2 className="page-title" data-testid="hackathon-list-title">活动管理</h2>
+          <h2 className="page-title" data-testid="hackathon-list-title">{t('hackathon.list')}</h2>
           <Space style={{ marginTop: '8px' }} data-testid="hackathon-list-filters">
+            <Input
+              placeholder={t('hackathon.searchPlaceholder')}
+              prefix={<SearchOutlined />}
+              style={{ width: 300 }}
+              value={keyword}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onClear={handleSearchClear}
+              allowClear
+              data-testid="hackathon-list-search-input"
+              aria-label={t('hackathon.searchPlaceholder')}
+            />
             <Select
-              placeholder="筛选状态"
+              placeholder={t('hackathon.filterStatus')}
               allowClear
               style={{ width: 200 }}
               value={status}
               onChange={setStatus}
               data-testid="hackathon-list-status-filter"
-              aria-label="筛选状态"
+              aria-label={t('hackathon.filterStatus')}
             >
               {Object.entries(statusMap).map(([key, value]) => (
                 <Select.Option key={key} value={key} data-testid={`hackathon-list-status-option-${key}`}>
                   {value.label}
                 </Select.Option>
               ))}
-            </Select>
-            <Select
-              placeholder="排序方式"
-              style={{ width: 200 }}
-              value={sort}
-              onChange={setSort}
-              data-testid="hackathon-list-sort-filter"
-              aria-label="排序方式"
-            >
-              <Select.Option value="created_at_desc" data-testid="hackathon-list-sort-created-desc">创建时间（降序）</Select.Option>
-              <Select.Option value="created_at_asc" data-testid="hackathon-list-sort-created-asc">创建时间（升序）</Select.Option>
-              <Select.Option value="start_time_desc" data-testid="hackathon-list-sort-start-desc">开始时间（降序）</Select.Option>
-              <Select.Option value="start_time_asc" data-testid="hackathon-list-sort-start-asc">开始时间（升序）</Select.Option>
-              <Select.Option value="end_time_desc" data-testid="hackathon-list-sort-end-desc">结束时间（降序）</Select.Option>
-              <Select.Option value="end_time_asc" data-testid="hackathon-list-sort-end-asc">结束时间（升序）</Select.Option>
             </Select>
           </Space>
         </div>
@@ -172,9 +197,9 @@ export default function HackathonList() {
             onClick={() => navigate('/hackathons/create')}
             size="large"
             data-testid="hackathon-list-create-button"
-            aria-label="创建活动"
+            aria-label={t('hackathon.createButton')}
           >
-            创建活动
+            {t('hackathon.createButton')}
           </Button>
         )}
       </div>
@@ -190,7 +215,7 @@ export default function HackathonList() {
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条记录`,
+            showTotal: (total) => t('hackathon.totalRecords', { total }),
             pageSizeOptions: ['10', '20', '50', '100'],
             onChange: (page, pageSize) => {
               fetchHackathons(page, pageSize)

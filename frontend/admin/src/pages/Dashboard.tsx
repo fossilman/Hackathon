@@ -15,25 +15,27 @@ import {
   TeamOutlined,
   FileTextOutlined,
 } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
 
-const statusMap: Record<string, { label: string; color: string }> = {
-  preparation: { label: '预备', color: 'default' },
-  published: { label: '发布', color: 'blue' },
-  registration: { label: '报名', color: 'cyan' },
-  checkin: { label: '签到', color: 'orange' },
-  team_formation: { label: '组队', color: 'purple' },
-  submission: { label: '提交', color: 'geekblue' },
-  voting: { label: '投票', color: 'magenta' },
-  results: { label: '公布结果', color: 'green' },
-}
-
 export default function Dashboard() {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [dashboard, setDashboard] = useState<any>(null)
   const { user } = useAuthStore()
+
+  const statusMap: Record<string, { label: string; color: string }> = {
+    preparation: { label: t('dashboard.statusPreparation'), color: 'default' },
+    published: { label: t('dashboard.statusPublished'), color: 'blue' },
+    registration: { label: t('dashboard.statusRegistration'), color: 'cyan' },
+    checkin: { label: t('dashboard.statusCheckin'), color: 'orange' },
+    team_formation: { label: t('dashboard.statusTeamFormation'), color: 'purple' },
+    submission: { label: t('dashboard.statusSubmission'), color: 'geekblue' },
+    voting: { label: t('dashboard.statusVoting'), color: 'magenta' },
+    results: { label: t('dashboard.statusResults'), color: 'green' },
+  }
 
   useEffect(() => {
     fetchDashboard()
@@ -45,7 +47,7 @@ export default function Dashboard() {
       const data = await request.get('/dashboard')
       setDashboard(data)
     } catch (error) {
-      message.error('获取仪表盘数据失败')
+      message.error(t('dashboard.fetchFailed'))
     } finally {
       setLoading(false)
     }
@@ -61,13 +63,13 @@ export default function Dashboard() {
 
   const recentColumns = [
     {
-      title: '活动名称',
+      title: t('dashboard.hackathonName'),
       dataIndex: 'name',
       key: 'name',
       ellipsis: true,
     },
     {
-      title: '状态',
+      title: t('dashboard.status'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
@@ -76,13 +78,13 @@ export default function Dashboard() {
       },
     },
     {
-      title: '开始时间',
+      title: t('dashboard.startTime'),
       dataIndex: 'start_time',
       key: 'start_time',
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
-      title: '创建时间',
+      title: t('dashboard.createdTime'),
       dataIndex: 'created_at',
       key: 'created_at',
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
@@ -95,7 +97,7 @@ export default function Dashboard() {
         style={{ fontSize: '24px', fontWeight: 600, marginBottom: '24px' }}
         data-testid="dashboard-title"
       >
-        活动概览
+        {t('dashboard.title')}
       </h2>
 
       {/* 系统概览 */}
@@ -103,7 +105,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card data-testid="dashboard-stat-total-hackathons">
             <Statistic
-              title="活动总数"
+              title={t('dashboard.totalHackathons')}
               value={dashboard.system_overview?.total_hackathons || 0}
               prefix={<TrophyOutlined />}
               data-testid="dashboard-stat-total-hackathons-value"
@@ -113,7 +115,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card data-testid="dashboard-stat-active-hackathons">
             <Statistic
-              title="进行中活动"
+              title={t('dashboard.activeHackathons')}
               value={dashboard.system_overview?.active_hackathons || 0}
               prefix={<TrophyOutlined />}
               data-testid="dashboard-stat-active-hackathons-value"
@@ -123,7 +125,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card data-testid="dashboard-stat-total-users">
             <Statistic
-              title="总用户数"
+              title={t('dashboard.totalUsers')}
               value={dashboard.system_overview?.total_users || 0}
               prefix={<UserOutlined />}
               data-testid="dashboard-stat-total-users-value"
@@ -133,7 +135,7 @@ export default function Dashboard() {
         <Col xs={24} sm={12} lg={6}>
           <Card data-testid="dashboard-stat-total-participants">
             <Statistic
-              title="参赛者数"
+              title={t('dashboard.totalParticipants')}
               value={dashboard.system_overview?.total_participants || 0}
               prefix={<TeamOutlined />}
               data-testid="dashboard-stat-total-participants-value"
@@ -148,7 +150,7 @@ export default function Dashboard() {
           <Col xs={24} sm={12} lg={12}>
             <Card data-testid="dashboard-stat-organizers">
               <Statistic
-                title="主办方人数"
+                title={t('dashboard.totalOrganizers')}
                 value={dashboard.user_stats.total_organizers || 0}
                 prefix={<UserOutlined />}
                 data-testid="dashboard-stat-organizers-value"
@@ -158,7 +160,7 @@ export default function Dashboard() {
           <Col xs={24} sm={12} lg={12}>
             <Card data-testid="dashboard-stat-sponsors">
               <Statistic
-                title="赞助商人数"
+                title={t('dashboard.totalSponsors')}
                 value={dashboard.user_stats.total_sponsors || 0}
                 prefix={<UserOutlined />}
                 data-testid="dashboard-stat-sponsors-value"
@@ -170,7 +172,7 @@ export default function Dashboard() {
 
       {/* 活动状态统计 */}
       <Card 
-        title="活动状态统计" 
+        title={t('dashboard.statusStats')} 
         style={{ marginBottom: '24px' }}
         data-testid="dashboard-status-stats"
       >
@@ -196,7 +198,7 @@ export default function Dashboard() {
       </Card>
 
       {/* 最近活动 */}
-      <Card title="最近活动" data-testid="dashboard-recent-hackathons">
+      <Card title={t('dashboard.recentHackathons')} data-testid="dashboard-recent-hackathons">
         <Table
           columns={recentColumns}
           dataSource={dashboard.hackathon_stats?.recent || []}

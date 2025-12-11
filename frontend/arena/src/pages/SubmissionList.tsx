@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Card, List, Button, message, Space } from 'antd'
 import { LikeOutlined } from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 
 export default function SubmissionList() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const [submissions, setSubmissions] = useState<any[]>([])
   const [votedIds, setVotedIds] = useState<Set<number>>(new Set())
@@ -21,7 +23,7 @@ export default function SubmissionList() {
       const data = await request.get(`/hackathons/${id}/submissions`)
       setSubmissions(data.list || [])
     } catch (error) {
-      message.error('获取作品列表失败')
+      message.error(t('submission.fetchFailed'))
     }
   }
 
@@ -38,24 +40,24 @@ export default function SubmissionList() {
   const handleVote = async (submissionId: number) => {
     try {
       await request.post(`/submissions/${submissionId}/vote`)
-      message.success('投票成功')
+      message.success(t('submission.voteSuccess'))
       setVotedIds(new Set([...votedIds, submissionId]))
       fetchSubmissions()
     } catch (error: any) {
-      message.error(error.message || '投票失败')
+      message.error(error.message || t('submission.voteFailed'))
     }
   }
 
   const handleCancelVote = async (submissionId: number) => {
     try {
       await request.delete(`/submissions/${submissionId}/vote`)
-      message.success('撤回投票成功')
+      message.success(t('submission.cancelVoteSuccess'))
       const newVotedIds = new Set(votedIds)
       newVotedIds.delete(submissionId)
       setVotedIds(newVotedIds)
       fetchSubmissions()
     } catch (error: any) {
-      message.error(error.message || '撤回投票失败')
+      message.error(error.message || t('submission.cancelVoteFailed'))
     }
   }
 
@@ -63,7 +65,7 @@ export default function SubmissionList() {
     <div className="page-content" data-testid="submission-list-page">
       <div className="page-container" data-testid="submission-list-container">
         <div className="page-header" data-testid="submission-list-header">
-          <h2 className="page-title" data-testid="submission-list-title">作品列表</h2>
+          <h2 className="page-title" data-testid="submission-list-title">{t('submission.list')}</h2>
         </div>
         <Card data-testid="submission-list-card">
         <List
@@ -80,9 +82,9 @@ export default function SubmissionList() {
                     icon={<LikeOutlined />}
                     onClick={() => handleCancelVote(submission.id)}
                     data-testid={`submission-list-cancel-vote-button-${submission.id}`}
-                    aria-label={`撤回投票: ${submission.name}`}
+                    aria-label={`${t('submission.cancelVote')}: ${submission.name}`}
                   >
-                    撤回投票
+                    {t('submission.cancelVote')}
                   </Button>
                 ) : (
                   <Button
@@ -91,9 +93,9 @@ export default function SubmissionList() {
                     icon={<LikeOutlined />}
                     onClick={() => handleVote(submission.id)}
                     data-testid={`submission-list-vote-button-${submission.id}`}
-                    aria-label={`投票: ${submission.name}`}
+                    aria-label={`${t('submission.vote')}: ${submission.name}`}
                   >
-                    投票
+                    {t('submission.vote')}
                   </Button>
                 ),
               ]}
@@ -109,7 +111,7 @@ export default function SubmissionList() {
                         target="_blank" 
                         rel="noopener noreferrer"
                         data-testid={`submission-list-item-${submission.id}-link`}
-                        aria-label={`作品链接: ${submission.name}`}
+                        aria-label={`${t('submission.submissionLink')}: ${submission.name}`}
                       >
                         {submission.link}
                       </a>
