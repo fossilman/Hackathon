@@ -22,14 +22,14 @@ func (s *SubmissionService) CreateSubmission(hackathonID, teamID uint64, submiss
 	}
 
 	// 检查阶段时间
-	hackathonService := &HackathonService{}
-	inTime, err := hackathonService.CheckStageTime(hackathonID, "submission")
-	if err != nil {
-		return errors.New("提交阶段时间未设置")
-	}
-	if !inTime {
-		return errors.New("不在提交时间范围内")
-	}
+	//hackathonService := &HackathonService{}
+	//inTime, err := hackathonService.CheckStageTime(hackathonID, "submission")
+	//if err != nil {
+	//	return errors.New("提交阶段时间未设置")
+	//}
+	//if !inTime {
+	//	return errors.New("不在提交时间范围内")
+	//}
 
 	// 检查队伍是否存在
 	var team models.Team
@@ -149,4 +149,3 @@ func (s *SubmissionService) GetSubmissionHistory(submissionID uint64) ([]models.
 	}
 	return histories, nil
 }
-

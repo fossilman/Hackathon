@@ -43,6 +43,54 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			}
 		}
 
+		fmt.Println("HackathonID", hackathon.ID)
+
+		// 将活动信息上链
+		blockchainService, err := NewBlockchainService()
+		if err != nil {
+			// 区块链服务初始化失败，记录日志但不影响活动创建
+			fmt.Printf("区块链服务初始化失败: %v\n", err)
+			return nil
+		}
+		defer blockchainService.Close()
+
+		startTime := time.Date(
+			2025, 5, 10, // 年, 月, 日
+			0, 0, 0, // 时, 分, 秒
+			0,          // 纳秒
+			time.Local, // 或 time.UTC
+		)
+
+		endTime := time.Date(
+			2025, 6, 10,
+			23, 59, 59,
+			0,
+			time.Local,
+		)
+
+		// 调用区块链创建活动，获取链上 eventId
+		chainEventID, txHash, err := blockchainService.CreateEvent(
+			hackathon.Name,
+			hackathon.Description,
+			hackathon.LocationDetail,
+			startTime,
+			endTime,
+		)
+		if err != nil {
+			// 上链失败，回滚数据库操作
+			return fmt.Errorf("活动信息上链失败: %w", err)
+		}
+
+		// 更新数据库中的链上ID和交易哈希
+		if err := tx.Model(&hackathon).Updates(map[string]interface{}{
+			"chain_event_id": chainEventID,
+			"tx_hash":        txHash,
+		}).Error; err != nil {
+			return fmt.Errorf("更新链上ID失败: %w", err)
+		}
+
+		fmt.Printf("活动创建成功，数据库ID: %d, 链上ID: %d, 交易哈希: %s\n", hackathon.ID, chainEventID, txHash)
+
 		return nil
 	})
 }
@@ -427,6 +475,33 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 			}
 		}
 
+		// 将活动更新信息上链
+		blockchainService, err := NewBlockchainService()
+		if err != nil {
+			fmt.Printf("区块链服务初始化失败: %v\n", err)
+			return nil
+		}
+		defer blockchainService.Close()
+
+		// 只有当链上ID存在时才更新
+		if existing.ChainEventID > 0 {
+			txHash, err := blockchainService.UpdateEvent(
+				existing.ChainEventID,
+				hackathon.Name,
+				hackathon.Description,
+				hackathon.LocationDetail,
+				hackathon.StartTime,
+				hackathon.EndTime,
+			)
+			if err != nil {
+				return fmt.Errorf("活动信息更新上链失败: %w", err)
+			}
+
+			fmt.Printf("活动更新成功，链上ID: %d, 交易哈希: %s\n", existing.ChainEventID, txHash)
+		} else {
+			fmt.Printf("警告：活动未上链，跳过区块链更新\n")
+		}
+
 		return nil
 	})
 }
@@ -450,6 +525,26 @@ func (s *HackathonService) DeleteHackathon(id uint64, userID uint64, userRole st
 
 	if hackathon.Status != "preparation" {
 		return errors.New("只能删除处于预备状态的活动")
+	}
+
+	// 将删除操作上链
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		fmt.Printf("区块链服务初始化失败: %v\n", err)
+		// 继续执行数据库删除
+	} else {
+		defer blockchainService.Close()
+
+		// 只有当链上ID存在时才删除
+		if hackathon.ChainEventID > 0 {
+			txHash, err := blockchainService.DeleteEvent(hackathon.ChainEventID)
+			if err != nil {
+				return fmt.Errorf("活动删除上链失败: %w", err)
+			}
+			fmt.Printf("活动删除成功，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
+		} else {
+			fmt.Printf("警告：活动未上链，跳过区块链删除\n")
+		}
 	}
 
 	return database.DB.Delete(&hackathon).Error
@@ -577,6 +672,42 @@ func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, u
 	// 检查是否是活动创建者
 	if hackathon.OrganizerID != userID {
 		return errors.New("只能切换自己创建的活动阶段")
+	}
+
+	// 如果切换到签到阶段，需要先激活链上活动
+	if stage == "checkin" && hackathon.ChainEventID > 0 {
+		blockchainService, err := NewBlockchainService()
+		if err != nil {
+			fmt.Printf("区块链服务初始化失败: %v\n", err)
+		} else {
+			defer blockchainService.Close()
+
+			txHash, err := blockchainService.ActivateEvent(hackathon.ChainEventID)
+			if err != nil {
+				// 激活失败，但不影响数据库状态切换
+				fmt.Printf("链上活动激活失败: %v\n", err)
+			} else {
+				fmt.Printf("链上活动已激活，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
+			}
+		}
+	}
+
+	// 如果切换到结果阶段，需要结束链上活动
+	if stage == "results" && hackathon.ChainEventID > 0 {
+		blockchainService, err := NewBlockchainService()
+		if err != nil {
+			fmt.Printf("区块链服务初始化失败: %v\n", err)
+		} else {
+			defer blockchainService.Close()
+
+			txHash, err := blockchainService.EndEvent(hackathon.ChainEventID)
+			if err != nil {
+				// 结束失败，但不影响数据库状态切换
+				fmt.Printf("链上活动结束失败: %v\n", err)
+			} else {
+				fmt.Printf("链上活动已结束，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
+			}
+		}
 	}
 
 	return database.DB.Model(&hackathon).Update("status", stage).Error
@@ -780,7 +911,7 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 		"checkin":        2,
 		"team_formation": 3,
 		"submission":     4,
-		"voting":          5,
+		"voting":         5,
 	}
 
 	// 检查每个阶段的时间
@@ -946,36 +1077,35 @@ func (s *HackathonService) GetArchiveDetail(hackathonID uint64) (map[string]inte
 		return nil, err
 	}
 
-		finalResults := make([]map[string]interface{}, 0)
-		submissionIndex := 0
-		for _, award := range awards {
-			// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
-			awardResults := make([]map[string]interface{}, 0)
-			for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
-				submission := submissions[submissionIndex]
-				voteCount := submissionVoteCounts[submission.ID]
-				awardResults = append(awardResults, map[string]interface{}{
-					"team_name":      submission.Team.Name,
-					"submission_name": submission.Name,
-					"vote_count":      voteCount,
-					"prize_money":     award.Prize,
-				})
-				submissionIndex++
-			}
-			finalResults = append(finalResults, map[string]interface{}{
-				"award_name": award.Name,
-				"prize":      award.Prize,
-				"quantity":   award.Quantity,
-				"winners":    awardResults,
+	finalResults := make([]map[string]interface{}, 0)
+	submissionIndex := 0
+	for _, award := range awards {
+		// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
+		awardResults := make([]map[string]interface{}, 0)
+		for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
+			submission := submissions[submissionIndex]
+			voteCount := submissionVoteCounts[submission.ID]
+			awardResults = append(awardResults, map[string]interface{}{
+				"team_name":       submission.Team.Name,
+				"submission_name": submission.Name,
+				"vote_count":      voteCount,
+				"prize_money":     award.Prize,
 			})
+			submissionIndex++
 		}
+		finalResults = append(finalResults, map[string]interface{}{
+			"award_name": award.Name,
+			"prize":      award.Prize,
+			"quantity":   award.Quantity,
+			"winners":    awardResults,
+		})
+	}
 
 	return map[string]interface{}{
-		"hackathon":    hackathon,
-		"stats":        stats,
-		"submissions":  submissions,
-		"vote_results": voteResults,
+		"hackathon":     hackathon,
+		"stats":         stats,
+		"submissions":   submissions,
+		"vote_results":  voteResults,
 		"final_results": finalResults,
 	}, nil
 }
-

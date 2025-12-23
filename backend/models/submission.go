@@ -32,6 +32,7 @@ type Vote struct {
 	HackathonID  uint64    `gorm:"index;not null" json:"hackathon_id"`
 	ParticipantID uint64    `gorm:"uniqueIndex:uk_participant_submission;not null" json:"participant_id"`
 	SubmissionID  uint64    `gorm:"uniqueIndex:uk_participant_submission;not null" json:"submission_id"`
+	ChainVoteIndex *uint64   `gorm:"default:null" json:"chain_vote_index,omitempty"` // 链上投票索引
 	CreatedAt     time.Time `json:"created_at"`
 
 	// 关联关系

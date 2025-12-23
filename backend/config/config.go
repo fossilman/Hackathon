@@ -23,16 +23,14 @@ type Config struct {
 	TestWallets    []string `yaml:"-"` // 测试钱包地址列表
 
 	// 区块链配置
-	BlockchainNetwork string `yaml:"-"`
-	BlockchainRPCURL  string `yaml:"-"`
-	ChainID           int64  `yaml:"-"`
-	PrivateKey        string `yaml:"-"`
-	ContractAddresses struct {
-		HackathonPlatform string `yaml:"-"`
-		HackathonEvent    string `yaml:"-"`
-		PrizePool         string `yaml:"-"`
-		HackathonNFT      string `yaml:"-"`
-	} `yaml:"-"`
+	BlockchainNetwork        string `yaml:"-"`
+	BlockchainRPCURL         string `yaml:"-"`
+	ChainID                  int64  `yaml:"-"`
+	PrivateKey               string `yaml:"-"`
+	HackathonPlatformContract string `yaml:"-"`
+	HackathonEventContract    string `yaml:"-"`
+	PrizePoolContract         string `yaml:"-"`
+	HackathonNFTContract      string `yaml:"-"`
 
 	// YAML配置结构
 	Database struct {
@@ -102,10 +100,10 @@ func LoadConfig() error {
 	}
 
 	// 设置默认合约地址
-	defaultConfig.ContractAddresses.HackathonPlatform = "0x3231E959664609b55Ef0bdd483e414B54c510E74"
-	defaultConfig.ContractAddresses.HackathonEvent = "0x413EfD5873c5bD7D985BF0934d2E00f00315c52c"
-	defaultConfig.ContractAddresses.PrizePool = "0x089351624799f31817faB699f7eeb18BC4101759"
-	defaultConfig.ContractAddresses.HackathonNFT = "0x0A4CB10f7666142055CE8D955125C05E8A6Ef5ff"
+	defaultConfig.HackathonPlatformContract = "0x3231E959664609b55Ef0bdd483e414B54c510E74"
+	defaultConfig.HackathonEventContract = "0x413EfD5873c5bD7D985BF0934d2E00f00315c52c"
+	defaultConfig.PrizePoolContract = "0x089351624799f31817faB699f7eeb18BC4101759"
+	defaultConfig.HackathonNFTContract = "0x0A4CB10f7666142055CE8D955125C05E8A6Ef5ff"
 
 	// 尝试从YAML配置文件加载
 	configFile := "config.yaml"
@@ -138,17 +136,15 @@ func LoadConfig() error {
 		TestWallets:    testWallets,
 		
 		// 区块链配置
-		BlockchainNetwork: getEnv("BLOCKCHAIN_NETWORK", defaultConfig.BlockchainNetwork),
-		BlockchainRPCURL:  getEnv("BLOCKCHAIN_RPC_URL", defaultConfig.BlockchainRPCURL),
-		ChainID:           getEnvAsInt64("CHAIN_ID", defaultConfig.ChainID),
-		PrivateKey:        getEnv("PRIVATE_KEY", defaultConfig.PrivateKey),
+		BlockchainNetwork:         getEnv("BLOCKCHAIN_NETWORK", defaultConfig.BlockchainNetwork),
+		BlockchainRPCURL:          getEnv("BLOCKCHAIN_RPC_URL", defaultConfig.BlockchainRPCURL),
+		ChainID:                   getEnvAsInt64("CHAIN_ID", defaultConfig.ChainID),
+		PrivateKey:                getEnv("PRIVATE_KEY", defaultConfig.PrivateKey),
+		HackathonPlatformContract: getEnv("CONTRACT_HACKATHON_PLATFORM", defaultConfig.HackathonPlatformContract),
+		HackathonEventContract:    getEnv("CONTRACT_HACKATHON_EVENT", defaultConfig.HackathonEventContract),
+		PrizePoolContract:         getEnv("CONTRACT_PRIZE_POOL", defaultConfig.PrizePoolContract),
+		HackathonNFTContract:      getEnv("CONTRACT_HACKATHON_NFT", defaultConfig.HackathonNFTContract),
 	}
-
-	// 设置合约地址
-	AppConfig.ContractAddresses.HackathonPlatform = getEnv("CONTRACT_HACKATHON_PLATFORM", defaultConfig.ContractAddresses.HackathonPlatform)
-	AppConfig.ContractAddresses.HackathonEvent = getEnv("CONTRACT_HACKATHON_EVENT", defaultConfig.ContractAddresses.HackathonEvent)
-	AppConfig.ContractAddresses.PrizePool = getEnv("CONTRACT_PRIZE_POOL", defaultConfig.ContractAddresses.PrizePool)
-	AppConfig.ContractAddresses.HackathonNFT = getEnv("CONTRACT_HACKATHON_NFT", defaultConfig.ContractAddresses.HackathonNFT)
 
 	return nil
 }
@@ -210,16 +206,16 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 
 	// 合约地址配置
 	if yamlConfig.Contracts.HackathonPlatform != "" {
-		defaultConfig.ContractAddresses.HackathonPlatform = yamlConfig.Contracts.HackathonPlatform
+		defaultConfig.HackathonPlatformContract = yamlConfig.Contracts.HackathonPlatform
 	}
 	if yamlConfig.Contracts.HackathonEvent != "" {
-		defaultConfig.ContractAddresses.HackathonEvent = yamlConfig.Contracts.HackathonEvent
+		defaultConfig.HackathonEventContract = yamlConfig.Contracts.HackathonEvent
 	}
 	if yamlConfig.Contracts.PrizePool != "" {
-		defaultConfig.ContractAddresses.PrizePool = yamlConfig.Contracts.PrizePool
+		defaultConfig.PrizePoolContract = yamlConfig.Contracts.PrizePool
 	}
 	if yamlConfig.Contracts.HackathonNFT != "" {
-		defaultConfig.ContractAddresses.HackathonNFT = yamlConfig.Contracts.HackathonNFT
+		defaultConfig.HackathonNFTContract = yamlConfig.Contracts.HackathonNFT
 	}
 
 	return nil

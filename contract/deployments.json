@@ -1,0 +1,11 @@
+{
+  "network": "sepolia",
+  "timestamp": "2025-12-23T06:24:02.762Z",
+  "deployer": "0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758",
+  "contracts": {
+    "HackathonPlatform": "0x4904A49896b5CaA192143F2cd70885e366225FC4",
+    "HackathonEvent": "0xaf5620A7d77cD4A1Bfaa395A85E3555974f81141",
+    "PrizePool": "0x9cc542E9fBFa1b4D09497F8Fc915F50BAb8865aB",
+    "HackathonNFT": "0x6946750b0ba7A0D6fE47FeA94bC041622426604b"
+  }
+}
