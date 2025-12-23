@@ -7,7 +7,7 @@
 ### 2.1 整体架构
 ### 2.2 技术栈选择
 #### 2.2.1 合约技术栈
-Solidity ^0.8.21、HardHat 2.0
+Solidity ^0.8.21、HardHat ^2.19.0、openzeppelin/contracts ^5.0.0、dotenv ^16.3.1
 #### 2.2.2 网络
 Sepolia
 ####  2.2.3 源码验证

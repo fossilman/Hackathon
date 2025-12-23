@@ -22,6 +22,18 @@ type Config struct {
 	CORSOrigins    []string `yaml:"-"`
 	TestWallets    []string `yaml:"-"` // 测试钱包地址列表
 
+	// 区块链配置
+	BlockchainNetwork string `yaml:"-"`
+	BlockchainRPCURL  string `yaml:"-"`
+	ChainID           int64  `yaml:"-"`
+	PrivateKey        string `yaml:"-"`
+	ContractAddresses struct {
+		HackathonPlatform string `yaml:"-"`
+		HackathonEvent    string `yaml:"-"`
+		PrizePool         string `yaml:"-"`
+		HackathonNFT      string `yaml:"-"`
+	} `yaml:"-"`
+
 	// YAML配置结构
 	Database struct {
 		Host     string `yaml:"host"`
@@ -41,6 +53,21 @@ type Config struct {
 	CORS struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
+	Blockchain struct {
+		Network string `yaml:"network"`
+		RPCURL  string `yaml:"rpc_url"`
+		ChainID int64  `yaml:"chain_id"`
+	} `yaml:"blockchain"`
+	Contracts struct {
+		HackathonPlatform string `yaml:"hackathon_platform"`
+		HackathonEvent    string `yaml:"hackathon_event"`
+		PrizePool         string `yaml:"prize_pool"`
+		HackathonNFT      string `yaml:"hackathon_nft"`
+	} `yaml:"contracts"`
+	Deployment struct {
+		Deployer   string `yaml:"deployer"`
+		DeployedAt string `yaml:"deployed_at"`
+	} `yaml:"deployment"`
 }
 
 var AppConfig *Config
@@ -67,7 +94,18 @@ func LoadConfig() error {
 			"0x4444444444444444444444444444444444444444",
 			"0x5555555555555555555555555555555555555555",
 		},
+		// 区块链默认配置
+		BlockchainNetwork: "sepolia",
+		BlockchainRPCURL:  "https://sepolia.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+		ChainID:           11155111,
+		PrivateKey:        "", // 需要从环境变量设置
 	}
+
+	// 设置默认合约地址
+	defaultConfig.ContractAddresses.HackathonPlatform = "0x3231E959664609b55Ef0bdd483e414B54c510E74"
+	defaultConfig.ContractAddresses.HackathonEvent = "0x413EfD5873c5bD7D985BF0934d2E00f00315c52c"
+	defaultConfig.ContractAddresses.PrizePool = "0x089351624799f31817faB699f7eeb18BC4101759"
+	defaultConfig.ContractAddresses.HackathonNFT = "0x0A4CB10f7666142055CE8D955125C05E8A6Ef5ff"
 
 	// 尝试从YAML配置文件加载
 	configFile := "config.yaml"
@@ -98,7 +136,19 @@ func LoadConfig() error {
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets:    testWallets,
+		
+		// 区块链配置
+		BlockchainNetwork: getEnv("BLOCKCHAIN_NETWORK", defaultConfig.BlockchainNetwork),
+		BlockchainRPCURL:  getEnv("BLOCKCHAIN_RPC_URL", defaultConfig.BlockchainRPCURL),
+		ChainID:           getEnvAsInt64("CHAIN_ID", defaultConfig.ChainID),
+		PrivateKey:        getEnv("PRIVATE_KEY", defaultConfig.PrivateKey),
 	}
+
+	// 设置合约地址
+	AppConfig.ContractAddresses.HackathonPlatform = getEnv("CONTRACT_HACKATHON_PLATFORM", defaultConfig.ContractAddresses.HackathonPlatform)
+	AppConfig.ContractAddresses.HackathonEvent = getEnv("CONTRACT_HACKATHON_EVENT", defaultConfig.ContractAddresses.HackathonEvent)
+	AppConfig.ContractAddresses.PrizePool = getEnv("CONTRACT_PRIZE_POOL", defaultConfig.ContractAddresses.PrizePool)
+	AppConfig.ContractAddresses.HackathonNFT = getEnv("CONTRACT_HACKATHON_NFT", defaultConfig.ContractAddresses.HackathonNFT)
 
 	return nil
 }
@@ -145,6 +195,31 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if len(yamlConfig.CORS.AllowOrigins) > 0 {
 		defaultConfig.CORSOrigins = yamlConfig.CORS.AllowOrigins
+	}
+
+	// 区块链配置
+	if yamlConfig.Blockchain.Network != "" {
+		defaultConfig.BlockchainNetwork = yamlConfig.Blockchain.Network
+	}
+	if yamlConfig.Blockchain.RPCURL != "" {
+		defaultConfig.BlockchainRPCURL = yamlConfig.Blockchain.RPCURL
+	}
+	if yamlConfig.Blockchain.ChainID > 0 {
+		defaultConfig.ChainID = yamlConfig.Blockchain.ChainID
+	}
+
+	// 合约地址配置
+	if yamlConfig.Contracts.HackathonPlatform != "" {
+		defaultConfig.ContractAddresses.HackathonPlatform = yamlConfig.Contracts.HackathonPlatform
+	}
+	if yamlConfig.Contracts.HackathonEvent != "" {
+		defaultConfig.ContractAddresses.HackathonEvent = yamlConfig.Contracts.HackathonEvent
+	}
+	if yamlConfig.Contracts.PrizePool != "" {
+		defaultConfig.ContractAddresses.PrizePool = yamlConfig.Contracts.PrizePool
+	}
+	if yamlConfig.Contracts.HackathonNFT != "" {
+		defaultConfig.ContractAddresses.HackathonNFT = yamlConfig.Contracts.HackathonNFT
 	}
 
 	return nil
@@ -201,6 +276,15 @@ func getEnvAsSlice(key string, defaultValue []string) []string {
 			result = append(result, value[start:])
 		}
 		if len(result) > 0 {
+			return result
+		}
+	}
+	return defaultValue
+}
+func getEnvAsInt64(key string, defaultValue int64) int64 {
+	if value := os.Getenv(key); value != "" {
+		var result int64
+		if _, err := fmt.Sscanf(value, "%d", &result); err == nil {
 			return result
 		}
 	}
