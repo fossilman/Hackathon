@@ -5,7 +5,7 @@ import i18n from '../i18n'
 
 const request = axios.create({
   baseURL: '/api/v1/admin',
-  timeout: 10000,
+  timeout: 1000000,
 })
 
 request.interceptors.request.use(

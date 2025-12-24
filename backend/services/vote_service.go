@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	"hackathon-backend/database"
 	"hackathon-backend/models"
@@ -22,14 +23,14 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 	}
 
 	// 检查阶段时间
-	hackathonService := &HackathonService{}
-	inTime, err := hackathonService.CheckStageTime(hackathonID, "voting")
-	if err != nil {
-		return errors.New("投票阶段时间未设置")
-	}
-	if !inTime {
-		return errors.New("不在投票时间范围内")
-	}
+	//hackathonService := &HackathonService{}
+	//inTime, err := hackathonService.CheckStageTime(hackathonID, "voting")
+	//if err != nil {
+	//	return errors.New("投票阶段时间未设置")
+	//}
+	//if !inTime {
+	//	return errors.New("不在投票时间范围内")
+	//}
 
 	// 检查是否已签到
 	registrationService := &RegistrationService{}
@@ -53,7 +54,45 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("您已经对该作品投过票了")
 	}
 
-	// 创建投票记录
+	// 将投票信息上链
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		fmt.Printf("区块链服务初始化失败: %v\n", err)
+		// 继续执行数据库投票
+	} else {
+		defer blockchainService.Close()
+
+		// 只有当链上ID存在时才进行区块链操作
+		if hackathon.ChainEventID > 0 {
+			// 获取该用户在该活动中已有的投票数量（作为新投票的索引）
+			var existingVoteCount int64
+			database.DB.Model(&models.Vote{}).
+				Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).
+				Count(&existingVoteCount)
+
+			chainVoteIndex := uint64(existingVoteCount)
+
+			// 调用区块链投票（分数必须在1-10之间，这里使用默认分数10）
+			txHash, err := blockchainService.Vote(hackathon.ChainEventID, submissionID, 10)
+			if err != nil {
+				return fmt.Errorf("投票信息上链失败: %w", err)
+			}
+			fmt.Printf("投票成功 %d，链上ID: %d, 投票索引: %d, 交易哈希: %s\n", submissionID, hackathon.ChainEventID, chainVoteIndex, txHash)
+
+			// 创建投票记录，包含链上索引
+			vote := models.Vote{
+				HackathonID:    hackathonID,
+				ParticipantID:  participantID,
+				SubmissionID:   submissionID,
+				ChainVoteIndex: &chainVoteIndex,
+			}
+			return database.DB.Create(&vote).Error
+		} else {
+			fmt.Printf("警告：活动未上链，跳过区块链投票\n")
+		}
+	}
+
+	// 创建投票记录（未上链的情况）
 	vote := models.Vote{
 		HackathonID:   hackathonID,
 		ParticipantID: participantID,
@@ -81,13 +120,40 @@ func (s *VoteService) CancelVote(participantID, submissionID uint64) error {
 	}
 
 	// 检查阶段时间
-	hackathonService := &HackathonService{}
-	inTime, err := hackathonService.CheckStageTime(vote.HackathonID, "voting")
+	//hackathonService := &HackathonService{}
+	//inTime, err := hackathonService.CheckStageTime(vote.HackathonID, "voting")
+	//if err != nil {
+	//	return errors.New("投票阶段时间未设置")
+	//}
+	//if !inTime {
+	//	return errors.New("不在投票时间范围内")
+	//}
+
+	// 将撤销操作上链
+	blockchainService, err := NewBlockchainService()
 	if err != nil {
-		return errors.New("投票阶段时间未设置")
-	}
-	if !inTime {
-		return errors.New("不在投票时间范围内")
+		fmt.Printf("区块链服务初始化失败: %v\n", err)
+		// 继续执行数据库操作
+	} else {
+		defer blockchainService.Close()
+
+		// 只有当链上ID存在时才进行区块链操作
+		if hackathon.ChainEventID > 0 {
+			// 检查是否有链上索引
+			if vote.ChainVoteIndex == nil {
+				return errors.New("该投票未上链，无法撤销")
+			}
+
+			fmt.Println("voteIndex: ", *vote.ChainVoteIndex)
+			// 调用区块链撤销投票（使用链上投票索引）
+			txHash, err := blockchainService.RevokeVote(hackathon.ChainEventID, *vote.ChainVoteIndex)
+			if err != nil {
+				return fmt.Errorf("投票撤销上链失败: %w", err)
+			}
+			fmt.Printf("投票撤销成功，链上ID: %d, 投票索引: %d, 交易哈希: %s\n", hackathon.ChainEventID, *vote.ChainVoteIndex, txHash)
+		} else {
+			fmt.Printf("警告：活动未上链，跳过区块链撤销\n")
+		}
 	}
 
 	// 删除投票记录
@@ -185,4 +251,3 @@ func (s *VoteService) GetResults(hackathonID uint64) ([]map[string]interface{}, 
 
 	return results, nil
 }
-

@@ -20,6 +20,11 @@ type Hackathon struct {
 	OrganizerID  uint64         `gorm:"index;not null" json:"organizer_id"`
 	MaxTeamSize  int            `gorm:"default:3" json:"max_team_size"`
 	MaxParticipants int         `gorm:"default:0" json:"max_participants"` // 最大参与人数，0表示不限制
+	
+	// 区块链相关字段
+	ChainEventID uint64         `gorm:"default:0;index" json:"chain_event_id"` // 链上活动ID
+	TxHash       string         `gorm:"type:varchar(66)" json:"tx_hash,omitempty"` // 创建交易哈希
+	
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
