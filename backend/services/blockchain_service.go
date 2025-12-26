@@ -536,6 +536,100 @@ func (s *BlockchainService) waitForTransactionAndGetEventID(txHash string) (uint
 	return 0, fmt.Errorf("未找到 EventCreated 事件")
 }
 
+// EstimateGasFee 预估 Gas 费用
+// 返回: gasLimit, gasPrice, totalCost (wei), 错误
+func (s *BlockchainService) EstimateGasFee(to common.Address, data []byte, value *big.Int) (uint64, *big.Int, *big.Int, error) {
+	ctx := context.Background()
+
+	// 估算 gas 限制
+	gasLimit, err := s.client.EstimateGas(ctx, ethereum.CallMsg{
+		From:  s.fromAddress,
+		To:    &to,
+		Value: value,
+		Data:  data,
+	})
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("估算gas限制失败: %w", err)
+	}
+
+	// 获取当前 gas 价格
+	gasPrice, err := s.client.SuggestGasPrice(ctx)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("获取gas价格失败: %w", err)
+	}
+
+	// 计算总成本 (gasLimit * gasPrice)
+	totalCost := new(big.Int).Mul(big.NewInt(int64(gasLimit)), gasPrice)
+
+	return gasLimit, gasPrice, totalCost, nil
+}
+
+// GetBalance 获取账户余额
+func (s *BlockchainService) GetBalance(address common.Address) (*big.Int, error) {
+	ctx := context.Background()
+	balance, err := s.client.BalanceAt(ctx, address, nil)
+	if err != nil {
+		return nil, fmt.Errorf("获取余额失败: %w", err)
+	}
+	return balance, nil
+}
+
+// CheckBalanceSufficient 检查余额是否充足
+// 返回: 是否充足, 当前余额, 所需余额, 错误
+func (s *BlockchainService) CheckBalanceSufficient(address common.Address, requiredAmount *big.Int) (bool, *big.Int, *big.Int, error) {
+	balance, err := s.GetBalance(address)
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	// 比较余额和所需金额
+	sufficient := balance.Cmp(requiredAmount) >= 0
+
+	return sufficient, balance, requiredAmount, nil
+}
+
+// EstimateCheckinGas 预估签到操作的 Gas 费
+func (s *BlockchainService) EstimateCheckinGas(chainEventID uint64) (uint64, *big.Int, *big.Int, error) {
+	data, err := s.eventABI.Pack(
+		"checkIn",
+		big.NewInt(int64(chainEventID)),
+	)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("打包交易数据失败: %w", err)
+	}
+
+	return s.EstimateGasFee(s.eventContract, data, big.NewInt(0))
+}
+
+// EstimateVoteGas 预估投票操作的 Gas 费
+func (s *BlockchainService) EstimateVoteGas(chainEventID, projectID, score uint64) (uint64, *big.Int, *big.Int, error) {
+	data, err := s.eventABI.Pack(
+		"vote",
+		big.NewInt(int64(chainEventID)),
+		big.NewInt(int64(projectID)),
+		big.NewInt(int64(score)),
+	)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("打包交易数据失败: %w", err)
+	}
+
+	return s.EstimateGasFee(s.eventContract, data, big.NewInt(0))
+}
+
+// EstimateRevokeVoteGas 预估撤销投票操作的 Gas 费
+func (s *BlockchainService) EstimateRevokeVoteGas(chainEventID, voteIndex uint64) (uint64, *big.Int, *big.Int, error) {
+	data, err := s.eventABI.Pack(
+		"revokeVote",
+		big.NewInt(int64(chainEventID)),
+		big.NewInt(int64(voteIndex)),
+	)
+	if err != nil {
+		return 0, nil, nil, fmt.Errorf("打包交易数据失败: %w", err)
+	}
+
+	return s.EstimateGasFee(s.eventContract, data, big.NewInt(0))
+}
+
 // Close 关闭区块链连接
 func (s *BlockchainService) Close() {
 	if s.client != nil {

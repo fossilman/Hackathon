@@ -13,7 +13,9 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "pleaseInstallMetamask": "Please install Metamask",
-    "requestFailed": "Request failed"
+    "requestFailed": "Request failed",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "nav": {
     "home": "Home",
@@ -253,6 +255,25 @@
     "andMore": "and {{count}} more differences",
     "issues": "Issues Found",
     "close": "Close"
+  },
+  "gasEstimate": {
+    "title": "Gas Fee Estimate",
+    "checkinTitle": "Check-in Gas Fee Estimate",
+    "voteTitle": "Vote Gas Fee Estimate",
+    "revokeTitle": "Revoke Vote Gas Fee Estimate",
+    "estimating": "Estimating gas fee...",
+    "estimateFailed": "Gas fee estimation failed",
+    "error": "Estimation Error",
+    "sufficientBalance": "Sufficient balance to proceed",
+    "insufficientBalance": "Insufficient Balance",
+    "needToRecharge": "Need to recharge at least {{amount}} ETH",
+    "details": "Gas Fee Details",
+    "gasLimit": "Gas Limit",
+    "gasPrice": "Gas Price",
+    "estimatedCost": "Estimated Cost",
+    "yourBalance": "Your Balance",
+    "tips": "Tips",
+    "tipsContent": "Gas fees fluctuate based on network congestion. Actual cost may differ from the estimate. Please ensure your wallet has sufficient balance."
   }
 }
 

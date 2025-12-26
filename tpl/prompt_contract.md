@@ -35,3 +35,4 @@ version1.0.0: 依据已经生成的合约地址，依次将合约中的函数回
 
 - 完成 linear FS-43 issues
 
+- 完成 linear FS-67 issues

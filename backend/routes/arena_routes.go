@@ -15,6 +15,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 	arenaSubmissionController := controllers.NewArenaSubmissionController()
 	arenaVoteController := controllers.NewArenaVoteController()
 	arenaVerificationController := controllers.NewArenaVerificationController()
+	gasEstimateController := controllers.NewGasEstimateController()
 
 	api := router.Group("/api/v1/arena")
 	{
@@ -68,6 +69,8 @@ func SetupArenaRoutes(router *gin.Engine) {
 				registration.GET("/registration-status", arenaRegistrationController.GetRegistrationStatus)
 				registration.POST("/checkin", arenaRegistrationController.Checkin)
 				registration.GET("/checkin-status", arenaRegistrationController.GetCheckinStatus)
+				// Gas 费预估
+				registration.GET("/estimate-checkin-gas", gasEstimateController.EstimateCheckin)
 			}
 
 			// 组队相关
@@ -100,6 +103,9 @@ func SetupArenaRoutes(router *gin.Engine) {
 			api.POST("/submissions/:id/vote", arenaVoteController.Vote)
 			api.DELETE("/submissions/:id/vote", arenaVoteController.CancelVote)
 			api.GET("/hackathons/:id/votes", arenaVoteController.GetMyVotes)
+			// Gas 费预估
+			api.GET("/submissions/:id/estimate-vote-gas", gasEstimateController.EstimateVote)
+			api.GET("/submissions/:id/estimate-revoke-vote-gas", gasEstimateController.EstimateRevokeVote)
 
 			// 结果查看
 			api.GET("/hackathons/:id/results", arenaVoteController.GetResults)

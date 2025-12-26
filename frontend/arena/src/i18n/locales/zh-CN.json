@@ -13,7 +13,9 @@
     "connected": "连接成功",
     "disconnected": "已断开连接",
     "pleaseInstallMetamask": "请安装Metamask",
-    "requestFailed": "请求失败"
+    "requestFailed": "请求失败",
+    "confirm": "确认",
+    "cancel": "取消"
   },
   "nav": {
     "home": "首页",
@@ -253,6 +255,25 @@
     "andMore": "以及其他 {{count}} 条差异",
     "issues": "发现的问题",
     "close": "关闭"
+  },
+  "gasEstimate": {
+    "title": "Gas 费预估",
+    "checkinTitle": "签到 Gas 费预估",
+    "voteTitle": "投票 Gas 费预估",
+    "revokeTitle": "撤销投票 Gas 费预估",
+    "estimating": "正在预估 Gas 费用...",
+    "estimateFailed": "Gas 费预估失败",
+    "error": "预估错误",
+    "sufficientBalance": "余额充足，可以执行操作",
+    "insufficientBalance": "余额不足",
+    "needToRecharge": "需要充值至少 {{amount}} ETH",
+    "details": "Gas 费详情",
+    "gasLimit": "Gas 限制",
+    "gasPrice": "Gas 价格",
+    "estimatedCost": "预计费用",
+    "yourBalance": "您的余额",
+    "tips": "温馨提示",
+    "tipsContent": "Gas 费会根据网络拥堵情况实时变化，实际费用可能与预估有所差异。建议保持钱包有足够余额。"
   }
 }
 

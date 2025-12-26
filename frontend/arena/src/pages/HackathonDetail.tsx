@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
 import VerificationReport from '../components/VerificationReport'
+import GasEstimateModal from '../components/GasEstimateModal'
 
 const { Panel } = Collapse
 
@@ -22,7 +23,10 @@ export default function HackathonDetail() {
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
   const [sponsors, setSponsors] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
-
+  const [showGasEstimate, setShowGasEstimate] = useState(false)
+  const [gasEstimateUrl, setGasEstimateUrl] = useState('')
+  const [gasOperationType, setGasOperationType] = useState<'checkin' | 'vote' | 'revoke'>('checkin')
+  const [checkinLoading, setCheckinLoading] = useState(false)
   useEffect(() => {
     if (id) {
       fetchDetail()
@@ -104,12 +108,23 @@ export default function HackathonDetail() {
   }
 
   const handleCheckin = async () => {
+    // 显示 Gas 费预估模态框
+    setGasEstimateUrl(`/hackathons/${id}/estimate-checkin-gas`)
+    setGasOperationType('checkin')
+    setShowGasEstimate(true)
+  }
+
+  const confirmCheckin = async () => {
+    setCheckinLoading(true)
     try {
       await request.post(`/hackathons/${id}/checkin`)
       message.success(t('hackathonDetail.checkinSuccess'))
       setCheckedIn(true)
+      setShowGasEstimate(false)
     } catch (error: any) {
       message.error(error.message || t('hackathonDetail.checkinFailed'))
+    } finally {
+      setCheckinLoading(false)
     }
   }
 
@@ -391,6 +406,16 @@ export default function HackathonDetail() {
           )}
         </div>
       </Card>
+
+      {/* Gas 费预估模态框 */}
+      <GasEstimateModal
+        visible={showGasEstimate}
+        onCancel={() => setShowGasEstimate(false)}
+        onConfirm={confirmCheckin}
+        estimateUrl={gasEstimateUrl}
+        operationType={gasOperationType}
+        loading={checkinLoading}
+      />
       </div>
     </div>
   )
