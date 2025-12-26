@@ -77,6 +77,13 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 			if err != nil {
 				return fmt.Errorf("投票信息上链失败: %w", err)
 			}
+
+			// 记录交易
+			transactionService := &TransactionRecordService{}
+			if err := transactionService.RecordTransaction(hackathonID, txHash, "vote", fmt.Sprintf("投票: 作品ID %d", submissionID)); err != nil {
+				fmt.Printf("警告：记录交易失败: %v\n", err)
+			}
+
 			fmt.Printf("投票成功 %d，链上ID: %d, 投票索引: %d, 交易哈希: %s\n", submissionID, hackathon.ChainEventID, chainVoteIndex, txHash)
 
 			// 创建投票记录，包含链上索引
@@ -150,6 +157,13 @@ func (s *VoteService) CancelVote(participantID, submissionID uint64) error {
 			if err != nil {
 				return fmt.Errorf("投票撤销上链失败: %w", err)
 			}
+
+			// 记录交易
+			transactionService := &TransactionRecordService{}
+			if err := transactionService.RecordTransaction(vote.HackathonID, txHash, "revoke_vote", fmt.Sprintf("撤销投票: 作品ID %d", submissionID)); err != nil {
+				fmt.Printf("警告：记录交易失败: %v\n", err)
+			}
+
 			fmt.Printf("投票撤销成功，链上ID: %d, 投票索引: %d, 交易哈希: %s\n", hackathon.ChainEventID, *vote.ChainVoteIndex, txHash)
 		} else {
 			fmt.Printf("警告：活动未上链，跳过区块链撤销\n")

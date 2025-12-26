@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"hackathon-backend/models"
 	"hackathon-backend/services"
 	"hackathon-backend/utils"
 )
@@ -55,7 +56,21 @@ func (c *ArenaHackathonController) GetHackathonByID(ctx *gin.Context) {
 		return
 	}
 
-	utils.Success(ctx, hackathon)
+	// 获取区块链交易记录
+	transactionService := &services.TransactionRecordService{}
+	transactions, err := transactionService.GetTransactionsByHackathonID(id)
+	if err != nil {
+		// 交易记录获取失败不影响主流程
+		transactions = []models.BlockchainTransaction{}
+	}
+
+	// 构建返回数据
+	result := map[string]interface{}{
+		"hackathon":    hackathon,
+		"transactions": transactions,
+	}
+
+	utils.Success(ctx, result)
 }
 
 // GetMyHackathons 获取已报名的活动列表

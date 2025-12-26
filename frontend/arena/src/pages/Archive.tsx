@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@shared/components'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import VerificationReport from '../components/VerificationReport'
 
 const { Search } = Input
 const { Option } = Select
@@ -85,12 +86,19 @@ export default function Archive() {
     return (
       <div className="page-content">
         <div className="page-container">
-          <Button
-            onClick={() => navigate('/hackathons/archive')}
-            style={{ marginBottom: 'var(--spacing-xl)' }}
-          >
-            {t('archive.backToList')}
-          </Button>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: 'var(--spacing-xl)' 
+          }}>
+            <Button
+              onClick={() => navigate('/hackathons/archive')}
+            >
+              {t('archive.backToList')}
+            </Button>
+            <VerificationReport hackathonId={parseInt(id)} />
+          </div>
           <Card loading={detailLoading}>
             <h1 className="page-title" style={{ marginBottom: 'var(--spacing-xl)' }}>
               {archiveDetail.hackathon?.name}

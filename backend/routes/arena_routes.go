@@ -14,6 +14,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 	arenaTeamController := controllers.NewArenaTeamController()
 	arenaSubmissionController := controllers.NewArenaSubmissionController()
 	arenaVoteController := controllers.NewArenaVoteController()
+	arenaVerificationController := controllers.NewArenaVerificationController()
 
 	api := router.Group("/api/v1/arena")
 	{
@@ -31,6 +32,11 @@ func SetupArenaRoutes(router *gin.Engine) {
 			hackathons.GET("/:id", arenaHackathonController.GetHackathonByID)
 			hackathons.GET("/archive", arenaHackathonController.GetArchiveList)
 			hackathons.GET("/archive/:id", arenaHackathonController.GetArchiveDetail)
+			
+			// 验证相关（无需认证，游客可访问）
+			hackathons.GET("/:id/verify", arenaVerificationController.VerifyEvent)
+			hackathons.GET("/:id/verify-votes", arenaVerificationController.VerifyVotes)
+			hackathons.GET("/:id/verify-all", arenaVerificationController.VerifyAll)
 		}
 
 		// 赞助商相关（无需认证）

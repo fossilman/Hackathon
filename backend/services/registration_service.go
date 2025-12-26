@@ -200,6 +200,13 @@ func (s *RegistrationService) Checkin(hackathonID, participantID uint64) error {
 				}
 				return fmt.Errorf("签到信息上链失败: %w", err)
 			}
+
+			// 记录交易
+			transactionService := &TransactionRecordService{}
+			if err := transactionService.RecordTransaction(hackathonID, txHash, "checkin", fmt.Sprintf("签到: %s", participant.WalletAddress)); err != nil {
+				fmt.Printf("警告：记录交易失败: %v\n", err)
+			}
+
 			fmt.Printf("签到成功，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
 		} else {
 			fmt.Printf("警告：活动未上链，跳过区块链签到\n")

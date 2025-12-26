@@ -244,7 +244,7 @@ func (s *BlockchainService) RevokeVote(chainEventID, voteIndex uint64) (string, 
 }
 
 // GetEvent 从区块链获取活动信息
-func (s *BlockchainService) GetEvent(chainEventID uint64) (map[string]interface{}, error) {
+func (s *BlockchainService) GetEvent(chainEventID uint64) (map[string]any, error) {
 	data, err := s.eventABI.Pack("events", big.NewInt(int64(chainEventID)))
 	if err != nil {
 		return nil, fmt.Errorf("打包调用数据失败: %w", err)
@@ -261,15 +261,18 @@ func (s *BlockchainService) GetEvent(chainEventID uint64) (map[string]interface{
 	}
 
 	// 解析返回数据
+	// 注意：结构体字段顺序必须与智能合约中的 Event 结构体一致
 	var eventData struct {
+		Id          *big.Int
 		Name        string
 		Description string
 		StartTime   *big.Int
 		EndTime     *big.Int
 		Location    string
 		Organizer   common.Address
-		IsActive    bool
-		IsDeleted   bool
+		Status      uint8  // EventStatus 枚举：0=Created, 1=Active, 2=Ended, 3=Deleted
+		CreatedAt   *big.Int
+		UpdatedAt   *big.Int
 	}
 
 	err = s.eventABI.UnpackIntoInterface(&eventData, "events", result)
@@ -277,15 +280,17 @@ func (s *BlockchainService) GetEvent(chainEventID uint64) (map[string]interface{
 		return nil, fmt.Errorf("解析返回数据失败: %w", err)
 	}
 
-	return map[string]interface{}{
+	return map[string]any{
+		"id":          eventData.Id.Uint64(),
 		"name":        eventData.Name,
 		"description": eventData.Description,
 		"start_time":  time.Unix(eventData.StartTime.Int64(), 0),
 		"end_time":    time.Unix(eventData.EndTime.Int64(), 0),
 		"location":    eventData.Location,
 		"organizer":   eventData.Organizer.Hex(),
-		"is_active":   eventData.IsActive,
-		"is_deleted":  eventData.IsDeleted,
+		"status":      eventData.Status,
+		"created_at":  time.Unix(eventData.CreatedAt.Int64(), 0),
+		"updated_at":  time.Unix(eventData.UpdatedAt.Int64(), 0),
 	}, nil
 }
 
@@ -317,6 +322,68 @@ func (s *BlockchainService) VerifyCheckIn(chainEventID uint64, participantAddres
 	}
 
 	return isCheckedIn, nil
+}
+
+// ChainVote 链上投票记录结构
+type ChainVote struct {
+	EventID   uint64
+	Voter     string
+	ProjectID uint64
+	Score     uint64
+	Timestamp time.Time
+	IsRevoked bool
+}
+
+// GetUserVotes 获取用户的投票记录
+func (s *BlockchainService) GetUserVotes(chainEventID uint64, voterAddress string) ([]ChainVote, error) {
+	data, err := s.eventABI.Pack(
+		"getUserVotes",
+		big.NewInt(int64(chainEventID)),
+		common.HexToAddress(voterAddress),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("打包调用数据失败: %w", err)
+	}
+
+	msg := ethereum.CallMsg{
+		To:   &s.eventContract,
+		Data: data,
+	}
+
+	result, err := s.client.CallContract(context.Background(), msg, nil)
+	if err != nil {
+		return nil, fmt.Errorf("调用合约失败: %w", err)
+	}
+
+	// 解析返回数据
+	var votesData []struct {
+		EventId   *big.Int
+		Voter     common.Address
+		ProjectId *big.Int
+		Score     *big.Int
+		Timestamp *big.Int
+		IsRevoked bool
+	}
+
+	err = s.eventABI.UnpackIntoInterface(&votesData, "getUserVotes", result)
+	if err != nil {
+		return nil, fmt.Errorf("解析返回数据失败: %w", err)
+	}
+
+	// 转换为 ChainVote 结构
+	votes := make([]ChainVote, len(votesData))
+	for i, v := range votesData {
+		votes[i] = ChainVote{
+			EventID:   v.EventId.Uint64(),
+			Voter:     v.Voter.Hex(),
+			ProjectID: v.ProjectId.Uint64(),
+			Score:     v.Score.Uint64(),
+			Timestamp: time.Unix(v.Timestamp.Int64(), 0),
+			IsRevoked: v.IsRevoked,
+		}
+	}
+
+	return votes, nil
 }
 
 // ActivateEvent 激活活动

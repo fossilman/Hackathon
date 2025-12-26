@@ -54,27 +54,13 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 		}
 		defer blockchainService.Close()
 
-		startTime := time.Date(
-			2025, 5, 10, // 年, 月, 日
-			0, 0, 0, // 时, 分, 秒
-			0,          // 纳秒
-			time.Local, // 或 time.UTC
-		)
-
-		endTime := time.Date(
-			2025, 6, 10,
-			23, 59, 59,
-			0,
-			time.Local,
-		)
-
 		// 调用区块链创建活动，获取链上 eventId
 		chainEventID, txHash, err := blockchainService.CreateEvent(
 			hackathon.Name,
 			hackathon.Description,
 			hackathon.LocationDetail,
-			startTime,
-			endTime,
+			hackathon.StartTime,
+			hackathon.EndTime,
 		)
 		if err != nil {
 			// 上链失败，回滚数据库操作
@@ -87,6 +73,13 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			"tx_hash":        txHash,
 		}).Error; err != nil {
 			return fmt.Errorf("更新链上ID失败: %w", err)
+		}
+
+		// 记录交易
+		transactionService := &TransactionRecordService{}
+		if err := transactionService.RecordTransaction(hackathon.ID, txHash, "create", fmt.Sprintf("创建活动: %s", hackathon.Name)); err != nil {
+			// 记录失败不影响主流程
+			fmt.Printf("警告：记录交易失败: %v\n", err)
 		}
 
 		fmt.Printf("活动创建成功，数据库ID: %d, 链上ID: %d, 交易哈希: %s\n", hackathon.ID, chainEventID, txHash)
@@ -497,6 +490,12 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 				return fmt.Errorf("活动信息更新上链失败: %w", err)
 			}
 
+			// 记录交易
+			transactionService := &TransactionRecordService{}
+			if err := transactionService.RecordTransaction(id, txHash, "update", fmt.Sprintf("更新活动: %s", hackathon.Name)); err != nil {
+				fmt.Printf("警告：记录交易失败: %v\n", err)
+			}
+
 			fmt.Printf("活动更新成功，链上ID: %d, 交易哈希: %s\n", existing.ChainEventID, txHash)
 		} else {
 			fmt.Printf("警告：活动未上链，跳过区块链更新\n")
@@ -541,6 +540,13 @@ func (s *HackathonService) DeleteHackathon(id uint64, userID uint64, userRole st
 			if err != nil {
 				return fmt.Errorf("活动删除上链失败: %w", err)
 			}
+
+			// 记录交易
+			transactionService := &TransactionRecordService{}
+			if err := transactionService.RecordTransaction(id, txHash, "delete", fmt.Sprintf("删除活动: %s", hackathon.Name)); err != nil {
+				fmt.Printf("警告：记录交易失败: %v\n", err)
+			}
+
 			fmt.Printf("活动删除成功，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
 		} else {
 			fmt.Printf("警告：活动未上链，跳过区块链删除\n")
@@ -687,6 +693,11 @@ func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, u
 				// 激活失败，但不影响数据库状态切换
 				fmt.Printf("链上活动激活失败: %v\n", err)
 			} else {
+				// 记录交易
+				transactionService := &TransactionRecordService{}
+				if err := transactionService.RecordTransaction(id, txHash, "activate", fmt.Sprintf("激活活动: %s", hackathon.Name)); err != nil {
+					fmt.Printf("警告：记录交易失败: %v\n", err)
+				}
 				fmt.Printf("链上活动已激活，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
 			}
 		}
@@ -705,6 +716,11 @@ func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, u
 				// 结束失败，但不影响数据库状态切换
 				fmt.Printf("链上活动结束失败: %v\n", err)
 			} else {
+				// 记录交易
+				transactionService := &TransactionRecordService{}
+				if err := transactionService.RecordTransaction(id, txHash, "end", fmt.Sprintf("结束活动: %s", hackathon.Name)); err != nil {
+					fmt.Printf("警告：记录交易失败: %v\n", err)
+				}
 				fmt.Printf("链上活动已结束，链上ID: %d, 交易哈希: %s\n", hackathon.ChainEventID, txHash)
 			}
 		}

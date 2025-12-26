@@ -24,4 +24,14 @@ version1.0.1: 合约已全部生成，根据合约中ABI信息和后端接口，
 
 version1.0.0: 依据已经生成的合约地址，依次将合约中的函数回填至后端接口中，修改现有的服务来集成区块链功能，实现接口和区块链衔接
 
+— 完成 linear FS-49 issues
+- 活动锦集 按钮未登录也能点击看见
+
+- 完成 linear FS-48 issues
+✅ 完成 linear FS-48 issues
+- 在活动详情页（HackathonDetail.tsx）添加验证按钮
+- 复用 FS-49 的验证组件和后端服务
+- 参赛者可在活动进行中实时验证活动信息真实性
+
+- 完成 linear FS-43 issues
 

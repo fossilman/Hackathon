@@ -109,7 +109,16 @@
     "stageEndTime": "{{stage}}阶段结束时间",
     "description": "描述",
     "eventSponsors": "活动赞助商",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "blockchainRecords": "区块链交易记录",
+    "txTypeCreate": "创建活动",
+    "txTypeUpdate": "更新活动",
+    "txTypeDelete": "删除活动",
+    "txTypeActivate": "激活活动",
+    "txTypeEnd": "结束活动",
+    "txTypeCheckin": "签到",
+    "txTypeVote": "投票",
+    "txTypeRevokeVote": "撤销投票"
   },
   "profile": {
     "title": "个人中心",
@@ -216,6 +225,34 @@
     "totalTeams": "参与队伍数",
     "totalSubmissions": "提交作品数",
     "ranking": "排名榜单"
+  },
+  "verification": {
+    "verifyButton": "验证活动真实性",
+    "title": "活动信息验证报告",
+    "verifyFailed": "验证失败",
+    "verifyFailedDesc": "验证请求失败，请稍后重试",
+    "verifying": "正在验证活动信息，请稍候...",
+    "allValid": "验证通过",
+    "hasIssues": "验证发现问题",
+    "verifiedAt": "验证时间",
+    "eventInfo": "活动信息",
+    "votingRecords": "投票记录",
+    "differencesFound": "发现数据不匹配",
+    "eventInfoMatched": "活动信息与区块链数据完全一致",
+    "votesDifferencesFound": "投票记录存在差异",
+    "viewDetails": "查看详细对比",
+    "database": "数据库",
+    "blockchain": "区块链",
+    "name": "活动名称",
+    "location": "活动地点",
+    "startTime": "开始时间",
+    "endTime": "结束时间",
+    "totalVotes": "总投票数",
+    "verifiedVoters": "验证通过的投票者",
+    "mismatchedVoters": "投票记录不匹配的地址",
+    "andMore": "以及其他 {{count}} 条差异",
+    "issues": "发现的问题",
+    "close": "关闭"
   }
 }
 

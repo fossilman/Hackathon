@@ -141,9 +141,26 @@ export default function Layout() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }} data-testid="arena-header-actions">
           <LanguageSwitcher />
+          
+          {/* 活动集锦按钮 - 游客也可见 */}
+          <Button
+            type="text"
+            icon={<HistoryOutlined />}
+            style={{ 
+              color: 'var(--text-inverse)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: 'var(--radius-md)',
+            }}
+            onClick={() => navigate('/hackathons/archive')}
+            data-testid="nav-archive"
+            aria-label={t('nav.archive')}
+          >
+            {t('nav.archive')}
+          </Button>
+          
           {walletAddress ? (
             <Space size="middle">
-              {/* 菜单顺序：我的活动，活动集锦，个人中心 */}
+              {/* 我的活动 - 仅登录后可见 */}
               <Button
                 type="text"
                 icon={<AppstoreOutlined />}
@@ -157,20 +174,6 @@ export default function Layout() {
                 aria-label={t('nav.myHackathons')}
               >
                 {t('nav.myHackathons')}
-              </Button>
-              <Button
-                type="text"
-                icon={<HistoryOutlined />}
-                style={{ 
-                  color: 'var(--text-inverse)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: 'var(--radius-md)',
-                }}
-                onClick={() => navigate('/hackathons/archive')}
-                data-testid="nav-archive"
-                aria-label={t('nav.archive')}
-              >
-                {t('nav.archive')}
               </Button>
               {/* 合并个人中心和用户名显示 */}
               <Button

@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Button, Space, message, Tag, Descriptions } from 'antd'
-import { TrophyOutlined } from '@ant-design/icons'
+import { Card, Button, Space, message, Tag, Descriptions, Collapse, Timeline } from 'antd'
+import { TrophyOutlined, LinkOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import VerificationReport from '../components/VerificationReport'
+
+const { Panel } = Collapse
 
 export default function HackathonDetail() {
   const { t } = useTranslation()
@@ -18,6 +21,7 @@ export default function HackathonDetail() {
   const [userTeam, setUserTeam] = useState<any>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
   const [sponsors, setSponsors] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<any[]>([])
 
   useEffect(() => {
     if (id) {
@@ -34,7 +38,15 @@ export default function HackathonDetail() {
   const fetchDetail = async () => {
     try {
       const data = await request.get(`/hackathons/${id}`)
-      setHackathon(data)
+      // API 现在返回 { hackathon, transactions }
+      if (data.hackathon) {
+        setHackathon(data.hackathon)
+        setTransactions(data.transactions || [])
+      } else {
+        // 兼容旧API格式
+        setHackathon(data)
+        setTransactions([])
+      }
       // 获取活动的指定赞助商
       try {
         const sponsorData = await request.get(`/sponsors/events/${id}`)
@@ -139,6 +151,20 @@ export default function HackathonDetail() {
 
   const currentStage = getCurrentStage()
 
+  const getTxTypeLabel = (txType: string) => {
+    const labels: Record<string, string> = {
+      create: t('hackathonDetail.txTypeCreate'),
+      update: t('hackathonDetail.txTypeUpdate'),
+      delete: t('hackathonDetail.txTypeDelete'),
+      activate: t('hackathonDetail.txTypeActivate'),
+      end: t('hackathonDetail.txTypeEnd'),
+      checkin: t('hackathonDetail.txTypeCheckin'),
+      vote: t('hackathonDetail.txTypeVote'),
+      revoke_vote: t('hackathonDetail.txTypeRevokeVote'),
+    }
+    return labels[txType] || txType
+  }
+
   return (
     <div className="page-content" data-testid="hackathon-detail-page">
       <div className="page-container" data-testid="hackathon-detail-container">
@@ -150,13 +176,16 @@ export default function HackathonDetail() {
             </div>
           }
           extra={
-            <Tag 
-              color="blue"
-              data-testid="hackathon-detail-status"
-              style={{ fontSize: '14px', padding: '4px 12px' }}
-            >
-              {statusMap[hackathon.status] || hackathon.status}
-            </Tag>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <VerificationReport hackathonId={parseInt(id || '0')} />
+              <Tag 
+                color="blue"
+                data-testid="hackathon-detail-status"
+                style={{ fontSize: '14px', padding: '4px 12px' }}
+              >
+                {statusMap[hackathon.status] || hackathon.status}
+              </Tag>
+            </div>
           }
           data-testid="hackathon-detail-card"
         >
@@ -219,6 +248,61 @@ export default function HackathonDetail() {
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* 链上交易记录展示 */}
+          {transactions.length > 0 && (
+            <div style={{ marginTop: '24px' }}>
+              <Collapse>
+                <Panel 
+                  header={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <LinkOutlined />
+                      <span>{t('hackathonDetail.blockchainRecords')}</span>
+                      <Tag color="blue">{transactions.length}</Tag>
+                    </div>
+                  } 
+                  key="blockchain"
+                >
+                  <Timeline mode="left">
+                    {transactions.map((tx: any) => (
+                      <Timeline.Item 
+                        key={tx.id}
+                        label={dayjs(tx.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                        color={tx.status === 'confirmed' ? 'green' : tx.status === 'failed' ? 'red' : 'blue'}
+                      >
+                        <div style={{ marginBottom: '8px' }}>
+                          <Tag color="blue">{getTxTypeLabel(tx.tx_type)}</Tag>
+                          <Tag color={tx.status === 'confirmed' ? 'success' : tx.status === 'failed' ? 'error' : 'processing'}>
+                            {tx.status}
+                          </Tag>
+                        </div>
+                        {tx.description && (
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '4px' }}>
+                            {tx.description}
+                          </div>
+                        )}
+                        <div style={{ 
+                          fontFamily: 'monospace', 
+                          fontSize: '12px',
+                          color: 'var(--text-tertiary)',
+                          wordBreak: 'break-all'
+                        }}>
+                          <a 
+                            href={`https://sepolia.etherscan.io/tx/${tx.tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--primary-color)' }}
+                          >
+                            {tx.tx_hash}
+                          </a>
+                        </div>
+                      </Timeline.Item>
+                    ))}
+                  </Timeline>
+                </Panel>
+              </Collapse>
             </div>
           )}
 

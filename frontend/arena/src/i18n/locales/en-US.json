@@ -109,7 +109,16 @@
     "stageEndTime": "{{stage}} Stage End Time",
     "description": "Description",
     "eventSponsors": "Event Sponsors",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "blockchainRecords": "Blockchain Transaction Records",
+    "txTypeCreate": "Create Event",
+    "txTypeUpdate": "Update Event",
+    "txTypeDelete": "Delete Event",
+    "txTypeActivate": "Activate Event",
+    "txTypeEnd": "End Event",
+    "txTypeCheckin": "Check-in",
+    "txTypeVote": "Vote",
+    "txTypeRevokeVote": "Revoke Vote"
   },
   "profile": {
     "title": "Profile",
@@ -216,6 +225,34 @@
     "totalTeams": "Participating Teams",
     "totalSubmissions": "Total Submissions",
     "ranking": "Ranking"
+  },
+  "verification": {
+    "verifyButton": "Verify Authenticity",
+    "title": "Event Verification Report",
+    "verifyFailed": "Verification Failed",
+    "verifyFailedDesc": "Verification request failed, please try again later",
+    "verifying": "Verifying event information, please wait...",
+    "allValid": "Verification Passed",
+    "hasIssues": "Issues Found",
+    "verifiedAt": "Verified At",
+    "eventInfo": "Event Information",
+    "votingRecords": "Voting Records",
+    "differencesFound": "Data Mismatches Found",
+    "eventInfoMatched": "Event information matches blockchain data perfectly",
+    "votesDifferencesFound": "Voting record discrepancies found",
+    "viewDetails": "View Detailed Comparison",
+    "database": "Database",
+    "blockchain": "Blockchain",
+    "name": "Event Name",
+    "location": "Location",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "totalVotes": "Total Votes",
+    "verifiedVoters": "Verified Voters",
+    "mismatchedVoters": "Mismatched Voter Addresses",
+    "andMore": "and {{count}} more differences",
+    "issues": "Issues Found",
+    "close": "Close"
   }
 }
 
