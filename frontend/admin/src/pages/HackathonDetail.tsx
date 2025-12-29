@@ -28,10 +28,16 @@ import {
   FileTextOutlined,
   ClockCircleOutlined,
   SettingOutlined,
+  DeleteOutlined,
+  LinkOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { StatCard } from '@shared/components'
 import request from '../api/request'
+import { deleteHackathon, getHackathonWithChainData, verifyHackathonIntegrity } from '../api/hackathon'
 import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
 
@@ -54,6 +60,10 @@ export default function HackathonDetail() {
     total: 0,
   })
   const [posterInfo, setPosterInfo] = useState<any>(null)
+  const [chainData, setChainData] = useState<any>(null)
+  const [chainDataLoading, setChainDataLoading] = useState(false)
+  const [verificationResult, setVerificationResult] = useState<any>(null)
+  const [verificationLoading, setVerificationLoading] = useState(false)
   const { user } = useAuthStore()
 
   const statusMap: Record<string, { label: string; color: string }> = {
@@ -65,6 +75,29 @@ export default function HackathonDetail() {
     submission: { label: t('dashboard.statusSubmission'), color: 'geekblue' },
     voting: { label: t('dashboard.statusVoting'), color: 'magenta' },
     results: { label: t('dashboard.statusResults'), color: 'green' },
+  }
+
+  const chainStatusMap: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+    not_on_chain: { 
+      label: t('hackathon.chainStatusNotOnChain'), 
+      color: 'default', 
+      icon: <CloseCircleOutlined /> 
+    },
+    blockchain_error: { 
+      label: t('hackathon.chainStatusBlockchainError'), 
+      color: 'red', 
+      icon: <ExclamationCircleOutlined /> 
+    },
+    chain_data_error: { 
+      label: t('hackathon.chainStatusChainDataError'), 
+      color: 'orange', 
+      icon: <ExclamationCircleOutlined /> 
+    },
+    synced: { 
+      label: t('hackathon.chainStatusSynced'), 
+      color: 'green', 
+      icon: <CheckCircleOutlined /> 
+    },
   }
 
   const stageFlow = [
@@ -109,6 +142,36 @@ export default function HackathonDetail() {
     }
   }
 
+  const fetchChainData = async () => {
+    setChainDataLoading(true)
+    try {
+      const chainDataResult = await getHackathonWithChainData(Number(id))
+      setChainData(chainDataResult)
+    } catch (error) {
+      message.error(t('hackathon.fetchChainDataFailed'))
+    } finally {
+      setChainDataLoading(false)
+    }
+  }
+
+  const handleVerifyIntegrity = async () => {
+    setVerificationLoading(true)
+    try {
+      const result = await verifyHackathonIntegrity(Number(id))
+      setVerificationResult(result)
+      
+      if (result.is_consistent) {
+        message.success(t('hackathon.verificationSuccess'))
+      } else {
+        message.warning(t('hackathon.verificationWarning'))
+      }
+    } catch (error) {
+      message.error(t('hackathon.verificationFailed'))
+    } finally {
+      setVerificationLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (id) {
       fetchDetail()
@@ -146,6 +209,29 @@ export default function HackathonDetail() {
     } catch (error) {
       message.error(t('hackathon.switchStageFailed'))
     }
+  }
+
+  const handleDelete = () => {
+    Modal.confirm({
+      title: t('hackathon.delete'),
+      content: t('hackathon.confirmDelete'),
+      okText: t('confirm'),
+      cancelText: t('cancel'),
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          await deleteHackathon(Number(id))
+          message.success(t('hackathon.deleteSuccess'))
+          navigate('/hackathons')
+        } catch (error: any) {
+          if (error.message?.includes('published') || error.response?.data?.message?.includes('published')) {
+            message.error(t('hackathon.cannotDeletePublished'))
+          } else {
+            message.error(t('hackathon.deleteFailed'))
+          }
+        }
+      },
+    })
   }
 
   // 获取统计详情
@@ -295,6 +381,15 @@ export default function HackathonDetail() {
                   title={!hasStageTimes ? t('hackathon.stages') : ''}
                 >
                   {t('hackathon.publish')}
+                </Button>
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={handleDelete}
+                  data-testid="hackathon-detail-delete-button"
+                  aria-label={t('hackathon.delete')}
+                >
+                  {t('hackathon.delete')}
                 </Button>
               </>
             )}
@@ -516,6 +611,133 @@ export default function HackathonDetail() {
             </div>
           </>
         )}
+
+        {/* 链上信息 */}
+        <Divider orientation="left" style={{ marginTop: '32px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 600 }}>{t('hackathon.chainInfo')}</span>
+        </Divider>
+        <Card style={{ marginTop: '16px' }}>
+          <Spin spinning={chainDataLoading}>
+            {!chainData && (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Button 
+                  type="primary" 
+                  onClick={fetchChainData}
+                  icon={<LinkOutlined />}
+                >
+                  {t('hackathon.loadChainData')}
+                </Button>
+              </div>
+            )}
+            
+            {chainData && (
+              <div>
+                <Descriptions column={1} bordered>
+                  <Descriptions.Item label={t('hackathon.chainStatus')}>
+                    <Tag 
+                      color={chainStatusMap[chainData.chain_status]?.color || 'default'}
+                      icon={chainStatusMap[chainData.chain_status]?.icon}
+                    >
+                      {chainStatusMap[chainData.chain_status]?.label || chainData.chain_status}
+                    </Tag>
+                  </Descriptions.Item>
+                  
+                  {chainData.hackathon.chain_event_id && (
+                    <Descriptions.Item label={t('hackathon.chainEventId')}>
+                      {chainData.hackathon.chain_event_id}
+                    </Descriptions.Item>
+                  )}
+                  
+                  {chainData.chain_data && (
+                    <>
+                      <Descriptions.Item label={t('hackathon.chainEventName')}>
+                        {chainData.chain_data.event_name}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainDescription')}>
+                        {chainData.chain_data.description}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainStartTime')}>
+                        {dayjs(chainData.chain_data.start_time * 1000).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainEndTime')}>
+                        {dayjs(chainData.chain_data.end_time * 1000).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainLocation')}>
+                        {chainData.chain_data.location}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainOrganizer')}>
+                        {chainData.chain_data.organizer}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainCreatedAt')}>
+                        {dayjs(chainData.chain_data.created_at * 1000).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                      <Descriptions.Item label={t('hackathon.chainUpdatedAt')}>
+                        {dayjs(chainData.chain_data.updated_at * 1000).format('YYYY-MM-DD HH:mm:ss')}
+                      </Descriptions.Item>
+                    </>
+                  )}
+                </Descriptions>
+                
+                <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                  <Space>
+                    <Button onClick={fetchChainData} icon={<LinkOutlined />}>
+                      {t('hackathon.refreshChainData')}
+                    </Button>
+                    <Button 
+                      type="primary" 
+                      onClick={handleVerifyIntegrity}
+                      loading={verificationLoading}
+                      icon={<CheckCircleOutlined />}
+                    >
+                      {t('hackathon.verifyIntegrity')}
+                    </Button>
+                  </Space>
+                </div>
+
+                {/* 验证结果 */}
+                {verificationResult && (
+                  <div style={{ marginTop: '24px' }}>
+                    <Divider>{t('hackathon.verificationResult')}</Divider>
+                    <Descriptions column={1} bordered>
+                      <Descriptions.Item label={t('hackathon.integrityStatus')}>
+                        <Tag 
+                          color={verificationResult.is_consistent ? 'green' : 'orange'}
+                          icon={verificationResult.is_consistent ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
+                        >
+                          {verificationResult.is_consistent ? t('hackathon.integrityConsistent') : t('hackathon.integrityInconsistent')}
+                        </Tag>
+                      </Descriptions.Item>
+                      
+                      {!verificationResult.is_consistent && verificationResult.differences && (
+                        <Descriptions.Item label={t('hackathon.differences')}>
+                          <div>
+                            {verificationResult.differences.map((diff: any, index: number) => (
+                              <div key={index} style={{ marginBottom: '8px', padding: '8px', background: '#fff2f0', borderRadius: '4px' }}>
+                                <strong>{t(`hackathon.field_${diff.field}`)}:</strong>
+                                <div style={{ marginTop: '4px', fontSize: '12px', color: '#666' }}>
+                                  {t('hackathon.chainValue')}: {diff.chain_value}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>
+                                  {t('hackathon.dbValue')}: {diff.db_value}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </Descriptions.Item>
+                      )}
+                      
+                      {verificationResult.message && (
+                        <Descriptions.Item label={t('hackathon.verificationMessage')}>
+                          {verificationResult.message}
+                        </Descriptions.Item>
+                      )}
+                    </Descriptions>
+                  </div>
+                )}
+              </div>
+            )}
+          </Spin>
+        </Card>
       </Card>
 
       {/* 统计详情弹窗 */}

@@ -68,6 +68,8 @@ func SetupAdminRoutes(router *gin.Engine) {
 				// 查看活动列表和详情（Organizer和Admin都可以）
 				hackathons.GET("", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonList)
 				hackathons.GET("/:id", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonByID)
+				hackathons.GET("/:id/chain-data", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonWithChainData)
+				hackathons.GET("/:id/verify", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.VerifyHackathonIntegrity)
 				hackathons.GET("/:id/stats", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonStats)
 				hackathons.GET("/:id/stats/:type", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetHackathonStatsDetail)
 				hackathons.GET("/:id/poster/qrcode", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetPosterQRCode)

@@ -50,10 +50,18 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			}
 		}
 
-		// 将活动信息上链
-		location := hackathon.City
-		if hackathon.LocationDetail != "" {
-			location = hackathon.LocationDetail
+		// 将活动信息上链（仅在私钥配置正确时）
+		location := ""
+		if hackathon.LocationType == "online" {
+			location = "online"
+		} else if hackathon.LocationType == "offline" || hackathon.LocationType == "hybrid" {
+			location = hackathon.LocationType
+			if hackathon.City != "" {
+				location += " - " + hackathon.City
+				if hackathon.LocationDetail != "" {
+					location += " (" + hackathon.LocationDetail + ")"
+				}
+			}
 		}
 
 		// 使用数据库ID作为链上ID
@@ -204,6 +212,86 @@ func (s *HackathonService) GetHackathonByID(id uint64) (*models.Hackathon, error
 	}
 
 	return &hackathon, nil
+}
+
+// GetHackathonWithChainData 获取包含链上数据的活动信息
+func (s *HackathonService) GetHackathonWithChainData(id uint64) (map[string]interface{}, error) {
+	// 获取数据库数据
+	hackathon, err := s.GetHackathonByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]interface{}{
+		"hackathon": hackathon,
+		"chain_data": nil,
+		"chain_status": "not_on_chain",
+	}
+
+	// 如果活动有链上ID，则获取链上数据
+	if hackathon.ChainEventID != nil {
+		blockchainService, err := NewBlockchainService()
+		if err != nil {
+			fmt.Printf("初始化区块链服务失败: %v\n", err)
+			result["chain_status"] = "blockchain_error"
+			return result, nil
+		}
+		defer blockchainService.Close()
+
+		chainData, err := blockchainService.GetEvent(*hackathon.ChainEventID)
+		if err != nil {
+			fmt.Printf("获取链上数据失败: %v\n", err)
+			result["chain_status"] = "chain_data_error"
+			return result, nil
+		}
+
+		result["chain_data"] = chainData
+		result["chain_status"] = "synced"
+	}
+
+	return result, nil
+}
+
+// VerifyHackathonIntegrity 验证活动数据一致性
+func (s *HackathonService) VerifyHackathonIntegrity(id uint64) (map[string]interface{}, error) {
+	// 获取数据库数据
+	hackathon, err := s.GetHackathonByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// 如果活动没有链上ID，直接返回未上链状态
+	if hackathon.ChainEventID == nil {
+		return map[string]interface{}{
+			"chain_status": "not_on_chain",
+			"is_consistent": false,
+			"message": "活动尚未上链",
+		}, nil
+	}
+
+	// 初始化区块链服务
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		return map[string]interface{}{
+			"chain_status": "blockchain_error",
+			"is_consistent": false,
+			"message": fmt.Sprintf("区块链服务初始化失败: %v", err),
+		}, nil
+	}
+	defer blockchainService.Close()
+
+	// 验证数据一致性
+	verification, err := blockchainService.VerifyEventIntegrity(*hackathon.ChainEventID, hackathon)
+	if err != nil {
+		return map[string]interface{}{
+			"chain_status": "chain_data_error",
+			"is_consistent": false,
+			"message": fmt.Sprintf("数据验证失败: %v", err),
+		}, nil
+	}
+
+	verification["chain_status"] = "synced"
+	return verification, nil
 }
 
 // GetHackathonStats 获取活动统计信息
@@ -407,6 +495,12 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 				return err
 			}
 
+			// 如果传入的阶段为空，则保持活动原有阶段不变
+			if len(stages) == 0 {
+				fmt.Printf("警告：已发布活动更新时没有传入阶段数据\n")
+				return nil
+			}
+
 			// 创建新阶段
 			for i := range stages {
 				stages[i].HackathonID = id
@@ -415,6 +509,19 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 				}
 			}
 
+			// 先获取要删除的奖项ID列表
+			var awardIDs []uint64
+			if err := tx.Model(&models.HackathonAward{}).Where("hackathon_id = ?", id).Pluck("id", &awardIDs).Error; err != nil {
+				return err
+			}
+			
+			// 删除这些奖项相关的奖品
+			if len(awardIDs) > 0 {
+				if err := tx.Where("award_id IN ?", awardIDs).Delete(&models.HackathonPrize{}).Error; err != nil {
+					return err
+				}
+			}
+			
 			// 删除旧奖项
 			if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonAward{}).Error; err != nil {
 				return err
@@ -432,7 +539,20 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 		})
 	}
 
+	// 初始化区块链服务
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		return fmt.Errorf("初始化区块链服务失败: %w", err)
+	}
+	defer blockchainService.Close()
+
 	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// 先获取更新前的活动信息
+		var currentHackathon models.Hackathon
+		if err := tx.Where("id = ?", id).First(&currentHackathon).Error; err != nil {
+			return err
+		}
+
 		// 更新活动
 		if err := tx.Model(&models.Hackathon{}).Where("id = ?", id).Updates(hackathon).Error; err != nil {
 			return err
@@ -443,6 +563,25 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 			return err
 		}
 
+		// 如果传入的阶段为空，且活动时间发生了变化，则自动分配阶段
+		if len(stages) == 0 {
+			// 检查活动时间是否发生了变化
+			timeChanged := !currentHackathon.StartTime.Equal(hackathon.StartTime) || 
+							!currentHackathon.EndTime.Equal(hackathon.EndTime)
+			
+			if timeChanged {
+				fmt.Printf("检测到活动时间变化，自动分配阶段时间\n")
+				fmt.Printf("原时间: %s ~ %s\n", currentHackathon.StartTime.Format("2006-01-02 15:04:05"), currentHackathon.EndTime.Format("2006-01-02 15:04:05"))
+				fmt.Printf("新时间: %s ~ %s\n", hackathon.StartTime.Format("2006-01-02 15:04:05"), hackathon.EndTime.Format("2006-01-02 15:04:05"))
+				stages = s.autoAssignStageTimes(hackathon.StartTime, hackathon.EndTime)
+				fmt.Printf("自动分配了 %d 个阶段\n", len(stages))
+			} else {
+				fmt.Printf("活动时间未变化，保持原有阶段不变\n")
+			}
+		} else {
+			fmt.Printf("传入 %d 个阶段，使用传入的阶段数据\n", len(stages))
+		}
+
 		// 创建新阶段
 		for i := range stages {
 			stages[i].HackathonID = id
@@ -451,6 +590,19 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 			}
 		}
 
+		// 先获取要删除的奖项ID列表
+		var awardIDs []uint64
+		if err := tx.Model(&models.HackathonAward{}).Where("hackathon_id = ?", id).Pluck("id", &awardIDs).Error; err != nil {
+			return err
+		}
+		
+		// 删除这些奖项相关的奖品
+		if len(awardIDs) > 0 {
+			if err := tx.Where("award_id IN ?", awardIDs).Delete(&models.HackathonPrize{}).Error; err != nil {
+				return err
+			}
+		}
+		
 		// 删除旧奖项
 		if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonAward{}).Error; err != nil {
 			return err
@@ -462,6 +614,40 @@ func (s *HackathonService) UpdateHackathon(id uint64, hackathon *models.Hackatho
 			if err := tx.Create(&awards[i]).Error; err != nil {
 				return err
 			}
+		}
+
+		// 更新链上数据
+		if existing.ChainEventID != nil {
+			// 构建位置信息
+			location := ""
+			if existing.LocationType == "online" {
+				location = "online"
+			} else if existing.LocationType == "offline" || existing.LocationType == "hybrid" {
+				location = existing.LocationType
+				if existing.City != "" {
+					location += " - " + existing.City
+					if existing.LocationDetail != "" {
+						location += " (" + existing.LocationDetail + ")"
+					}
+				}
+			}
+
+			// 更新链上活动
+			txHash, err := blockchainService.UpdateEvent(
+				*existing.ChainEventID,
+				hackathon.Name,
+				hackathon.Description,
+				uint64(hackathon.StartTime.Unix()),
+				uint64(hackathon.EndTime.Unix()),
+				location,
+				"活动信息更新",
+			)
+			if err != nil {
+				return fmt.Errorf("更新链上活动失败: %w", err)
+			}
+
+			// 记录交易哈希（可以添加日志或保存到数据库）
+			fmt.Printf("链上更新交易哈希: %s\n", txHash.Hash().Hex())
 		}
 
 		return nil
@@ -489,7 +675,55 @@ func (s *HackathonService) DeleteHackathon(id uint64, userID uint64, userRole st
 		return errors.New("只能删除处于预备状态的活动")
 	}
 
-	return database.DB.Delete(&hackathon).Error
+	// 初始化区块链服务
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		return fmt.Errorf("初始化区块链服务失败: %w", err)
+	}
+	defer blockchainService.Close()
+
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// 先获取要删除的奖项ID列表
+		var awardIDs []uint64
+		if err := tx.Model(&models.HackathonAward{}).Where("hackathon_id = ?", id).Pluck("id", &awardIDs).Error; err != nil {
+			return err
+		}
+		
+		// 删除这些奖项相关的奖品
+		if len(awardIDs) > 0 {
+			if err := tx.Where("award_id IN ?", awardIDs).Delete(&models.HackathonPrize{}).Error; err != nil {
+				return err
+			}
+		}
+		
+		// 删除相关奖项
+		if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonAward{}).Error; err != nil {
+			return err
+		}
+		
+		// 删除相关阶段
+		if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonStage{}).Error; err != nil {
+			return err
+		}
+		
+		// 软删除活动
+		if err := tx.Delete(&hackathon).Error; err != nil {
+			return err
+		}
+		
+		// 删除链上数据（在数据库事务成功后执行）
+		if hackathon.ChainEventID != nil && *hackathon.ChainEventID > 0 {
+			_, err := blockchainService.DeleteEvent(*hackathon.ChainEventID)
+			if err != nil {
+				// 链上删除失败不影响数据库操作，但记录错误
+				fmt.Printf("删除链上数据失败: %v\n", err)
+			} else {
+				fmt.Printf("链上活动已删除，链上ID: %d\n", *hackathon.ChainEventID)
+			}
+		}
+		
+		return nil
+	})
 }
 
 // PublishHackathon 发布活动（仅活动创建者可发布）
@@ -532,9 +766,87 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 		}
 	}
 
+	// 初始化区块链服务
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		return nil, fmt.Errorf("初始化区块链服务失败: %w", err)
+	}
+	defer blockchainService.Close()
+
 	// 更新活动状态
 	if err := database.DB.Model(&hackathon).Update("status", "published").Error; err != nil {
 		return nil, err
+	}
+
+	// 如果活动还没有链上ID，则创建链上数据
+	if hackathon.ChainEventID == nil {
+		// 构建位置信息
+		location := ""
+		if hackathon.LocationType == "online" {
+			location = "online"
+		} else if hackathon.LocationType == "offline" || hackathon.LocationType == "hybrid" {
+			location = hackathon.LocationType
+			if hackathon.City != "" {
+				location += " - " + hackathon.City
+				if hackathon.LocationDetail != "" {
+					location += " (" + hackathon.LocationDetail + ")"
+				}
+			}
+		}
+
+		// 使用数据库ID作为链上ID
+		chainEventID := hackathon.ID
+
+		txHash, err := blockchainService.CreateEvent(
+			chainEventID,
+			hackathon.Name,
+			hackathon.Description,
+			uint64(hackathon.StartTime.Unix()),
+			uint64(hackathon.EndTime.Unix()),
+			location,
+		)
+
+		if err != nil {
+			// 链上失败不影响发布，但记录错误
+			fmt.Printf("活动发布上链失败: %v\n", err)
+		} else {
+			// 更新数据库中的链上ID
+			hackathon.ChainEventID = &chainEventID
+			if err := database.DB.Save(&hackathon).Error; err != nil {
+				fmt.Printf("更新链上ID失败: %v\n", err)
+			}
+			fmt.Printf("链上活动已创建，链上ID: %d, 交易哈希: %s\n", chainEventID, txHash.Hash().Hex())
+		}
+	} else {
+		// 如果已有链上ID，更新链上状态为"已发布"
+		location := ""
+		if hackathon.LocationType == "online" {
+			location = "online"
+		} else if hackathon.LocationType == "offline" || hackathon.LocationType == "hybrid" {
+			location = hackathon.LocationType
+			if hackathon.City != "" {
+				location += " - " + hackathon.City
+				if hackathon.LocationDetail != "" {
+					location += " (" + hackathon.LocationDetail + ")"
+				}
+			}
+		}
+
+		txHash, err := blockchainService.UpdateEvent(
+			*hackathon.ChainEventID,
+			hackathon.Name,
+			hackathon.Description,
+			uint64(hackathon.StartTime.Unix()),
+			uint64(hackathon.EndTime.Unix()),
+			location,
+			"活动已发布",
+		)
+		if err != nil {
+			// 链上失败不影响发布，但记录错误
+			fmt.Printf("活动发布链上更新失败: %v\n", err)
+		} else {
+			fmt.Printf("链上活动状态已更新，交易哈希: %s\n", txHash.Hash().Hex())
+		}
 	}
 
 	// 生成海报URL和二维码
@@ -722,7 +1034,33 @@ func (s *HackathonService) ArchiveHackathon(id uint64) error {
 		return errors.New("只能归档已发布的活动")
 	}
 
-	return database.DB.Delete(&hackathon).Error
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// 先获取要删除的奖项ID列表
+		var awardIDs []uint64
+		if err := tx.Model(&models.HackathonAward{}).Where("hackathon_id = ?", id).Pluck("id", &awardIDs).Error; err != nil {
+			return err
+		}
+		
+		// 删除这些奖项相关的奖品
+		if len(awardIDs) > 0 {
+			if err := tx.Where("award_id IN ?", awardIDs).Delete(&models.HackathonPrize{}).Error; err != nil {
+				return err
+			}
+		}
+		
+		// 删除相关奖项
+		if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonAward{}).Error; err != nil {
+			return err
+		}
+		
+		// 删除相关阶段
+		if err := tx.Where("hackathon_id = ?", id).Delete(&models.HackathonStage{}).Error; err != nil {
+			return err
+		}
+		
+		// 软删除活动
+		return tx.Delete(&hackathon).Error
+	})
 }
 
 // BatchArchiveHackathons 批量归档活动

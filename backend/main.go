@@ -24,7 +24,11 @@ func main() {
 	defer database.CloseDB()
 
 	// 设置Gin模式
-	gin.SetMode(config.AppConfig.ServerMode)
+	if config.AppConfig != nil {
+		gin.SetMode(config.AppConfig.ServerMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 
 	// 创建Gin引擎
 	router := gin.Default()
@@ -44,7 +48,12 @@ func main() {
 	})
 
 	// 启动服务器
-	port := ":" + config.AppConfig.ServerPort
+	var port string
+	if config.AppConfig != nil && config.AppConfig.ServerPort != "" {
+		port = ":" + config.AppConfig.ServerPort
+	} else {
+		port = ":8000" // 默认端口
+	}
 	log.Printf("Server starting on port %s", port)
 	if err := router.Run(port); err != nil {
 		log.Fatal("Failed to start server:", err)

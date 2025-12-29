@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Table, Button, Select, Space, message, Card, Tag, Input } from 'antd'
+import { Table, Button, Select, Space, message, Card, Tag, Input, Modal } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { PlusOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined, SearchOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import request from '../api/request'
+import { deleteHackathon } from '../api/hackathon'
 import dayjs from 'dayjs'
 import { useAuthStore } from '../store/authStore'
 
@@ -34,6 +35,7 @@ export default function HackathonList() {
   }
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null)
   const [status, setStatus] = useState('')
   const [keyword, setKeyword] = useState('')
   const [pagination, setPagination] = useState({
@@ -80,6 +82,33 @@ export default function HackathonList() {
   const handleSearchClear = () => {
     setKeyword('')
     fetchHackathons(1, pagination.pageSize)
+  }
+
+  // 删除活动
+  const handleDelete = (id: number) => {
+    Modal.confirm({
+      title: t('hackathon.delete'),
+      content: t('hackathon.confirmDelete'),
+      okText: t('confirm'),
+      cancelText: t('cancel'),
+      okType: 'danger',
+      onOk: async () => {
+        setDeleteLoading(id)
+        try {
+          await deleteHackathon(id)
+          message.success(t('hackathon.deleteSuccess'))
+          fetchHackathons(pagination.current, pagination.pageSize)
+        } catch (error: any) {
+          if (error.message?.includes('published') || error.response?.data?.message?.includes('published')) {
+            message.error(t('hackathon.cannotDeletePublished'))
+          } else {
+            message.error(t('hackathon.deleteFailed'))
+          }
+        } finally {
+          setDeleteLoading(null)
+        }
+      },
+    })
   }
 
   useEffect(() => {
@@ -137,7 +166,7 @@ export default function HackathonList() {
     {
       title: t('hackathon.actions'),
       key: 'action',
-      width: 150,
+      width: 200,
       fixed: 'right' as const,
       render: (_: any, record: Hackathon) => (
         <Space size="small" data-testid={`hackathon-list-actions-${record.id}`}>
@@ -151,6 +180,20 @@ export default function HackathonList() {
           >
             {t('hackathon.view')}
           </Button>
+          {record.status === 'preparation' && record.organizer_id === user?.id && (
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.id)}
+              size="small"
+              loading={deleteLoading === record.id}
+              data-testid={`hackathon-list-delete-button-${record.id}`}
+              aria-label={`${t('hackathon.delete')} ${record.name}`}
+            >
+              {t('hackathon.delete')}
+            </Button>
+          )}
         </Space>
       ),
     },
@@ -220,7 +263,7 @@ export default function HackathonList() {
             onChange: (page, pageSize) => {
               fetchHackathons(page, pageSize)
             },
-            onShowSizeChange: (current, size) => {
+            onShowSizeChange: (_, size) => {
               fetchHackathons(1, size)
             },
           }}

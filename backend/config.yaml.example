@@ -25,3 +25,12 @@ cors:
     - http://localhost:3000
     - http://localhost:3001
 
+# 区块链配置
+blockchain:
+  contract_address: "0x9637F7201aDB470104dBACa9d600b09C50ccb752"
+  network: "sepolia"
+  chain_id: 11155111
+  private_key: ""  # 私钥配置，用于发送区块链交易。生产环境中请使用环境变量 BLOCKCHAIN_PRIVATE_KEY
+  # 示例私钥格式（不要在生产环境中使用此私钥）:
+  # private_key: "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+

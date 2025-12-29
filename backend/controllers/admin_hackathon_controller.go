@@ -97,6 +97,40 @@ func (c *AdminHackathonController) GetHackathonByID(ctx *gin.Context) {
 	utils.Success(ctx, hackathon)
 }
 
+// GetHackathonWithChainData 获取包含链上数据的活动信息
+func (c *AdminHackathonController) GetHackathonWithChainData(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	result, err := c.hackathonService.GetHackathonWithChainData(id)
+	if err != nil {
+		utils.NotFound(ctx, "活动不存在")
+		return
+	}
+
+	utils.Success(ctx, result)
+}
+
+// VerifyHackathonIntegrity 验证活动数据一致性
+func (c *AdminHackathonController) VerifyHackathonIntegrity(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	result, err := c.hackathonService.VerifyHackathonIntegrity(id)
+	if err != nil {
+		utils.NotFound(ctx, "活动不存在")
+		return
+	}
+
+	utils.Success(ctx, result)
+}
+
 // UpdateHackathon 更新活动（仅活动创建者可编辑）
 func (c *AdminHackathonController) UpdateHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)

@@ -45,6 +45,7 @@ type Config struct {
 		ContractAddress string `yaml:"contract_address"`
 		Network        string `yaml:"network"`
 		ChainID        int    `yaml:"chain_id"`
+		PrivateKey     string `yaml:"private_key"`
 	} `yaml:"blockchain"`
 }
 
@@ -91,6 +92,9 @@ func LoadConfig() error {
 		testWallets = getEnvAsSlice("TEST_WALLETS", defaultConfig.TestWallets)
 	}
 
+	// 区块链私钥优先从环境变量读取（更安全）
+	blockchainPrivateKey := getEnv("BLOCKCHAIN_PRIVATE_KEY", defaultConfig.Blockchain.PrivateKey)
+
 	AppConfig = &Config{
 		DBHost:         getEnv("DB_HOST", defaultConfig.DBHost),
 		DBPort:         getEnv("DB_PORT", defaultConfig.DBPort),
@@ -103,7 +107,17 @@ func LoadConfig() error {
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets:    testWallets,
-		Blockchain:     defaultConfig.Blockchain,
+		Blockchain: struct {
+			ContractAddress string `yaml:"contract_address"`
+			Network        string `yaml:"network"`
+			ChainID        int    `yaml:"chain_id"`
+			PrivateKey     string `yaml:"private_key"`
+		}{
+			ContractAddress: defaultConfig.Blockchain.ContractAddress,
+			Network:        defaultConfig.Blockchain.Network,
+			ChainID:        defaultConfig.Blockchain.ChainID,
+			PrivateKey:     blockchainPrivateKey,
+		},
 	}
 
 	return nil
@@ -162,6 +176,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if yamlConfig.Blockchain.ChainID > 0 {
 		defaultConfig.Blockchain.ChainID = yamlConfig.Blockchain.ChainID
+	}
+	if yamlConfig.Blockchain.PrivateKey != "" {
+		defaultConfig.Blockchain.PrivateKey = yamlConfig.Blockchain.PrivateKey
 	}
 
 	return nil
