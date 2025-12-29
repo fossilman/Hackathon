@@ -20,6 +20,7 @@ type Hackathon struct {
 	OrganizerID  uint64         `gorm:"index;not null" json:"organizer_id"`
 	MaxTeamSize  int            `gorm:"default:3" json:"max_team_size"`
 	MaxParticipants int         `gorm:"default:0" json:"max_participants"` // 最大参与人数，0表示不限制
+	ChainEventID *uint64        `gorm:"type:bigint" json:"chain_event_id"` // 链上活动ID
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

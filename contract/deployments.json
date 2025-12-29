@@ -1,0 +1,12 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "contractAddress": "0x9637F7201aDB470104dBACa9d600b09C50ccb752",
+  "deploymentHash": "0x115cdf29884ceb07d5a8d49039801cc5fe9d88683429302bed66d13e20cabcbc",
+  "deployedAt": "2025-12-29T02:57:50.162Z",
+  "deployer": "0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758",
+  "gasLimit": "8000000",
+  "gasUsed": "1851552",
+  "blockNumber": 9935725,
+  "blockHash": "0xb27710b942041c9c17867b3ac912cadab0ea955c57c037dc82ebbf0f4c2e454c"
+}

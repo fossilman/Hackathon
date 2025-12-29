@@ -16,6 +16,13 @@ type HackathonService struct{}
 
 // CreateHackathon 创建活动
 func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages []models.HackathonStage, awards []models.HackathonAward, autoAssignStages bool) error {
+	// 初始化区块链服务
+	blockchainService, err := NewBlockchainService()
+	if err != nil {
+		return fmt.Errorf("初始化区块链服务失败: %w", err)
+	}
+	defer blockchainService.Close()
+
 	return database.DB.Transaction(func(tx *gorm.DB) error {
 		// 创建活动
 		if err := tx.Create(hackathon).Error; err != nil {
@@ -41,6 +48,36 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			if err := tx.Create(&awards[i]).Error; err != nil {
 				return fmt.Errorf("创建奖项失败: %w", err)
 			}
+		}
+
+		// 将活动信息上链
+		location := hackathon.City
+		if hackathon.LocationDetail != "" {
+			location = hackathon.LocationDetail
+		}
+
+		// 使用数据库ID作为链上ID
+		chainEventID := hackathon.ID
+
+		txHash, err := blockchainService.CreateEvent(
+			chainEventID,
+			hackathon.Name,
+			hackathon.Description,
+			uint64(hackathon.StartTime.Unix()),
+			uint64(hackathon.EndTime.Unix()),
+			location,
+		)
+
+		if err != nil {
+			// 链上失败不影响数据库创建，但记录错误
+			fmt.Printf("活动上链失败: %v\n", err)
+		} else {
+			// 更新数据库中的链上ID
+			hackathon.ChainEventID = &chainEventID
+			if err := tx.Save(hackathon).Error; err != nil {
+				fmt.Printf("更新链上ID失败: %v\n", err)
+			}
+			fmt.Printf("链上活动已创建，链上ID: %d, 交易哈希: %s\n", chainEventID, txHash.Hash().Hex())
 		}
 
 		return nil
@@ -780,7 +817,7 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 		"checkin":        2,
 		"team_formation": 3,
 		"submission":     4,
-		"voting":          5,
+		"voting":         5,
 	}
 
 	// 检查每个阶段的时间
@@ -946,36 +983,35 @@ func (s *HackathonService) GetArchiveDetail(hackathonID uint64) (map[string]inte
 		return nil, err
 	}
 
-		finalResults := make([]map[string]interface{}, 0)
-		submissionIndex := 0
-		for _, award := range awards {
-			// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
-			awardResults := make([]map[string]interface{}, 0)
-			for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
-				submission := submissions[submissionIndex]
-				voteCount := submissionVoteCounts[submission.ID]
-				awardResults = append(awardResults, map[string]interface{}{
-					"team_name":      submission.Team.Name,
-					"submission_name": submission.Name,
-					"vote_count":      voteCount,
-					"prize_money":     award.Prize,
-				})
-				submissionIndex++
-			}
-			finalResults = append(finalResults, map[string]interface{}{
-				"award_name": award.Name,
-				"prize":      award.Prize,
-				"quantity":   award.Quantity,
-				"winners":    awardResults,
+	finalResults := make([]map[string]interface{}, 0)
+	submissionIndex := 0
+	for _, award := range awards {
+		// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
+		awardResults := make([]map[string]interface{}, 0)
+		for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
+			submission := submissions[submissionIndex]
+			voteCount := submissionVoteCounts[submission.ID]
+			awardResults = append(awardResults, map[string]interface{}{
+				"team_name":       submission.Team.Name,
+				"submission_name": submission.Name,
+				"vote_count":      voteCount,
+				"prize_money":     award.Prize,
 			})
+			submissionIndex++
 		}
+		finalResults = append(finalResults, map[string]interface{}{
+			"award_name": award.Name,
+			"prize":      award.Prize,
+			"quantity":   award.Quantity,
+			"winners":    awardResults,
+		})
+	}
 
 	return map[string]interface{}{
-		"hackathon":    hackathon,
-		"stats":        stats,
-		"submissions":  submissions,
-		"vote_results": voteResults,
+		"hackathon":     hackathon,
+		"stats":         stats,
+		"submissions":   submissions,
+		"vote_results":  voteResults,
 		"final_results": finalResults,
 	}, nil
 }
-

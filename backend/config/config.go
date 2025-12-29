@@ -41,6 +41,11 @@ type Config struct {
 	CORS struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
+	Blockchain struct {
+		ContractAddress string `yaml:"contract_address"`
+		Network        string `yaml:"network"`
+		ChainID        int    `yaml:"chain_id"`
+	} `yaml:"blockchain"`
 }
 
 var AppConfig *Config
@@ -98,6 +103,7 @@ func LoadConfig() error {
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets:    testWallets,
+		Blockchain:     defaultConfig.Blockchain,
 	}
 
 	return nil
@@ -145,6 +151,17 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if len(yamlConfig.CORS.AllowOrigins) > 0 {
 		defaultConfig.CORSOrigins = yamlConfig.CORS.AllowOrigins
+	}
+
+	// 加载区块链配置
+	if yamlConfig.Blockchain.ContractAddress != "" {
+		defaultConfig.Blockchain.ContractAddress = yamlConfig.Blockchain.ContractAddress
+	}
+	if yamlConfig.Blockchain.Network != "" {
+		defaultConfig.Blockchain.Network = yamlConfig.Blockchain.Network
+	}
+	if yamlConfig.Blockchain.ChainID > 0 {
+		defaultConfig.Blockchain.ChainID = yamlConfig.Blockchain.ChainID
 	}
 
 	return nil
