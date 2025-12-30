@@ -7,8 +7,11 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "test:coverage": "hardhat coverage",
-    "deploy:local": "hardhat run scripts/deploy-event-contract.js --network hardhat",
-    "deploy:sepolia": "hardhat run scripts/deploy-event-contract.js --network sepolia",
+    "test:nft": "hardhat test test/NftContract.test.js",
+    "deploy:event:local": "hardhat run scripts/deploy-event-contract.js --network hardhat",
+    "deploy:event:sepolia": "hardhat run scripts/deploy-event-contract.js --network sepolia",
+    "deploy:nft:local": "hardhat run scripts/deploy-nft-contract.js --network hardhat",
+    "deploy:nft:sepolia": "hardhat run scripts/deploy-nft-contract.js --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia",
     "node": "hardhat node",
     "clean": "hardhat clean"

@@ -28,6 +28,7 @@ cors:
 # 区块链配置
 blockchain:
   contract_address: "0x9637F7201aDB470104dBACa9d600b09C50ccb752"
+  nft_contract_address: "0xc2b8D22b0D8bD90bcc31271067dA6e6d18C6D814"
   network: "sepolia"
   chain_id: 11155111
   private_key: ""  # 私钥配置，用于发送区块链交易。生产环境中请使用环境变量 BLOCKCHAIN_PRIVATE_KEY

@@ -42,10 +42,11 @@ type Config struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
 	Blockchain struct {
-		ContractAddress string `yaml:"contract_address"`
-		Network        string `yaml:"network"`
-		ChainID        int    `yaml:"chain_id"`
-		PrivateKey     string `yaml:"private_key"`
+		ContractAddress    string `yaml:"contract_address"`
+		NftContractAddress string `yaml:"nft_contract_address"`
+		Network            string `yaml:"network"`
+		ChainID            int    `yaml:"chain_id"`
+		PrivateKey         string `yaml:"private_key"`
 	} `yaml:"blockchain"`
 }
 
@@ -108,15 +109,17 @@ func LoadConfig() error {
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets:    testWallets,
 		Blockchain: struct {
-			ContractAddress string `yaml:"contract_address"`
-			Network        string `yaml:"network"`
-			ChainID        int    `yaml:"chain_id"`
-			PrivateKey     string `yaml:"private_key"`
+			ContractAddress    string `yaml:"contract_address"`
+			NftContractAddress string `yaml:"nft_contract_address"`
+			Network            string `yaml:"network"`
+			ChainID            int    `yaml:"chain_id"`
+			PrivateKey         string `yaml:"private_key"`
 		}{
-			ContractAddress: defaultConfig.Blockchain.ContractAddress,
-			Network:        defaultConfig.Blockchain.Network,
-			ChainID:        defaultConfig.Blockchain.ChainID,
-			PrivateKey:     blockchainPrivateKey,
+			ContractAddress:    defaultConfig.Blockchain.ContractAddress,
+			NftContractAddress: defaultConfig.Blockchain.NftContractAddress,
+			Network:            defaultConfig.Blockchain.Network,
+			ChainID:            defaultConfig.Blockchain.ChainID,
+			PrivateKey:         blockchainPrivateKey,
 		},
 	}
 
@@ -170,6 +173,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	// 加载区块链配置
 	if yamlConfig.Blockchain.ContractAddress != "" {
 		defaultConfig.Blockchain.ContractAddress = yamlConfig.Blockchain.ContractAddress
+	}
+	if yamlConfig.Blockchain.NftContractAddress != "" {
+		defaultConfig.Blockchain.NftContractAddress = yamlConfig.Blockchain.NftContractAddress
 	}
 	if yamlConfig.Blockchain.Network != "" {
 		defaultConfig.Blockchain.Network = yamlConfig.Blockchain.Network

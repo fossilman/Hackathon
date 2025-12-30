@@ -13,6 +13,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 	adminHackathonController := controllers.NewAdminHackathonController()
 	adminDashboardController := controllers.NewAdminDashboardController()
 	sponsorController := controllers.NewSponsorController()
+	nftController := controllers.NewNFTController()
 
 	api := router.Group("/api/v1/admin")
 	{
@@ -100,6 +101,27 @@ func SetupAdminRoutes(router *gin.Engine) {
 				sponsorAdmin.GET("/applications/pending", sponsorController.GetPendingApplications)
 				sponsorAdmin.GET("/applications/reviewed", sponsorController.GetReviewedApplications)
 				sponsorAdmin.POST("/applications/:id/review", sponsorController.ReviewApplication)
+			}
+
+			// NFT管理（Organizer和Admin权限）
+			nft := api.Group("/nft")
+			nft.Use(middleware.RoleMiddleware("organizer", "admin"))
+			{
+				// 活动注册到NFT合约
+				nft.POST("/hackathons/:eventId/register", nftController.RegisterEvent)
+				
+				// 主办方授权管理
+				nft.POST("/organizers/authorize", nftController.AuthorizeOrganizer)
+				
+				// NFT发放相关
+				nft.GET("/hackathons/:eventId/checked-in-participants", nftController.GetCheckedInParticipants)
+				nft.POST("/hackathons/:eventId/mint-all", nftController.MintNFTForAllCheckedIn)
+				nft.POST("/mint", nftController.MintEventNFT)
+				nft.POST("/batch-mint", nftController.BatchMintEventNFT)
+				
+				// NFT查询相关
+				nft.GET("/hackathons/:eventId/count", nftController.GetEventNFTCount)
+				nft.GET("/hackathons/:eventId/nfts", nftController.GetEventNFTInfos)
 			}
 		}
 	}

@@ -14,6 +14,11 @@ import (
 
 type HackathonService struct{}
 
+// NewHackathonService 创建 HackathonService 实例
+func NewHackathonService() *HackathonService {
+	return &HackathonService{}
+}
+
 // CreateHackathon 创建活动
 func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages []models.HackathonStage, awards []models.HackathonAward, autoAssignStages bool) error {
 	// 初始化区块链服务
@@ -87,6 +92,22 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			}
 			fmt.Printf("链上活动已创建，链上ID: %d, 交易哈希: %s\n", chainEventID, txHash.Hash().Hex())
 		}
+
+		// 将活动注册到NFT合约（不阻塞活动创建）
+		go func() {
+			nftService, err := NewNFTService()
+			if err != nil {
+				fmt.Printf("NFT服务初始化失败，无法注册活动到NFT合约: %v\n", err)
+				return
+			}
+
+			tx, err := nftService.RegisterEvent(hackathon.ID)
+			if err != nil {
+				fmt.Printf("活动注册到NFT合约失败: %v\n", err)
+				return
+			}
+			fmt.Printf("活动已成功注册到NFT合约，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
+		}()
 
 		return nil
 	})

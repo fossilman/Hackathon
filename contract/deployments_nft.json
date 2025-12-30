@@ -1,0 +1,13 @@
+{
+  "sepolia": {
+    "nftContract": {
+      "address": "0xc2b8D22b0D8bD90bcc31271067dA6e6d18C6D814",
+      "name": "Hackathon Event NFT",
+      "symbol": "HENFT",
+      "owner": "0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758",
+      "deployer": "0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758",
+      "deploymentTime": "2025-12-30T08:19:27.382Z",
+      "blockNumber": 9944024
+    }
+  }
+}

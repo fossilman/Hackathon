@@ -27,7 +27,7 @@ func InitDB() error {
 
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: logger.Default.LogMode(logger.Warn),
 	})
 
 	if err != nil {
@@ -56,6 +56,7 @@ func AutoMigrate() error {
 		&models.HackathonPrize{},
 		&models.Registration{},
 		&models.Checkin{},
+		&models.NFTRecord{},
 		&models.Team{},
 		&models.TeamMember{},
 		&models.Submission{},

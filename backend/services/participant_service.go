@@ -196,3 +196,12 @@ func (s *ParticipantService) UpdateProfile(participantID uint64, updates map[str
 	return database.DB.Model(&models.Participant{}).Where("id = ? AND deleted_at IS NULL", participantID).Updates(updates).Error
 }
 
+// GetParticipantByID 根据ID获取参赛者信息
+func (s *ParticipantService) GetParticipantByID(participantID uint64) (*models.Participant, error) {
+	var participant models.Participant
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", participantID).First(&participant).Error; err != nil {
+		return nil, err
+	}
+	return &participant, nil
+}
+
