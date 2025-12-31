@@ -145,9 +145,10 @@ func (c *ArenaRegistrationController) Checkin(ctx *gin.Context) {
 		}
 	}
 
-	// 返回签到成功结果，包含NFT相关信息
+	// 返回签到成功结果，包含NFT和区块链相关信息
 	result := gin.H{
 		"check_in": "success",
+		"message":  "签到成功，区块链交易正在处理中",
 	}
 	if nftMintResult != nil {
 		for k, v := range nftMintResult {
@@ -184,3 +185,80 @@ func (c *ArenaRegistrationController) GetCheckinStatus(ctx *gin.Context) {
 	utils.Success(ctx, result)
 }
 
+// GetCheckinIntegrity 获取签到记录完整性验证
+func (c *ArenaRegistrationController) GetCheckinIntegrity(ctx *gin.Context) {
+	eventID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	participantID, _ := ctx.Get("participant_id")
+
+	integrity, err := c.registrationService.GetCheckinIntegrity(eventID, participantID.(uint64))
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, integrity)
+}
+
+// BatchCheckin 批量签到（管理员功能）
+func (c *ArenaRegistrationController) BatchCheckin(ctx *gin.Context) {
+	eventID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	var request struct {
+		ParticipantIDs []uint64 `json:"participant_ids" binding:"required"`
+	}
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		utils.BadRequest(ctx, "请求数据格式错误")
+		return
+	}
+
+	if len(request.ParticipantIDs) == 0 {
+		utils.BadRequest(ctx, "参与者列表不能为空")
+		return
+	}
+
+	if len(request.ParticipantIDs) > 100 {
+		utils.BadRequest(ctx, "批量签到一次最多支持100人")
+		return
+	}
+
+	err = c.registrationService.BatchCheckin(eventID, request.ParticipantIDs)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, gin.H{
+		"message":          "批量签到成功",
+		"participant_count": len(request.ParticipantIDs),
+	})
+}
+
+// RegisterEventToCheckInContract 将活动注册到 CheckIn 合约（管理员功能）
+func (c *ArenaRegistrationController) RegisterEventToCheckInContract(ctx *gin.Context) {
+	eventID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	err = c.registrationService.RegisterEventToCheckInContract(eventID)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, gin.H{
+		"message": "活动已成功注册到 CheckIn 合约",
+		"event_id": eventID,
+	})
+}

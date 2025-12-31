@@ -62,6 +62,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 				registration.GET("/registration-status", arenaRegistrationController.GetRegistrationStatus)
 				registration.POST("/checkin", arenaRegistrationController.Checkin)
 				registration.GET("/checkin-status", arenaRegistrationController.GetCheckinStatus)
+				registration.GET("/checkin-integrity", arenaRegistrationController.GetCheckinIntegrity)
 			}
 
 			// 组队相关

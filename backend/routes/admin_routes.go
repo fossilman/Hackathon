@@ -14,6 +14,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 	adminDashboardController := controllers.NewAdminDashboardController()
 	sponsorController := controllers.NewSponsorController()
 	nftController := controllers.NewNFTController()
+	arenaRegistrationController := controllers.NewArenaRegistrationController()
 
 	api := router.Group("/api/v1/admin")
 	{
@@ -92,6 +93,10 @@ func SetupAdminRoutes(router *gin.Engine) {
 				hackathons.POST("/:id/archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.ArchiveHackathon)
 				hackathons.POST("/:id/unarchive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.UnarchiveHackathon)
 				hackathons.POST("/batch-archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.BatchArchiveHackathons)
+
+				// CheckIn 合约管理（Organizer和Admin权限）
+				hackathons.POST("/:id/checkin-contract/register", middleware.RoleMiddleware("organizer", "admin"), arenaRegistrationController.RegisterEventToCheckInContract)
+				hackathons.POST("/:id/batch-checkin", middleware.RoleMiddleware("organizer", "admin"), arenaRegistrationController.BatchCheckin)
 			}
 
 			// 赞助商审核（Admin权限）

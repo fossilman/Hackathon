@@ -12,6 +12,8 @@
     "deploy:event:sepolia": "hardhat run scripts/deploy-event-contract.js --network sepolia",
     "deploy:nft:local": "hardhat run scripts/deploy-nft-contract.js --network hardhat",
     "deploy:nft:sepolia": "hardhat run scripts/deploy-nft-contract.js --network sepolia",
+    "deploy:checkin:local": "hardhat run scripts/deploy-checkin-contract.js --network hardhat",
+    "deploy:checkin:sepolia": "hardhat run scripts/deploy-checkin-contract.js --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia",
     "node": "hardhat node",
     "clean": "hardhat clean"

@@ -56,3 +56,19 @@ controllers/nft_controller.go:327:2: declared and not used: hackathon
 - 活动创建时候，将该活动注册到NFT中
 - NFT发放成功: participant=0xd71fba96c98ee438c7076984f016156e39c337cb, eventID=48, tokenID=9944367, txHash=0xd533a5b3de3af0fddb8fbc4a1f49bdcb4c950ce3e25fa070d9f24b805d6b951f,记录NFT发放到数据库失败: Error 1364 (HY000): Field 'hackathon_id' doesn't have a default value
 - 记录NFT发放到数据库失败: Error 1364 (HY000): Field 'hackathon_id' doesn't have a default value
+
+## 签到信息上链
+### 102. 把它变成一份可落地的需求
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.1 需求 和 开发规范 tpl/contract_rules.md 生成详细的开发文档 sdp/DEV401_CheckIn.md 。严格按照文档要求完成，不要额外操作。
+
+### 103. 把它变成一段可运行的代码
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.1 需求 和 开发文档： sdp/DEV401_CheckIn.md 参照活动相关代码 contract/contracts/EventInfoContract.sol 和 NFT相关代码 contract/contracts/NftContract.sol （可以直接照抄，然后新增，保持原有进行迭代）生成代码，合约代码为 contract/contracts/CheckInContract.sol ，实现文档中包含的所有功能，严格按照文档要求完成，不要额外操作。
+- 我已配置好 .env 文件，将 CheckInContract.sol 合约部署到 Sepolia 测试网络中，并验证源码，部署成功后，将合约地址记录到 contract/deployments_checkin.json 中，不要额外操作。
+- 将 CheckIn 合约地址回填到 backend 项目中，保证链上和链下数据结合起来，不要额外操作
+
+## PART1
+### 签到信息上链
+- 创建活动并没有将数据写入到 checkIn 的合约中
+- 活动注册到CheckIn合约失败: 注册活动到 CheckIn 合约失败: replacement transaction underpriced
+- 等待CheckIn合约注册交易确认失败: 获取交易收据失败: not found
+- checkin 接口超时了

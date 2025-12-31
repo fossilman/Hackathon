@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"hackathon-backend/database"
@@ -98,15 +99,84 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			nftService, err := NewNFTService()
 			if err != nil {
 				fmt.Printf("NFT服务初始化失败，无法注册活动到NFT合约: %v\n", err)
+			} else {
+				tx, err := nftService.RegisterEvent(hackathon.ID)
+				if err != nil {
+					fmt.Printf("活动注册到NFT合约失败: %v\n", err)
+				} else {
+					fmt.Printf("活动已成功注册到NFT合约，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
+				}
+			}
+		}()
+
+		// 将活动注册到CheckIn合约（不阻塞活动创建）
+		go func() {
+			checkinService, err := NewCheckInBlockchainService()
+			if err != nil {
+				fmt.Printf("CheckIn服务初始化失败，无法注册活动到CheckIn合约: %v\n", err)
+				return
+			}
+			defer checkinService.Close()
+
+			// 检查活动是否已注册
+			isRegistered, err := checkinService.IsEventRegistered(hackathon.ID)
+			if err != nil {
+				fmt.Printf("查询活动CheckIn注册状态失败: %v\n", err)
 				return
 			}
 
-			tx, err := nftService.RegisterEvent(hackathon.ID)
-			if err != nil {
-				fmt.Printf("活动注册到NFT合约失败: %v\n", err)
+			if isRegistered {
+				fmt.Printf("活动 %d 已在CheckIn合约中注册\n", hackathon.ID)
 				return
 			}
-			fmt.Printf("活动已成功注册到NFT合约，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
+
+			// 注册活动到合约
+			tx, err := checkinService.RegisterEvent(hackathon.ID)
+			if err != nil {
+				fmt.Printf("活动注册到CheckIn合约失败: %v\n", err)
+				return
+			}
+
+			fmt.Printf("CheckIn合约注册交易已发送，交易哈希: %s\n", tx.Hash().Hex())
+			
+			// 立即检查交易状态
+			hasReceipt, receipt, err := checkinService.CheckTransactionStatus(tx.Hash().Hex())
+			if err != nil {
+				if !strings.Contains(err.Error(), "not found") {
+					fmt.Printf("检查交易状态失败: %v\n", err)
+					return
+				}
+			}
+			
+			if hasReceipt && receipt != nil {
+				if receipt.Status == 1 {
+					fmt.Printf("活动已成功注册到CheckIn合约，活动ID: %d, 交易哈希: %s, 区块号: %d\n", hackathon.ID, tx.Hash().Hex(), receipt.BlockNumber.Uint64())
+				} else {
+					fmt.Printf("CheckIn合约注册交易失败，状态: %d, 交易哈希: %s\n", receipt.Status, tx.Hash().Hex())
+				}
+				return
+			}
+
+			// 如果没有收据，等待一段时间再检查
+			fmt.Printf("CheckIn合约注册交易正在处理中，等待确认...\n")
+			time.Sleep(10 * time.Second)
+			
+			// 再次检查交易状态
+			hasReceipt, receipt, err = checkinService.CheckTransactionStatus(tx.Hash().Hex())
+			if err != nil {
+				fmt.Printf("最终交易状态检查失败: %v，交易哈希: %s，可能仍在处理中\n", err, tx.Hash().Hex())
+				return
+			}
+			
+			if hasReceipt && receipt != nil {
+				if receipt.Status == 1 {
+					fmt.Printf("活动已成功注册到CheckIn合约，活动ID: %d, 交易哈希: %s, 区块号: %d\n", hackathon.ID, tx.Hash().Hex(), receipt.BlockNumber.Uint64())
+				} else {
+					fmt.Printf("CheckIn合约注册交易失败，状态: %d, 交易哈希: %s\n", receipt.Status, tx.Hash().Hex())
+				}
+			} else {
+				fmt.Printf("CheckIn合约注册交易可能仍在处理中或网络延迟，交易哈希: %s，请稍后手动检查\n", tx.Hash().Hex())
+			}
 		}()
 
 		return nil
@@ -838,37 +908,107 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 			}
 			fmt.Printf("链上活动已创建，链上ID: %d, 交易哈希: %s\n", chainEventID, txHash.Hash().Hex())
 		}
-	} else {
-		// 如果已有链上ID，更新链上状态为"已发布"
-		location := ""
-		if hackathon.LocationType == "online" {
-			location = "online"
-		} else if hackathon.LocationType == "offline" || hackathon.LocationType == "hybrid" {
-			location = hackathon.LocationType
-			if hackathon.City != "" {
-				location += " - " + hackathon.City
-				if hackathon.LocationDetail != "" {
-					location += " (" + hackathon.LocationDetail + ")"
+		} else {
+			// 如果已有链上ID，更新链上状态为"已发布"
+			location := ""
+			if hackathon.LocationType == "online" {
+				location = "online"
+			} else if hackathon.LocationType == "offline" || hackathon.LocationType == "hybrid" {
+				location = hackathon.LocationType
+				if hackathon.City != "" {
+					location += " - " + hackathon.City
+					if hackathon.LocationDetail != "" {
+						location += " (" + hackathon.LocationDetail + ")"
+					}
 				}
+			}
+
+			txHash, err := blockchainService.UpdateEvent(
+				*hackathon.ChainEventID,
+				hackathon.Name,
+				hackathon.Description,
+				uint64(hackathon.StartTime.Unix()),
+				uint64(hackathon.EndTime.Unix()),
+				location,
+				"活动已发布",
+			)
+			if err != nil {
+				// 链上失败不影响发布，但记录错误
+				fmt.Printf("活动发布链上更新失败: %v\n", err)
+			} else {
+				fmt.Printf("链上活动状态已更新，交易哈希: %s\n", txHash.Hash().Hex())
 			}
 		}
 
-		txHash, err := blockchainService.UpdateEvent(
-			*hackathon.ChainEventID,
-			hackathon.Name,
-			hackathon.Description,
-			uint64(hackathon.StartTime.Unix()),
-			uint64(hackathon.EndTime.Unix()),
-			location,
-			"活动已发布",
-		)
-		if err != nil {
-			// 链上失败不影响发布，但记录错误
-			fmt.Printf("活动发布链上更新失败: %v\n", err)
-		} else {
-			fmt.Printf("链上活动状态已更新，交易哈希: %s\n", txHash.Hash().Hex())
-		}
-	}
+		// 确保活动已注册到CheckIn合约（不阻塞发布）
+		go func() {
+			checkinService, err := NewCheckInBlockchainService()
+			if err != nil {
+				fmt.Printf("CheckIn服务初始化失败，无法检查活动注册状态: %v\n", err)
+				return
+			}
+			defer checkinService.Close()
+
+			// 检查活动是否已注册
+			isRegistered, err := checkinService.IsEventRegistered(hackathon.ID)
+			if err != nil {
+				fmt.Printf("查询活动CheckIn注册状态失败: %v\n", err)
+				return
+			}
+
+			if isRegistered {
+				fmt.Printf("活动 %d 已在CheckIn合约中注册\n", hackathon.ID)
+				return
+			}
+
+			// 注册活动到合约
+			tx, err := checkinService.RegisterEvent(hackathon.ID)
+			if err != nil {
+				fmt.Printf("活动注册到CheckIn合约失败: %v\n", err)
+				return
+			}
+
+			fmt.Printf("活动发布时CheckIn合约注册交易已发送，交易哈希: %s\n", tx.Hash().Hex())
+			
+			// 立即检查交易状态
+			hasReceipt, receipt, err := checkinService.CheckTransactionStatus(tx.Hash().Hex())
+			if err != nil {
+				if !strings.Contains(err.Error(), "not found") {
+					fmt.Printf("检查交易状态失败: %v\n", err)
+					return
+				}
+			}
+			
+			if hasReceipt && receipt != nil {
+				if receipt.Status == 1 {
+					fmt.Printf("活动发布时已成功注册到CheckIn合约，活动ID: %d, 交易哈希: %s, 区块号: %d\n", hackathon.ID, tx.Hash().Hex(), receipt.BlockNumber.Uint64())
+				} else {
+					fmt.Printf("CheckIn合约注册交易失败，状态: %d, 交易哈希: %s\n", receipt.Status, tx.Hash().Hex())
+				}
+				return
+			}
+
+			// 如果没有收据，等待一段时间再检查
+			fmt.Printf("活动发布时CheckIn合约注册交易正在处理中，等待确认...\n")
+			time.Sleep(10 * time.Second)
+			
+			// 再次检查交易状态
+			hasReceipt, receipt, err = checkinService.CheckTransactionStatus(tx.Hash().Hex())
+			if err != nil {
+				fmt.Printf("最终交易状态检查失败: %v，交易哈希: %s，可能仍在处理中\n", err, tx.Hash().Hex())
+				return
+			}
+			
+			if hasReceipt && receipt != nil {
+				if receipt.Status == 1 {
+					fmt.Printf("活动发布时已成功注册到CheckIn合约，活动ID: %d, 交易哈希: %s, 区块号: %d\n", hackathon.ID, tx.Hash().Hex(), receipt.BlockNumber.Uint64())
+				} else {
+					fmt.Printf("CheckIn合约注册交易失败，状态: %d, 交易哈希: %s\n", receipt.Status, tx.Hash().Hex())
+				}
+			} else {
+				fmt.Printf("活动发布时CheckIn合约注册交易可能仍在处理中或网络延迟，交易哈希: %s，请稍后手动检查\n", tx.Hash().Hex())
+			}
+		}()
 
 	// 生成海报URL和二维码
 	posterURL := fmt.Sprintf("/posters/%d", id)
