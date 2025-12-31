@@ -204,6 +204,40 @@ func (c *ArenaRegistrationController) GetCheckinIntegrity(ctx *gin.Context) {
 	utils.Success(ctx, integrity)
 }
 
+// GetNFTRecord 获取用户NFT凭证
+func (c *ArenaRegistrationController) GetNFTRecord(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	participantID, _ := ctx.Get("participant_id")
+
+	nftRecord, err := c.nftService.GetUserNFTRecord(id, participantID.(uint64))
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	if nftRecord == nil {
+		utils.Success(ctx, gin.H{
+			"has_nft": false,
+			"message": "未找到NFT凭证",
+		})
+		return
+	}
+
+	utils.Success(ctx, gin.H{
+		"has_nft":           true,
+		"token_id":          nftRecord.TokenID,
+		"transaction_hash":  nftRecord.TransactionHash,
+		"minted_at":         nftRecord.MintedAt,
+		"hackathon_id":      nftRecord.HackathonID,
+		"participant_id":    nftRecord.ParticipantID,
+	})
+}
+
 // BatchCheckin 批量签到（管理员功能）
 func (c *ArenaRegistrationController) BatchCheckin(ctx *gin.Context) {
 	eventID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)

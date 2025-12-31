@@ -72,3 +72,8 @@ controllers/nft_controller.go:327:2: declared and not used: hackathon
 - 活动注册到CheckIn合约失败: 注册活动到 CheckIn 合约失败: replacement transaction underpriced
 - 等待CheckIn合约注册交易确认失败: 获取交易收据失败: not found
 - checkin 接口超时了
+
+## PART2
+### 优化
+- 活动卡片页面需要区别展示用户签到和非签到状态
+- 点击进入活动详情页，如果是签到状态，需要展示NFT凭证，未签到保持原样

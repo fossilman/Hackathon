@@ -18,11 +18,16 @@ interface Hackathon {
   end_time: string
 }
 
+interface HackathonWithStatus extends Hackathon {
+  registered?: boolean
+  checkinStatus?: boolean
+}
+
 export default function Home() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { walletAddress, connectWallet, setParticipant } = useAuthStore()
-  const [hackathons, setHackathons] = useState<Hackathon[]>([])
+  const { walletAddress, connectWallet, setParticipant, token } = useAuthStore()
+  const [hackathons, setHackathons] = useState<HackathonWithStatus[]>([])
   const [loading, setLoading] = useState(false)
 
   const fetchHackathons = async () => {
@@ -42,6 +47,40 @@ export default function Home() {
   useEffect(() => {
     fetchHackathons()
   }, [])
+
+  useEffect(() => {
+    if (hackathons.length > 0 && token) {
+      fetchUserStatuses()
+    }
+  }, [hackathons, token])
+
+  const fetchUserStatuses = async () => {
+    const hackathonsWithStatus = await Promise.all(
+      hackathons.map(async (hackathon) => {
+        try {
+          const [registrationStatus, checkinStatus] = await Promise.all([
+            request.get(`/hackathons/${hackathon.id}/registration-status`),
+            request.get(`/hackathons/${hackathon.id}/checkin-status`)
+          ])
+          
+          return {
+            ...hackathon,
+            registered: registrationStatus.registered || false,
+            checkinStatus: checkinStatus.checked_in || false
+          }
+        } catch (error) {
+          // 如果获取状态失败，返回默认状态
+          return {
+            ...hackathon,
+            registered: false,
+            checkinStatus: false
+          }
+        }
+      })
+    )
+    
+    setHackathons(hackathonsWithStatus)
+  }
 
   const handleConnectWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -156,6 +195,9 @@ export default function Home() {
               statusMap={statusMap}
               statusColorMap={statusColorMap}
               testIdPrefix="home-hackathon"
+              showCheckinStatus={!!token}
+              checkinStatus={hackathon.checkinStatus}
+              registered={hackathon.registered}
             />
           ))}
         </div>

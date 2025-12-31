@@ -96,6 +96,9 @@ func SetupArenaRoutes(router *gin.Engine) {
 			api.DELETE("/submissions/:id/vote", arenaVoteController.CancelVote)
 			api.GET("/hackathons/:id/votes", arenaVoteController.GetMyVotes)
 
+			// NFT相关
+			api.GET("/hackathons/:id/nft", arenaRegistrationController.GetNFTRecord)
+
 			// 结果查看
 			api.GET("/hackathons/:id/results", arenaVoteController.GetResults)
 		}

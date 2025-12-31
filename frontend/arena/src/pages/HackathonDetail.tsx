@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import NFTCredential from '../components/NFTCredential'
 
 export default function HackathonDetail() {
   const { t } = useTranslation()
@@ -18,6 +19,7 @@ export default function HackathonDetail() {
   const [userTeam, setUserTeam] = useState<any>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
   const [sponsors, setSponsors] = useState<any[]>([])
+  const [nftRecord, setNftRecord] = useState<any>(null)
 
   useEffect(() => {
     if (id) {
@@ -30,6 +32,22 @@ export default function HackathonDetail() {
       checkStatus()
     }
   }, [hackathon, token, id])
+
+  useEffect(() => {
+    if (checkedIn && token) {
+      fetchNFTRecord()
+    }
+  }, [checkedIn, token, id])
+
+  const fetchNFTRecord = async () => {
+    try {
+      const data = await request.get(`/hackathons/${id}/nft`)
+      setNftRecord(data)
+    } catch (error) {
+      // 忽略错误，可能是没有NFT记录
+      console.warn('获取NFT记录失败:', error)
+    }
+  }
 
   const fetchDetail = async () => {
     try {
@@ -221,6 +239,13 @@ export default function HackathonDetail() {
               </div>
             </div>
           )}
+
+          {/* NFT凭证展示 - 只有已签到且有NFT记录时显示 */}
+          <NFTCredential
+            nftRecord={nftRecord}
+            hackathonName={hackathon.name}
+            visible={checkedIn}
+          />
 
           <div style={{ marginTop: 24 }} data-testid="hackathon-detail-actions">
           {!token && (

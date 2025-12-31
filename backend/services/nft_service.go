@@ -617,6 +617,22 @@ type CheckedInParticipant struct {
 	CheckInTime   time.Time `json:"check_in_time"`
 }
 
+// GetUserNFTRecord 获取用户NFT记录
+func (s *NFTService) GetUserNFTRecord(eventID uint64, participantID uint64) (*models.NFTRecord, error) {
+	var nftRecord models.NFTRecord
+	
+	result := database.DB.Where("hackathon_id = ? AND participant_id = ?", eventID, participantID).First(&nftRecord)
+	
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("查询NFT记录失败: %w", result.Error)
+	}
+	
+	return &nftRecord, nil
+}
+
 // RecordNFTMinting 记录NFT发放到数据库
 func (s *NFTService) RecordNFTMinting(eventID uint64, participantID uint64, tokenID uint64, txHash string) error {
 	// 使用GORM模型插入数据

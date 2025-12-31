@@ -16,11 +16,15 @@ interface Hackathon {
   end_time: string
 }
 
+interface HackathonWithStatus extends Hackathon {
+  checkinStatus?: boolean
+}
+
 export default function MyHackathons() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { token, walletAddress } = useAuthStore()
-  const [hackathons, setHackathons] = useState<Hackathon[]>([])
+  const [hackathons, setHackathons] = useState<HackathonWithStatus[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -31,6 +35,12 @@ export default function MyHackathons() {
     }
     fetchHackathons()
   }, [token, navigate, t])
+
+  useEffect(() => {
+    if (hackathons.length > 0 && token) {
+      fetchCheckinStatuses()
+    }
+  }, [hackathons, token])
 
   const fetchHackathons = async () => {
     setLoading(true)
@@ -44,6 +54,28 @@ export default function MyHackathons() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchCheckinStatuses = async () => {
+    const hackathonsWithCheckin = await Promise.all(
+      hackathons.map(async (hackathon) => {
+        try {
+          const checkinStatus = await request.get(`/hackathons/${hackathon.id}/checkin-status`)
+          return {
+            ...hackathon,
+            checkinStatus: checkinStatus.checked_in || false
+          }
+        } catch (error) {
+          // 如果获取签到状态失败，返回默认状态
+          return {
+            ...hackathon,
+            checkinStatus: false
+          }
+        }
+      })
+    )
+    
+    setHackathons(hackathonsWithCheckin)
   }
 
   const statusMap: Record<string, string> = {
@@ -112,6 +144,9 @@ export default function MyHackathons() {
                 statusColorMap={statusColorMap}
                 testIdPrefix="my-hackathons"
                 showDateIcon={true}
+                showCheckinStatus={true}
+                checkinStatus={hackathon.checkinStatus}
+                registered={true}
               />
             ))}
           </div>
