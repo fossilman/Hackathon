@@ -45,6 +45,7 @@ type Config struct {
 		ContractAddress      string `yaml:"contract_address"`
 		CheckinContractAddress string `yaml:"checkin_contract_address"`
 		NftContractAddress   string `yaml:"nft_contract_address"`
+		VoteContractAddress  string `yaml:"vote_contract_address"`
 		Network             string `yaml:"network"`
 		ChainID             int    `yaml:"chain_id"`
 		PrivateKey          string `yaml:"private_key"`
@@ -113,6 +114,7 @@ func LoadConfig() error {
 			ContractAddress      string `yaml:"contract_address"`
 			CheckinContractAddress string `yaml:"checkin_contract_address"`
 			NftContractAddress   string `yaml:"nft_contract_address"`
+			VoteContractAddress  string `yaml:"vote_contract_address"`
 			Network             string `yaml:"network"`
 			ChainID             int    `yaml:"chain_id"`
 			PrivateKey          string `yaml:"private_key"`
@@ -120,6 +122,7 @@ func LoadConfig() error {
 			ContractAddress:       defaultConfig.Blockchain.ContractAddress,
 			CheckinContractAddress: defaultConfig.Blockchain.CheckinContractAddress,
 			NftContractAddress:   defaultConfig.Blockchain.NftContractAddress,
+			VoteContractAddress:  defaultConfig.Blockchain.VoteContractAddress,
 			Network:             defaultConfig.Blockchain.Network,
 			ChainID:             defaultConfig.Blockchain.ChainID,
 			PrivateKey:          blockchainPrivateKey,
@@ -182,6 +185,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if yamlConfig.Blockchain.NftContractAddress != "" {
 		defaultConfig.Blockchain.NftContractAddress = yamlConfig.Blockchain.NftContractAddress
+	}
+	if yamlConfig.Blockchain.VoteContractAddress != "" {
+		defaultConfig.Blockchain.VoteContractAddress = yamlConfig.Blockchain.VoteContractAddress
 	}
 	if yamlConfig.Blockchain.Network != "" {
 		defaultConfig.Blockchain.Network = yamlConfig.Blockchain.Network

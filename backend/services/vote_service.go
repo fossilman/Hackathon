@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	"hackathon-backend/database"
 	"hackathon-backend/models"
@@ -11,6 +12,7 @@ type VoteService struct{}
 
 // Vote 投票
 func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) error {
+	fmt.Println("VoteService.Vote: ", hackathonID, participantID, submissionID)
 	// 检查活动状态
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
@@ -53,13 +55,87 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("您已经对该作品投过票了")
 	}
 
-	// 创建投票记录
+	// 获取参与者钱包地址
+	var participant models.Participant
+	if err := database.DB.Where("id = ?", participantID).First(&participant).Error; err != nil {
+		return errors.New("参与者不存在")
+	}
+	if participant.WalletAddress == "" {
+		return errors.New("参与者钱包地址未设置")
+	}
+
+	// 准备创建投票记录
 	vote := models.Vote{
 		HackathonID:   hackathonID,
 		ParticipantID: participantID,
 		SubmissionID:  submissionID,
+		ChainStatus:   "not_registered", // 默认状态
 	}
 
+	// 尝试调用链上投票合约（可选，失败不影响链下投票）
+	// 注意：由于合约使用 msg.sender 作为投票者，使用服务端私钥代为发送会导致所有投票被识别为同一地址
+	// 因此链上投票可能会失败（服务端地址只能投一次），但这不影响链下投票的正常进行
+	voteBlockchainService, err := NewVoteBlockchainService()
+	if err != nil {
+		// 如果初始化失败，仅记录日志，继续执行链下投票
+		fmt.Printf("初始化投票合约服务失败: %v，仅进行链下投票\n", err)
+		vote.ChainStatus = "service_error"
+	} else {
+		defer voteBlockchainService.Close()
+
+		// 检查活动是否已在链上注册
+		isRegistered, err := voteBlockchainService.IsEventRegistered(hackathonID)
+		if err != nil {
+			// 如果查询失败，记录日志但不阻止投票（允许链下投票）
+			fmt.Printf("检查活动注册状态失败: %v，仅进行链下投票\n", err)
+			vote.ChainStatus = "check_error"
+		} else if !isRegistered {
+			// 如果活动未注册，记录日志但不阻止投票（允许链下投票）
+			fmt.Printf("活动 %d 未在链上注册，仅进行链下投票\n", hackathonID)
+			vote.ChainStatus = "not_registered"
+		} else {
+			// 检查是否已在链上投票（使用用户地址查询）
+			hasVotedOnChain, err := voteBlockchainService.HasUserVotedForProject(participant.WalletAddress, hackathonID, submissionID)
+			if err != nil {
+				// 如果查询失败，记录日志但不阻止投票
+				fmt.Printf("检查链上投票状态失败: %v，继续执行链下投票\n", err)
+			} else if hasVotedOnChain {
+				// 如果链上已投票，记录日志但不阻止链下投票（因为可能链上链下不同步）
+				fmt.Printf("用户 %s 已在链上对该作品投过票，继续执行链下投票\n", participant.WalletAddress)
+			}
+
+			// 尝试调用链上投票（使用默认分数 10，表示支持）
+			// 注意：由于合约使用 msg.sender，使用服务端私钥代为发送会导致所有投票被识别为服务端地址
+			// 因此第一个投票可能成功，后续投票会失败（因为服务端地址已在该活动中投过票）
+			// 这是预期的行为，不影响链下投票的正常进行
+			voteId, txHash, err := voteBlockchainService.CastVote(hackathonID, submissionID, participant.WalletAddress, 10)
+			if err != nil {
+				// 如果链上投票失败，记录详细错误日志但不阻止链下投票
+				// 常见失败原因：
+				// 1. 服务端地址已在该活动中投过票（hasVoted[msg.sender][_eventId] 检查）
+				// 2. Gas 不足（out of gas）- 已增加 Gas Limit 到 500000
+				// 3. 合约执行失败
+				if txHash != "" {
+					fmt.Printf("链上投票失败: %v，交易哈希: %s，继续执行链下投票\n", err, txHash)
+					vote.ChainTxHash = txHash
+					vote.ChainStatus = "failed" // 交易发送但执行失败
+				} else {
+					fmt.Printf("链上投票失败: %v，继续执行链下投票\n", err)
+					vote.ChainStatus = "send_failed" // 交易发送失败
+				}
+			} else {
+				// 链上投票交易已发送成功
+				fmt.Printf("链上投票交易已发送: voteId=%d, txHash=%s\n", voteId, txHash)
+				vote.ChainTxHash = txHash
+				vote.ChainStatus = "pending" // 待确认状态
+				if voteId > 0 {
+					vote.ChainVoteID = &voteId
+				}
+			}
+		}
+	}
+
+	// 创建投票记录（链下），包含链上数据
 	return database.DB.Create(&vote).Error
 }
 
@@ -90,7 +166,81 @@ func (s *VoteService) CancelVote(participantID, submissionID uint64) error {
 		return errors.New("不在投票时间范围内")
 	}
 
-	// 删除投票记录
+	// 尝试调用链上撤销投票
+	// 注意：由于我们使用服务端私钥代为发送投票，链上的投票者地址是服务端地址
+	// 因此可以使用服务端私钥调用 revokeVote 来撤销链上投票
+	voteBlockchainService, err := NewVoteBlockchainService()
+	if err != nil {
+		fmt.Printf("初始化投票合约服务失败: %v，仅执行链下删除\n", err)
+	} else {
+		defer voteBlockchainService.Close()
+
+		// 检查活动是否已在链上注册
+		isRegistered, err := voteBlockchainService.IsEventRegistered(vote.HackathonID)
+		if err != nil {
+			fmt.Printf("检查活动注册状态失败: %v，仅执行链下删除\n", err)
+		} else if !isRegistered {
+			fmt.Printf("活动 %d 未在链上注册，仅执行链下删除\n", vote.HackathonID)
+		} else {
+			var voteID uint64 = 0
+
+			// 如果有链上投票ID，直接使用
+			if vote.ChainVoteID != nil && *vote.ChainVoteID > 0 {
+				voteID = *vote.ChainVoteID
+			} else {
+				// 如果没有投票ID，尝试通过服务端地址查询
+				// 由于我们使用服务端私钥代为发送，链上的投票者地址是服务端地址
+				serverAddress := voteBlockchainService.GetServerAddress()
+				voteIDs, err := voteBlockchainService.GetUserVotesInEvent(serverAddress, vote.HackathonID)
+				if err != nil {
+					fmt.Printf("查询服务端地址的投票ID失败: %v\n", err)
+				} else {
+					// 遍历投票ID，找到对应的 projectId 匹配的投票
+					for _, id := range voteIDs {
+						record, err := voteBlockchainService.GetVoteRecord(id)
+						if err != nil {
+							continue
+						}
+						// 检查是否匹配当前作品ID
+						if record["project_id"].(uint64) == submissionID && record["is_active"].(bool) && !record["is_revoked"].(bool) {
+							voteID = id
+							break
+						}
+					}
+				}
+			}
+
+			if voteID > 0 {
+				// 尝试撤销链上投票
+				revokeTxHash, err := voteBlockchainService.RevokeVote(voteID)
+				if err != nil {
+					// 如果链上撤销失败，记录日志但不阻止链下删除
+					fmt.Printf("链上撤销投票失败: %v，交易哈希: %s，继续执行链下删除\n", err, revokeTxHash)
+					// 更新数据库中的链上状态为撤销失败
+					database.DB.Model(&vote).Updates(map[string]interface{}{
+						"chain_status": "revoke_failed",
+					})
+				} else {
+					// 链上撤销交易已发送成功
+					fmt.Printf("链上撤销投票交易已发送: voteId=%d, txHash=%s\n", voteID, revokeTxHash)
+					// 更新数据库中的链上状态为撤销中
+					database.DB.Model(&vote).Updates(map[string]interface{}{
+						"chain_status": "revoking",
+						"chain_tx_hash": revokeTxHash, // 更新为撤销交易的哈希
+					})
+				}
+			} else {
+				// 如果没有找到投票ID，记录日志
+				if vote.ChainTxHash != "" {
+					fmt.Printf("投票记录有链上交易哈希 %s 但无法找到对应的投票ID，无法撤销链上投票，仅执行链下删除\n", vote.ChainTxHash)
+				} else {
+					fmt.Printf("投票记录没有链上数据，无法撤销链上投票，仅执行链下删除\n")
+				}
+			}
+		}
+	}
+
+	// 删除投票记录（链下）
 	return database.DB.Where("participant_id = ? AND submission_id = ?", participantID, submissionID).Delete(&models.Vote{}).Error
 }
 

@@ -179,6 +179,37 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			}
 		}()
 
+		// 将活动注册到 Vote 合约（不阻塞活动创建）
+		go func() {
+			voteService, err := NewVoteBlockchainService()
+			if err != nil {
+				fmt.Printf("Vote 服务初始化失败，无法注册活动到 Vote 合约: %v\n", err)
+				return
+			}
+			defer voteService.Close()
+
+			// 检查活动是否已在 Vote 合约中注册
+			isRegistered, err := voteService.IsEventRegistered(hackathon.ID)
+			if err != nil {
+				fmt.Printf("查询活动 Vote 注册状态失败: %v\n", err)
+				return
+			}
+
+			if isRegistered {
+				fmt.Printf("活动 %d 已在 Vote 合约中注册\n", hackathon.ID)
+				return
+			}
+
+			// 使用服务端钱包地址作为 organizer 地址（合约事件中会记录）
+			tx, err := voteService.RegisterEvent(hackathon.ID, voteService.address.Hex())
+			if err != nil {
+				fmt.Printf("活动注册到 Vote 合约失败: %v\n", err)
+				return
+			}
+
+			fmt.Printf("Vote 合约注册交易已发送，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
+		}()
+
 		return nil
 	})
 }

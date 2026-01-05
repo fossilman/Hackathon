@@ -72,3 +72,42 @@ controllers/nft_controller.go:327:2: declared and not used: hackathon
 - 活动注册到CheckIn合约失败: 注册活动到 CheckIn 合约失败: replacement transaction underpriced
 - 等待CheckIn合约注册交易确认失败: 获取交易收据失败: not found
 - checkin 接口超时了
+
+## 投票信息上链
+### 102. 把它变成一份可落地的需求
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.2、3.1.3.3 需求 和 开发规范 tpl/contract_rules.md 生成详细的开发文档 sdp/DEV401_Vote.md 。严格按照文档要求完成，不要额外操作。
+
+### 103. 把它变成一段可运行的代码
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.2、3.1.3.3 需求 和 开发文档： sdp/DEV401_Vote.md 参照活动相关代码 contract/contracts/EventInfoContract.sol 和 NFT相关代码 contract/contracts/NftContract.sol 和 活动签到相关代码 contract/contracts/CheckInContract.sol（可以直接照抄，然后新增，保持原有进行迭代）生成代码，合约代码为 contract/contracts/VoteContract.sol ，实现文档中包含的所有功能，严格按照文档要求完成，不要额外操作。
+- 我已配置好 .env 文件，将 VoteContract.sol 合约部署到 Sepolia 测试网络中，并验证源码，部署成功后，将合约地址记录到 contract/deployments_vote.json 中，不要额外操作。
+- 将 Vote 合约地址回填到 backend 项目中，保证链上和链下数据结合起来，不要额外操作
+
+## PART1（codebuddy）version 1.0.0
+### 编译报错
+- 优化castVote函数，超过了16个solt
+- 合约编译报错，事件的入参和indexed要符合开发规范
+### 投票信息上链
+- 创建活动时并为注册到vote合约中
+- 活动注册到Vote合约失败: 调用Vote合约registerEvent函数失败: replacement transaction underpriced
+- 警告: 交易确认失败: 获取交易收据失败: not found
+- 投票失败并未真正投票上链
+- 投票接口400，链上并没有数据记录，将vote相关的go代码调整，参考checkin和nft的go代码，gas的优化弄成统一的
+
+## PART2 version 2.0.0
+### 投票信息上链
+- 投票阶段投票并没有真正投票上链
+- 投票失败：注册活动到合约失败: 检查活动注册状态失败: 检查活动注册状态失败: project ID exceeded quota
+- 链上投票失败: 链上投票失败: argument count mismatch: got 3 for 2
+
+## PART3 version 3.0.0
+### 投票信息上链
+- 投票阶段投票并没有真正投票上链
+- 代码并不能运行，go run main.go
+# hackathon-backend/services
+services/vote_blockchain_service.go:293:6: declared and not used: voteId
+services/vote_blockchain_service.go:327:2: declared and not used: receipt
+- 创建活动的时候，这个地方并没有上链报错：活动 64 未在链上注册，仅进行链下投票
+- 接口被cancel状态，日志中，链上投票成功: txHash=0xadff0c58eefcf5c4854319a847bfe6a3b7585d2860341c3264b6b704e21b1700，实际这个交易是fail状态：out of gas
+- 链上投票成功，但是前端调用后端接口http://localhost:3001/api/v1/arena/submissions/15/vote是canceled状态
+- 改为不等待确认（类似 CheckIn 服务），只发送交易就返回，要在数据库中记录这个链上的数据
+- 撤销投票不会撤销链上记录
