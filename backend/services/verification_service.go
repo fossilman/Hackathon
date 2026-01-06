@@ -313,17 +313,20 @@ func (s *VerificationService) getVoteStatsFromDB(eventID uint64) (*VoteStatsData
 	var totalVotes, activeVotes, revokedVotes int64
 	
 	// 统计所有投票（包括已撤销的），与链上 totalVotes 保持一致
-	if err := database.DB.Model(&models.Vote{}).Where("hackathon_id = ?", eventID).Count(&totalVotes).Error; err != nil {
+	// 使用 Unscoped() 以包含软删除的记录
+	if err := database.DB.Unscoped().Model(&models.Vote{}).Where("hackathon_id = ?", eventID).Count(&totalVotes).Error; err != nil {
 		return nil, err
 	}
 	
 	// 统计有效投票（未撤销的），与链上 activeVotes 保持一致
+	// 不需要 Unscoped()，因为我们要统计 deleted_at IS NULL 的记录
 	if err := database.DB.Model(&models.Vote{}).Where("hackathon_id = ? AND deleted_at IS NULL", eventID).Count(&activeVotes).Error; err != nil {
 		return nil, err
 	}
 	
 	// 统计已撤销投票，与链上 revokedVotes 保持一致
-	if err := database.DB.Model(&models.Vote{}).Where("hackathon_id = ? AND deleted_at IS NOT NULL", eventID).Count(&revokedVotes).Error; err != nil {
+	// 使用 Unscoped() 以包含软删除的记录
+	if err := database.DB.Unscoped().Model(&models.Vote{}).Where("hackathon_id = ? AND deleted_at IS NOT NULL", eventID).Count(&revokedVotes).Error; err != nil {
 		return nil, err
 	}
 

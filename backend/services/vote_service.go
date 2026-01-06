@@ -50,7 +50,8 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("作品不存在")
 	}
 
-	// 检查是否已投票（只检查有效的投票，允许重新投票已撤销的作品）
+	// 检查是否已有有效的投票（只检查未撤销的投票，允许重新投票已撤销的作品）
+	// 注意：与链上逻辑保持一致，允许同一用户对同一作品多次投票（每次都是新记录）
 	var existing models.Vote
 	if err := database.DB.Where("participant_id = ? AND submission_id = ? AND deleted_at IS NULL", participantID, submissionID).First(&existing).Error; err == nil {
 		return errors.New("您已经对该作品投过票了")
@@ -65,7 +66,7 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("参与者钱包地址未设置")
 	}
 
-	// 准备创建投票记录
+	// 准备创建新的投票记录（与链上逻辑一致：每次投票都创建新记录）
 	vote := models.Vote{
 		HackathonID:   hackathonID,
 		ParticipantID: participantID,
@@ -136,7 +137,12 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		}
 	}
 
-	// 创建投票记录（链下），包含链上数据
+	// 创建新的投票记录（链下），包含链上数据
+	// 与链上逻辑保持一致：每次投票都创建新记录，不恢复旧记录
+	// 这样统计时：
+	// - 总投票数 = 所有记录数（包括已撤销的，deleted_at IS NOT NULL）
+	// - 有效投票数 = deleted_at IS NULL 的记录数
+	// - 已撤销投票数 = deleted_at IS NOT NULL 的记录数
 	return database.DB.Create(&vote).Error
 }
 

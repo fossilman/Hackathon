@@ -251,17 +251,28 @@ contract VoteContract is Ownable, ReentrancyGuard {
         nonReentrant
     {
         VoteRecord storage vote = voteRecords[_voteId];
-        
+
         // 验证投票记录
         require(vote.voteId != 0, "Vote does not exist");
         require(vote.voter == msg.sender, "Not authorized");
         require(vote.isActive && !vote.isRevoked, "Vote already revoked or inactive");
-        
+
         // 更新投票记录
         vote.isRevoked = true;
         vote.isActive = false;
         vote.revokeTime = block.timestamp;
-        
+
+        // 清理用户在该活动和作品上的投票状态，允许其重新投票
+        //
+        // 设计意图：
+        // - hasVoted 记录“该地址在某个活动中是否有有效投票”
+        // - projectVotes 记录“该地址是否对某个作品投过有效票”
+        // 撤销时将二者重置为 false，保证：
+        // - 同一地址在完成撤销后，可以在同一活动中重新投票
+        // - 重新投票仍然会受到 castVote 中的防重复校验约束
+        hasVoted[vote.voter][vote.eventId] = false;
+        projectVotes[vote.eventId][vote.projectId][vote.voter] = false;
+
         // 更新活动统计
         eventStats[vote.eventId].activeVotes--;
         eventStats[vote.eventId].revokedVotes++;

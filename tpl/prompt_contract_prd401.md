@@ -125,3 +125,10 @@ services/vote_blockchain_service.go:327:2: declared and not used: receipt
 - Organizer mismatch: DB='0xd71Fba96C98eE438c7076984f016156E39C337cb', Blockchain='0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758' ,不要对比这个钱包地址了
 - 投票后撤销投票数据库中总投票为0，链上为1，链上撤销投票1，数据库中为0，这样导致不一致
 - 投票后撤销投票 有效投票数:数据库: 1区块链: 0 已撤销投票数:数据库: 0区块链: 1,不一致
+
+## PART2
+- 投票 -> 撤销投票 -> 再次投票报错
+- 投票统计中；总投票数一致；有效投票数，数据库: 0区块链: 1；已撤销投票数，数据库: 1区块链: 0
+- 投票 -> 撤销投票 -> 再次投票 报错：/Users/monstersquad/Desktop/code/web3/hackathon/backend/services/vote_service.go:140 Error 1062 (23000): Duplicate entry '3-22' for key 'votes.uk_participant_submission'
+- 投票 -> 撤销投票 -> 再次投票， 链上与链下数据不一致；总投票数不一致：数据库: 1，区块链: 2；有效投票数一致；已撤销投票数不一致：数据库: 0，区块链: 1；修改链下逻辑与链上保持一致
+- 1553 - Cannot drop index 'uk_participant_submission': needed in a foreign key constraint，读取config.yml文件的数据库信息直接修改

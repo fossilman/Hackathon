@@ -27,17 +27,19 @@ func (Submission) TableName() string {
 }
 
 // Vote 投票记录表
+// 注意：移除了唯一约束 uk_participant_submission，允许同一用户对同一作品多次投票
+// 与链上逻辑保持一致：每次投票都创建新记录，撤销投票时标记为已撤销但不删除记录
 type Vote struct {
 	ID            uint64     `gorm:"primaryKey;autoIncrement" json:"id"`
 	HackathonID  uint64     `gorm:"index;not null" json:"hackathon_id"`
-	ParticipantID uint64     `gorm:"uniqueIndex:uk_participant_submission;not null" json:"participant_id"`
-	SubmissionID  uint64     `gorm:"uniqueIndex:uk_participant_submission;not null" json:"submission_id"`
+	ParticipantID uint64     `gorm:"index;not null" json:"participant_id"` // 移除唯一约束，允许多次投票
+	SubmissionID  uint64     `gorm:"index;not null" json:"submission_id"` // 移除唯一约束，允许多次投票
 	ChainTxHash   string     `gorm:"type:varchar(255);index" json:"chain_tx_hash"` // 链上交易哈希
 	ChainVoteID   *uint64    `gorm:"type:bigint" json:"chain_vote_id"` // 链上投票ID（从合约返回）
 	ChainStatus   string     `gorm:"type:varchar(20);default:'pending'" json:"chain_status"` // 链上状态：pending(待确认), success(成功), failed(失败)
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
-	DeletedAt     *time.Time `gorm:"index" json:"deleted_at,omitempty"` // 软删除字段，用于撤销投票
+	DeletedAt     *time.Time `gorm:"index" json:"deleted_at,omitempty"` // 软删除字段，用于撤销投票（deleted_at IS NOT NULL 表示已撤销）
 
 	// 关联关系
 	Hackathon  Hackathon  `gorm:"foreignKey:HackathonID" json:"hackathon,omitempty"`
