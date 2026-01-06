@@ -14,6 +14,13 @@ func SetupArenaRoutes(router *gin.Engine) {
 	arenaTeamController := controllers.NewArenaTeamController()
 	arenaSubmissionController := controllers.NewArenaSubmissionController()
 	arenaVoteController := controllers.NewArenaVoteController()
+	
+	// 创建验证控制器
+	verificationController, err := controllers.NewVerificationController()
+	if err != nil {
+		// 如果初始化失败，记录日志但不阻止服务启动
+		println("Warning: Failed to initialize verification controller:", err.Error())
+	}
 
 	api := router.Group("/api/v1/arena")
 	{
@@ -39,6 +46,15 @@ func SetupArenaRoutes(router *gin.Engine) {
 		{
 			sponsors.GET("/long-term", sponsorController.GetLongTermSponsors)
 			sponsors.GET("/events/:id", sponsorController.GetEventSponsors)
+		}
+
+		// 验证相关（无需认证，游客可用）
+		if verificationController != nil {
+			verification := api.Group("/verification")
+			{
+				verification.POST("/event", verificationController.VerifyEventInfo)
+				verification.GET("/event/:event_id", verificationController.GetEventVerificationStatus)
+			}
 		}
 
 		// 需要认证的路由

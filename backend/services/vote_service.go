@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"hackathon-backend/database"
 	"hackathon-backend/models"
@@ -49,9 +50,9 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("作品不存在")
 	}
 
-	// 检查是否已投票
+	// 检查是否已投票（只检查有效的投票，允许重新投票已撤销的作品）
 	var existing models.Vote
-	if err := database.DB.Where("participant_id = ? AND submission_id = ?", participantID, submissionID).First(&existing).Error; err == nil {
+	if err := database.DB.Where("participant_id = ? AND submission_id = ? AND deleted_at IS NULL", participantID, submissionID).First(&existing).Error; err == nil {
 		return errors.New("您已经对该作品投过票了")
 	}
 
@@ -143,7 +144,8 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 func (s *VoteService) CancelVote(participantID, submissionID uint64) error {
 	// 检查活动状态
 	var vote models.Vote
-	if err := database.DB.Where("participant_id = ? AND submission_id = ?", participantID, submissionID).First(&vote).Error; err != nil {
+	// 只查询未删除的投票记录
+	if err := database.DB.Where("participant_id = ? AND submission_id = ? AND deleted_at IS NULL", participantID, submissionID).First(&vote).Error; err != nil {
 		return errors.New("投票记录不存在")
 	}
 
@@ -240,15 +242,18 @@ func (s *VoteService) CancelVote(participantID, submissionID uint64) error {
 		}
 	}
 
-	// 删除投票记录（链下）
-	return database.DB.Where("participant_id = ? AND submission_id = ?", participantID, submissionID).Delete(&models.Vote{}).Error
+	// 软删除投票记录（链下），而不是硬删除
+	// 这样可以保持与链上 totalVotes 的一致性（链上 totalVotes 不会减少）
+	now := time.Now()
+	return database.DB.Model(&vote).Update("deleted_at", now).Error
 }
 
 // GetMyVotes 获取我的投票记录
 func (s *VoteService) GetMyVotes(hackathonID, participantID uint64) ([]models.Vote, error) {
 	var votes []models.Vote
+	// 只返回有效的投票记录（未撤销的）
 	if err := database.DB.Preload("Submission").Preload("Submission.Team").
-		Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).
+		Where("hackathon_id = ? AND participant_id = ? AND deleted_at IS NULL", hackathonID, participantID).
 		Find(&votes).Error; err != nil {
 		return nil, err
 	}
@@ -256,10 +261,11 @@ func (s *VoteService) GetMyVotes(hackathonID, participantID uint64) ([]models.Vo
 	return votes, nil
 }
 
-// GetVoteCount 获取作品得票数
+// GetVoteCount 获取作品得票数（只统计有效投票，不包括已撤销的）
 func (s *VoteService) GetVoteCount(submissionID uint64) (int64, error) {
 	var count int64
-	if err := database.DB.Model(&models.Vote{}).Where("submission_id = ?", submissionID).Count(&count).Error; err != nil {
+	// 只统计未删除的投票记录（deleted_at IS NULL）
+	if err := database.DB.Model(&models.Vote{}).Where("submission_id = ? AND deleted_at IS NULL", submissionID).Count(&count).Error; err != nil {
 		return 0, err
 	}
 	return count, nil

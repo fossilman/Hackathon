@@ -554,6 +554,29 @@ func (s *VoteBlockchainService) GetProjectVotes(eventID, projectID uint64) ([]ui
 	return result, nil
 }
 
+// GetEventStats 获取活动投票统计
+func (s *VoteBlockchainService) GetEventStats(eventID uint64) (uint64, uint64, uint64, error) {
+	if s.contract == nil {
+		return 0, 0, 0, fmt.Errorf("Vote 合约未初始化")
+	}
+
+	var results []interface{}
+	err := s.contract.Call(nil, &results, "getEventStats", big.NewInt(int64(eventID)))
+	if err != nil {
+		return 0, 0, 0, fmt.Errorf("查询活动投票统计失败: %w", err)
+	}
+
+	if len(results) < 3 {
+		return 0, 0, 0, fmt.Errorf("返回数据格式错误")
+	}
+
+	totalVotes := results[0].(*big.Int).Uint64()
+	activeVotes := results[1].(*big.Int).Uint64()
+	revokedVotes := results[2].(*big.Int).Uint64()
+
+	return totalVotes, activeVotes, revokedVotes, nil
+}
+
 // RegisterEvent 注册活动到 Vote 合约
 func (s *VoteBlockchainService) RegisterEvent(eventID uint64, organizerAddress string) (*types.Transaction, error) {
 	if s.privateKey == nil {

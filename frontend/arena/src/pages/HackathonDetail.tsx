@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import { EventVerification } from '../components/EventVerification'
 
 export default function HackathonDetail() {
   const { t } = useTranslation()
@@ -307,6 +308,16 @@ export default function HackathonDetail() {
           )}
         </div>
       </Card>
+
+      {/* 活动信息真实性验证 */}
+      {hackathon && (
+        <div style={{ marginTop: 24 }}>
+          <EventVerification 
+            eventId={parseInt(id || '0')} 
+            showVoteVerification={hackathon.status === 'voting' || hackathon.status === 'results'}
+          />
+        </div>
+      )}
       </div>
     </div>
   )

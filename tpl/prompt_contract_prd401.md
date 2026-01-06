@@ -103,7 +103,7 @@ controllers/nft_controller.go:327:2: declared and not used: hackathon
 ### 投票信息上链
 - 投票阶段投票并没有真正投票上链
 - 代码并不能运行，go run main.go
-# hackathon-backend/services
+- -# hackathon-backend/services
 services/vote_blockchain_service.go:293:6: declared and not used: voteId
 services/vote_blockchain_service.go:327:2: declared and not used: receipt
 - 创建活动的时候，这个地方并没有上链报错：活动 64 未在链上注册，仅进行链下投票
@@ -111,3 +111,17 @@ services/vote_blockchain_service.go:327:2: declared and not used: receipt
 - 链上投票成功，但是前端调用后端接口http://localhost:3001/api/v1/arena/submissions/15/vote是canceled状态
 - 改为不等待确认（类似 CheckIn 服务），只发送交易就返回，要在数据库中记录这个链上的数据
 - 撤销投票不会撤销链上记录
+
+## 活动信息真实性验证
+### 102. 把它变成一份可落地的需求
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.4、3.1.3.5 需求 和 现有合约代码，生成详细的开发文档 sdp/DEV401_Verification.md（参照CheckIn、NFT和Vote）。 严格按照文档要求完成，不要额外操作。
+
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.4、3.1.3.5 需求 和 开发规范 tpl/contract_rules.md 生成详细的开发文档 sdp/DEV401_Authenticity.md 。严格按照文档要求完成，不要额外操作。
+
+### 103. 把它变成一段可运行的代码
+- 根据需求文档：sdp/PRD401.md 中 3.1.3.2、3.1.3.3 需求 和 开发文档： sdp/DEV401_Verification.md 实现文档中包含的所有功能，严格按照文档要求完成，不要额外操作。
+
+## PART1
+- Organizer mismatch: DB='0xd71Fba96C98eE438c7076984f016156E39C337cb', Blockchain='0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758' ,不要对比这个钱包地址了
+- 投票后撤销投票数据库中总投票为0，链上为1，链上撤销投票1，数据库中为0，这样导致不一致
+- 投票后撤销投票 有效投票数:数据库: 1区块链: 0 已撤销投票数:数据库: 0区块链: 1,不一致

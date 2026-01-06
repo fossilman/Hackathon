@@ -98,7 +98,8 @@ func (c *ArenaVoteController) GetResults(ctx *gin.Context) {
 
 	// 计算统计数据
 	var totalVotes, totalTeams, totalSubmissions int64
-	database.DB.Model(&models.Vote{}).Where("hackathon_id = ?", id).Count(&totalVotes)
+	// 只统计有效投票（未撤销的）
+	database.DB.Model(&models.Vote{}).Where("hackathon_id = ? AND deleted_at IS NULL", id).Count(&totalVotes)
 	database.DB.Model(&models.Team{}).Where("hackathon_id = ? AND deleted_at IS NULL", id).Count(&totalTeams)
 	database.DB.Model(&models.Submission{}).Where("hackathon_id = ? AND draft = 0", id).Count(&totalSubmissions)
 
