@@ -35,8 +35,18 @@ export const EventVerification: React.FC<EventVerificationProps> = ({
   const renderVerificationStatus = () => {
     if (!verificationResult) return null;
 
-    const { event_info_match, vote_records_match, discrepancies } = verificationResult;
-    const allMatch = event_info_match && vote_records_match;
+    const {
+      event_info_match,
+      vote_records_match,
+      checkin_match,
+      nft_records_match,
+      discrepancies,
+    } = verificationResult;
+    const allMatch =
+      event_info_match &&
+      vote_records_match &&
+      (checkin_match ?? true) &&
+      (nft_records_match ?? true);
 
     return (
       <Card className="verification-result" style={{ marginTop: 20 }}>
@@ -70,6 +80,24 @@ export const EventVerification: React.FC<EventVerificationProps> = ({
           </Descriptions.Item>
           <Descriptions.Item label="投票记录">
             {vote_records_match ? (
+              <Tag color="success">一致</Tag>
+            ) : (
+              <Tag color="error">不一致</Tag>
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label="签到记录">
+            {checkin_match == null ? (
+              <Tag>未验证</Tag>
+            ) : checkin_match ? (
+              <Tag color="success">一致</Tag>
+            ) : (
+              <Tag color="error">不一致</Tag>
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label="NFT 发放">
+            {nft_records_match == null ? (
+              <Tag>未验证</Tag>
+            ) : nft_records_match ? (
               <Tag color="success">一致</Tag>
             ) : (
               <Tag color="error">不一致</Tag>
@@ -185,6 +213,88 @@ export const EventVerification: React.FC<EventVerificationProps> = ({
               <div>
                 <div>数据库: {verificationResult.vote_stats?.database_data?.revoked_votes}</div>
                 <div>区块链: {verificationResult.vote_stats?.blockchain_data?.revoked_votes}</div>
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+
+        {verificationResult.checkin_stats && (
+          <Descriptions title="签到统计对比" bordered column={1} style={{ marginTop: 20 }}>
+            <Descriptions.Item label="签到总次数">
+              <div>
+                <div>数据库: {verificationResult.checkin_stats.database_data.total_checkins}</div>
+                <div>区块链: {verificationResult.checkin_stats.blockchain_data.total_checkins}</div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="唯一参赛人数">
+              <div>
+                <div>
+                  数据库: {verificationResult.checkin_stats.database_data.unique_participants}
+                </div>
+                <div>
+                  区块链: {verificationResult.checkin_stats.blockchain_data.unique_participants}
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="最后签到时间">
+              <div>
+                <div>
+                  数据库:{' '}
+                  {verificationResult.checkin_stats.database_data.last_checkin_time
+                    ? new Date(
+                        verificationResult.checkin_stats.database_data.last_checkin_time * 1000
+                      ).toLocaleString()
+                    : '-'}
+                </div>
+                <div>
+                  区块链:{' '}
+                  {verificationResult.checkin_stats.blockchain_data.last_checkin_time
+                    ? new Date(
+                        verificationResult.checkin_stats.blockchain_data.last_checkin_time * 1000
+                      ).toLocaleString()
+                    : '-'}
+                </div>
+              </div>
+            </Descriptions.Item>
+          </Descriptions>
+        )}
+
+        {verificationResult.nft_stats && (
+          <Descriptions title="NFT 发放统计对比" bordered column={1} style={{ marginTop: 20 }}>
+            <Descriptions.Item label="NFT 总数">
+              <div>
+                <div>数据库: {verificationResult.nft_stats.database_data.total_nfts}</div>
+                <div>区块链: {verificationResult.nft_stats.blockchain_data.total_nfts}</div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="唯一参赛人数">
+              <div>
+                <div>
+                  数据库: {verificationResult.nft_stats.database_data.unique_participants}
+                </div>
+                <div>
+                  区块链: {verificationResult.nft_stats.blockchain_data.unique_participants}
+                </div>
+              </div>
+            </Descriptions.Item>
+            <Descriptions.Item label="最后发放时间">
+              <div>
+                <div>
+                  数据库:{' '}
+                  {verificationResult.nft_stats.database_data.last_mint_time
+                    ? new Date(
+                        verificationResult.nft_stats.database_data.last_mint_time * 1000
+                      ).toLocaleString()
+                    : '-'}
+                </div>
+                <div>
+                  区块链:{' '}
+                  {verificationResult.nft_stats.blockchain_data.last_mint_time
+                    ? new Date(
+                        verificationResult.nft_stats.blockchain_data.last_mint_time * 1000
+                      ).toLocaleString()
+                    : '-'}
+                </div>
               </div>
             </Descriptions.Item>
           </Descriptions>

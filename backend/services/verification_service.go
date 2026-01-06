@@ -11,8 +11,10 @@ import (
 
 // VerificationService 验证服务
 type VerificationService struct {
-	blockchainService     *BlockchainService
-	voteBlockchainService *VoteBlockchainService
+	blockchainService        *BlockchainService
+	voteBlockchainService    *VoteBlockchainService
+	checkInBlockchainService *CheckInBlockchainService
+	nftService               *NFTService
 }
 
 // NewVerificationService 创建验证服务实例
@@ -27,9 +29,21 @@ func NewVerificationService() (*VerificationService, error) {
 		return nil, fmt.Errorf("初始化投票区块链服务失败: %w", err)
 	}
 
+	checkInBlockchainService, err := NewCheckInBlockchainService()
+	if err != nil {
+		return nil, fmt.Errorf("初始化签到区块链服务失败: %w", err)
+	}
+
+	nftService, err := NewNFTService()
+	if err != nil {
+		return nil, fmt.Errorf("初始化 NFT 服务失败: %w", err)
+	}
+
 	return &VerificationService{
-		blockchainService:     blockchainService,
-		voteBlockchainService: voteBlockchainService,
+		blockchainService:        blockchainService,
+		voteBlockchainService:    voteBlockchainService,
+		checkInBlockchainService: checkInBlockchainService,
+		nftService:               nftService,
 	}, nil
 }
 
@@ -68,16 +82,48 @@ type VoteStatsComparison struct {
 	IsMatch        bool           `json:"is_match"`
 }
 
+// CheckInStatsData 签到统计数据
+type CheckInStatsData struct {
+	TotalCheckIns     uint64 `json:"total_checkins"`
+	UniqueParticipants uint64 `json:"unique_participants"`
+	LastCheckInTime   int64  `json:"last_checkin_time"`
+}
+
+// CheckInStatsComparison 签到统计对比
+type CheckInStatsComparison struct {
+	DatabaseData   *CheckInStatsData `json:"database_data"`
+	BlockchainData *CheckInStatsData `json:"blockchain_data"`
+	IsMatch        bool              `json:"is_match"`
+}
+
+// NFTStatsData NFT 发放统计数据
+type NFTStatsData struct {
+	TotalNFTs          uint64 `json:"total_nfts"`
+	UniqueParticipants uint64 `json:"unique_participants"`
+	LastMintTime       int64  `json:"last_mint_time"`
+}
+
+// NFTStatsComparison NFT 发放统计对比
+type NFTStatsComparison struct {
+	DatabaseData   *NFTStatsData `json:"database_data"`
+	BlockchainData *NFTStatsData `json:"blockchain_data"`
+	IsMatch        bool          `json:"is_match"`
+}
+
 // VerificationResponse 验证响应
 type VerificationResponse struct {
 	Success           bool                    `json:"success"`
 	EventID           uint64                  `json:"event_id"`
 	EventInfoMatch    bool                    `json:"event_info_match"`
 	VoteRecordsMatch  bool                    `json:"vote_records_match"`
+	CheckInMatch      bool                    `json:"checkin_match"`
+	NFTRecordsMatch   bool                    `json:"nft_records_match"`
 	VerificationTime  int64                   `json:"verification_time"`
 	Discrepancies     []string                `json:"discrepancies,omitempty"`
 	EventInfo         *EventInfoComparison    `json:"event_info,omitempty"`
 	VoteStats         *VoteStatsComparison    `json:"vote_stats,omitempty"`
+	CheckInStats      *CheckInStatsComparison `json:"checkin_stats,omitempty"`
+	NFTStats          *NFTStatsComparison     `json:"nft_stats,omitempty"`
 	TransactionHashes []string                `json:"transaction_hashes,omitempty"`
 }
 
@@ -102,6 +148,14 @@ func (s *VerificationService) VerifyEventInfo(eventID uint64, verifyVotes bool) 
 	var voteDiscrepancies []string
 	var voteStats *VoteStatsComparison
 
+	var checkInMatch bool = true
+	var checkInDiscrepancies []string
+	var checkInStats *CheckInStatsComparison
+
+	var nftMatch bool = true
+	var nftDiscrepancies []string
+	var nftStats *NFTStatsComparison
+
 	// 4. 如果需要验证投票记录
 	if verifyVotes {
 		var err error
@@ -111,8 +165,28 @@ func (s *VerificationService) VerifyEventInfo(eventID uint64, verifyVotes bool) 
 		}
 	}
 
+	// 4.1 验证签到记录
+	{
+		var err error
+		checkInMatch, checkInDiscrepancies, checkInStats, err = s.verifyCheckInRecords(eventID)
+		if err != nil {
+			return nil, fmt.Errorf("验证签到记录失败: %w", err)
+		}
+	}
+
+	// 4.2 验证 NFT 发放记录
+	{
+		var err error
+		nftMatch, nftDiscrepancies, nftStats, err = s.verifyNFTRecords(eventID)
+		if err != nil {
+			return nil, fmt.Errorf("验证 NFT 发放记录失败: %w", err)
+		}
+	}
+
 	// 5. 合并不一致项
 	allDiscrepancies := append(eventDiscrepancies, voteDiscrepancies...)
+	allDiscrepancies = append(allDiscrepancies, checkInDiscrepancies...)
+	allDiscrepancies = append(allDiscrepancies, nftDiscrepancies...)
 
 	// 6. 获取交易哈希列表
 	txHashes := s.getEventTransactionHashes(eventID)
@@ -127,6 +201,10 @@ func (s *VerificationService) VerifyEventInfo(eventID uint64, verifyVotes bool) 
 		Discrepancies:     allDiscrepancies,
 		EventInfo:         eventInfoComparison,
 		VoteStats:         voteStats,
+		CheckInMatch:      checkInMatch,
+		NFTRecordsMatch:   nftMatch,
+		CheckInStats:      checkInStats,
+		NFTStats:          nftStats,
 		TransactionHashes: txHashes,
 	}
 
@@ -152,9 +230,9 @@ func (s *VerificationService) compareEventInfo(dbHackathon *models.Hackathon, ch
 		UpdatedAt:   dbHackathon.UpdatedAt.Unix(),
 	}
 
-	// 获取主办方钱包地址
+	// 获取主办方钱包地址（使用 Find 避免无记录时报错）
 	var userWallet models.UserWallet
-	if err := database.DB.Where("user_id = ?", dbHackathon.OrganizerID).First(&userWallet).Error; err == nil {
+	if err := database.DB.Where("user_id = ?", dbHackathon.OrganizerID).Find(&userWallet).Error; err == nil && userWallet.ID != 0 {
 		dbData.Organizer = userWallet.Address
 	}
 
@@ -351,6 +429,198 @@ func (s *VerificationService) getVoteStatsFromBlockchain(eventID uint64) (*VoteS
 	}, nil
 }
 
+// getCheckInStatsFromDB 从数据库获取签到统计
+func (s *VerificationService) getCheckInStatsFromDB(eventID uint64) (*CheckInStatsData, error) {
+	var totalCheckIns int64
+	if err := database.DB.Model(&models.Checkin{}).Where("hackathon_id = ?", eventID).Count(&totalCheckIns).Error; err != nil {
+		return nil, err
+	}
+
+	var uniqueParticipants int64
+	if err := database.DB.Model(&models.Checkin{}).
+		Select("COUNT(DISTINCT participant_id)").
+		Where("hackathon_id = ?", eventID).
+		Scan(&uniqueParticipants).Error; err != nil {
+		return nil, err
+	}
+
+	var lastCheckInTime int64
+	type tsResult struct {
+		Ts *time.Time
+	}
+	var res tsResult
+	if err := database.DB.Model(&models.Checkin{}).
+		Select("MAX(created_at) AS ts").
+		Where("hackathon_id = ?", eventID).
+		Scan(&res).Error; err == nil && res.Ts != nil {
+		lastCheckInTime = res.Ts.Unix()
+	}
+
+	return &CheckInStatsData{
+		TotalCheckIns:     uint64(totalCheckIns),
+		UniqueParticipants: uint64(uniqueParticipants),
+		LastCheckInTime:   lastCheckInTime,
+	}, nil
+}
+
+// getCheckInStatsFromBlockchain 从区块链获取签到统计
+func (s *VerificationService) getCheckInStatsFromBlockchain(eventID uint64) (*CheckInStatsData, error) {
+	stats, err := s.checkInBlockchainService.GetEventCheckInStats(eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CheckInStatsData{
+		TotalCheckIns:     stats["total_checkins"].(uint64),
+		UniqueParticipants: stats["unique_participants"].(uint64),
+		LastCheckInTime:   int64(stats["last_checkin_time"].(uint64)),
+	}, nil
+}
+
+// verifyCheckInRecords 验证签到记录
+func (s *VerificationService) verifyCheckInRecords(eventID uint64) (bool, []string, *CheckInStatsComparison, error) {
+	var discrepancies []string
+
+	dbStats, err := s.getCheckInStatsFromDB(eventID)
+	if err != nil {
+		return false, nil, nil, fmt.Errorf("获取数据库签到统计失败: %w", err)
+	}
+
+	chainStats, err := s.getCheckInStatsFromBlockchain(eventID)
+	if err != nil {
+		return false, nil, nil, fmt.Errorf("获取链上签到统计失败: %w", err)
+	}
+
+	isMatch := true
+
+	if dbStats.TotalCheckIns != chainStats.TotalCheckIns {
+		discrepancies = append(discrepancies, fmt.Sprintf(
+			"Check-in total mismatch: DB=%d, Blockchain=%d",
+			dbStats.TotalCheckIns,
+			chainStats.TotalCheckIns,
+		))
+		isMatch = false
+	}
+
+	if dbStats.UniqueParticipants != chainStats.UniqueParticipants {
+		discrepancies = append(discrepancies, fmt.Sprintf(
+			"Check-in unique participants mismatch: DB=%d, Blockchain=%d",
+			dbStats.UniqueParticipants,
+			chainStats.UniqueParticipants,
+		))
+		isMatch = false
+	}
+
+	comparison := &CheckInStatsComparison{
+		DatabaseData:   dbStats,
+		BlockchainData: chainStats,
+		IsMatch:        isMatch,
+	}
+
+	return isMatch, discrepancies, comparison, nil
+}
+
+// getNFTStatsFromDB 从数据库获取 NFT 发放统计
+func (s *VerificationService) getNFTStatsFromDB(eventID uint64) (*NFTStatsData, error) {
+	var totalNFTs int64
+	if err := database.DB.Model(&models.NFTRecord{}).Where("hackathon_id = ?", eventID).Count(&totalNFTs).Error; err != nil {
+		return nil, err
+	}
+
+	var uniqueParticipants int64
+	if err := database.DB.Model(&models.NFTRecord{}).
+		Select("COUNT(DISTINCT participant_id)").
+		Where("hackathon_id = ?", eventID).
+		Scan(&uniqueParticipants).Error; err != nil {
+		return nil, err
+	}
+
+	var lastMintTime int64
+	type tsResult struct {
+		Ts *time.Time
+	}
+	var res tsResult
+	if err := database.DB.Model(&models.NFTRecord{}).
+		Select("MAX(minted_at) AS ts").
+		Where("hackathon_id = ?", eventID).
+		Scan(&res).Error; err == nil && res.Ts != nil {
+		lastMintTime = res.Ts.Unix()
+	}
+
+	return &NFTStatsData{
+		TotalNFTs:          uint64(totalNFTs),
+		UniqueParticipants: uint64(uniqueParticipants),
+		LastMintTime:       lastMintTime,
+	}, nil
+}
+
+// getNFTStatsFromBlockchain 从区块链获取 NFT 发放统计
+func (s *VerificationService) getNFTStatsFromBlockchain(eventID uint64) (*NFTStatsData, error) {
+	nftInfos, err := s.nftService.GetEventNFTInfos(eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	total := uint64(len(nftInfos))
+	uniqueMap := make(map[string]struct{})
+	var lastMint uint64
+	for _, info := range nftInfos {
+		uniqueMap[info.Participant] = struct{}{}
+		if info.Timestamp > lastMint {
+			lastMint = info.Timestamp
+		}
+	}
+
+	return &NFTStatsData{
+		TotalNFTs:          total,
+		UniqueParticipants: uint64(len(uniqueMap)),
+		LastMintTime:       int64(lastMint),
+	}, nil
+}
+
+// verifyNFTRecords 验证 NFT 发放记录
+func (s *VerificationService) verifyNFTRecords(eventID uint64) (bool, []string, *NFTStatsComparison, error) {
+	var discrepancies []string
+
+	dbStats, err := s.getNFTStatsFromDB(eventID)
+	if err != nil {
+		return false, nil, nil, fmt.Errorf("获取数据库 NFT 统计失败: %w", err)
+	}
+
+	chainStats, err := s.getNFTStatsFromBlockchain(eventID)
+	if err != nil {
+		return false, nil, nil, fmt.Errorf("获取链上 NFT 统计失败: %w", err)
+	}
+
+	isMatch := true
+
+	if dbStats.TotalNFTs != chainStats.TotalNFTs {
+		discrepancies = append(discrepancies, fmt.Sprintf(
+			"NFT total mismatch: DB=%d, Blockchain=%d",
+			dbStats.TotalNFTs,
+			chainStats.TotalNFTs,
+		))
+		isMatch = false
+	}
+
+	if dbStats.UniqueParticipants != chainStats.UniqueParticipants {
+		discrepancies = append(discrepancies, fmt.Sprintf(
+			"NFT unique participants mismatch: DB=%d, Blockchain=%d",
+			dbStats.UniqueParticipants,
+			chainStats.UniqueParticipants,
+		))
+		isMatch = false
+	}
+
+	comparison := &NFTStatsComparison{
+		DatabaseData:   dbStats,
+		BlockchainData: chainStats,
+		IsMatch:        isMatch,
+	}
+
+	return isMatch, discrepancies, comparison, nil
+}
+
 // getEventTransactionHashes 获取活动相关的所有交易哈希
 func (s *VerificationService) getEventTransactionHashes(eventID uint64) []string {
 	var txHashes []string
@@ -415,5 +685,8 @@ func (s *VerificationService) Close() {
 	}
 	if s.voteBlockchainService != nil {
 		s.voteBlockchainService.Close()
+	}
+	if s.checkInBlockchainService != nil {
+		s.checkInBlockchainService.Close()
 	}
 }

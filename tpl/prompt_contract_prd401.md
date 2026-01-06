@@ -132,3 +132,13 @@ services/vote_blockchain_service.go:327:2: declared and not used: receipt
 - 投票 -> 撤销投票 -> 再次投票 报错：/Users/monstersquad/Desktop/code/web3/hackathon/backend/services/vote_service.go:140 Error 1062 (23000): Duplicate entry '3-22' for key 'votes.uk_participant_submission'
 - 投票 -> 撤销投票 -> 再次投票， 链上与链下数据不一致；总投票数不一致：数据库: 1，区块链: 2；有效投票数一致；已撤销投票数不一致：数据库: 0，区块链: 1；修改链下逻辑与链上保持一致
 - 1553 - Cannot drop index 'uk_participant_submission': needed in a foreign key constraint，读取config.yml文件的数据库信息直接修改
+
+## PART3
+### 优化
+- NFT 发放 和 CheckIn 的状态也添加至 开始验证的范围内
+### 错误
+- /Users/monstersquad/Desktop/code/web3/hackathon/backend/services/verification_service.go:555 sql: Scan error on column index 0, name "ts": converting driver.Value type []uint8 ("1767689941.161") to a int64: invalid syntax
+- /Users/monstersquad/Desktop/code/web3/hackathon/backend/services/verification_service.go:235 record not found
+- panic recovered:[]struct { EventId *big.Int "json:\"eventId\""; TokenId *big.Int "json:\"tokenId\""; Participant common.Address "json:\"participant\""; Timestamp *big.Int "json:\"timestamp\""; IsActive bool "json:\"isActive\""; Organizer common.Address "json:\"organizer\"" }, not []struct { EventID *big.Int "json:\"eventId\""; TokenID *big.Int "json:\"tokenId\""; Participant common.Address "json:\"participant\""; Timestamp *big.Int "json:\"timestamp\""; IsActive bool "json:\"isActive\""; Organizer common.Address "json:\"organizer\"" }
+- Check-in last time mismatch: DB=1767689927, Blockchain=1767691692，NFT last mint time mismatch: DB=1767689941, Blockchain=1767689940，时间不要去对比了，链上链下时间本来就不是一样的，前端中要展示出来数据
+- 前端页面并没有修改

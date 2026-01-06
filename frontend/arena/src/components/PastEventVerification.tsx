@@ -37,8 +37,18 @@ export const PastEventVerification: React.FC<PastEventVerificationProps> = ({
   const renderVerificationModal = () => {
     if (!verificationResult) return null;
 
-    const { event_info_match, vote_records_match, discrepancies } = verificationResult;
-    const allMatch = event_info_match && vote_records_match;
+    const {
+      event_info_match,
+      vote_records_match,
+      checkin_match,
+      nft_records_match,
+      discrepancies,
+    } = verificationResult;
+    const allMatch =
+      event_info_match &&
+      vote_records_match &&
+      (checkin_match ?? true) &&
+      (nft_records_match ?? true);
 
     return (
       <Modal
@@ -85,6 +95,14 @@ export const PastEventVerification: React.FC<PastEventVerificationProps> = ({
                 {
                   label: '投票记录',
                   status: vote_records_match,
+                },
+                {
+                  label: '签到记录',
+                  status: checkin_match ?? true,
+                },
+                {
+                  label: 'NFT 发放',
+                  status: nft_records_match ?? true,
                 },
               ]}
               renderItem={(item) => (

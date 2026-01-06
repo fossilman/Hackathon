@@ -38,15 +38,43 @@ export interface VoteStatsComparison {
   is_match: boolean;
 }
 
+export interface CheckInStatsData {
+  total_checkins: number;
+  unique_participants: number;
+  last_checkin_time: number;
+}
+
+export interface CheckInStatsComparison {
+  database_data: CheckInStatsData;
+  blockchain_data: CheckInStatsData;
+  is_match: boolean;
+}
+
+export interface NFTStatsData {
+  total_nfts: number;
+  unique_participants: number;
+  last_mint_time: number;
+}
+
+export interface NFTStatsComparison {
+  database_data: NFTStatsData;
+  blockchain_data: NFTStatsData;
+  is_match: boolean;
+}
+
 export interface VerificationResponse {
   success: boolean;
   event_id: number;
   event_info_match: boolean;
   vote_records_match: boolean;
+  checkin_match?: boolean;
+  nft_records_match?: boolean;
   verification_time: number;
   discrepancies?: string[];
   event_info?: EventInfoComparison;
   vote_stats?: VoteStatsComparison;
+  checkin_stats?: CheckInStatsComparison;
+  nft_stats?: NFTStatsComparison;
   transaction_hashes?: string[];
 }
 

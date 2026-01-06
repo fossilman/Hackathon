@@ -502,9 +502,10 @@ func (s *NFTService) GetEventNFTInfos(eventID uint64) ([]NFTInfo, error) {
 	}
 
 	// 解析返回的结构体数组
+	// 注意：字段名需要与 ABI 解码后的实际结构保持一致（EventId/TokenId）
 	nftStructs := results[0].([]struct {
-		EventID    *big.Int       `json:"eventId"`
-		TokenID    *big.Int       `json:"tokenId"`
+		EventId    *big.Int       `json:"eventId"`
+		TokenId    *big.Int       `json:"tokenId"`
 		Participant common.Address `json:"participant"`
 		Timestamp  *big.Int       `json:"timestamp"`
 		IsActive   bool           `json:"isActive"`
@@ -514,8 +515,8 @@ func (s *NFTService) GetEventNFTInfos(eventID uint64) ([]NFTInfo, error) {
 	nftInfos := make([]NFTInfo, len(nftStructs))
 	for i, nft := range nftStructs {
 		nftInfos[i] = NFTInfo{
-			EventID:    nft.EventID.Uint64(),
-			TokenID:    nft.TokenID.Uint64(),
+			EventID:    nft.EventId.Uint64(),
+			TokenID:    nft.TokenId.Uint64(),
 			Participant: nft.Participant.Hex(),
 			Timestamp:  nft.Timestamp.Uint64(),
 			IsActive:   nft.IsActive,
