@@ -16,6 +16,8 @@
     "deploy:checkin:sepolia": "hardhat run scripts/deploy-checkin-contract.js --network sepolia",
     "deploy:vote:local": "hardhat run scripts/deploy-vote-contract.js --network hardhat",
     "deploy:vote:sepolia": "hardhat run scripts/deploy-vote-contract.js --network sepolia",
+    "deploy:sponsor:local": "hardhat run scripts/deploy-sponsor-contract.js --network hardhat",
+    "deploy:sponsor:sepolia": "hardhat run scripts/deploy-sponsor-contract.js --network sepolia",
     "verify:sepolia": "hardhat verify --network sepolia",
     "node": "hardhat node",
     "clean": "hardhat clean"
