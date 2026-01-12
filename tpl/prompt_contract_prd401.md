@@ -142,3 +142,22 @@ services/vote_blockchain_service.go:327:2: declared and not used: receipt
 - panic recovered:[]struct { EventId *big.Int "json:\"eventId\""; TokenId *big.Int "json:\"tokenId\""; Participant common.Address "json:\"participant\""; Timestamp *big.Int "json:\"timestamp\""; IsActive bool "json:\"isActive\""; Organizer common.Address "json:\"organizer\"" }, not []struct { EventID *big.Int "json:\"eventId\""; TokenID *big.Int "json:\"tokenId\""; Participant common.Address "json:\"participant\""; Timestamp *big.Int "json:\"timestamp\""; IsActive bool "json:\"isActive\""; Organizer common.Address "json:\"organizer\"" }
 - Check-in last time mismatch: DB=1767689927, Blockchain=1767691692，NFT last mint time mismatch: DB=1767689941, Blockchain=1767689940，时间不要去对比了，链上链下时间本来就不是一样的，前端中要展示出来数据
 - 前端页面并没有修改
+
+## 资金链路上链
+TODO: 
+- 拆分合约
+    - 奖金托管合约
+    - 赞助托管合约
+    - 奖金分发合约
+- 后端API接口
+    - 创建活动时的资金托管
+    - 奖金分发
+    - 赞助申请托管
+    - 赞助审核通过
+    - 赞助审核驳回
+    - 队伍奖金分成设置
+    - 资金链路查询
+1. 合约分为三个主要部分去实现: 奖金托管 赞助托管 奖金分发
+2. 实现后端接口和合约衔接
+3. UI优化
+
