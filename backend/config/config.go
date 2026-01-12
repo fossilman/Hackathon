@@ -77,6 +77,25 @@ func LoadConfig() error {
 			"0x4444444444444444444444444444444444444444",
 			"0x5555555555555555555555555555555555555555",
 		},
+		Blockchain: struct {
+			ContractAddress      string `yaml:"contract_address"`
+			CheckinContractAddress string `yaml:"checkin_contract_address"`
+			NftContractAddress   string `yaml:"nft_contract_address"`
+			VoteContractAddress  string `yaml:"vote_contract_address"`
+			PrizePoolContractAddress string `yaml:"prize_pool_contract_address"`
+			Network             string `yaml:"network"`
+			ChainID             int    `yaml:"chain_id"`
+			PrivateKey          string `yaml:"private_key"`
+		}{
+			ContractAddress:       "0x9637F7201aDB470104dBACa9d600b09C50ccb752",
+			CheckinContractAddress: "",
+			NftContractAddress:   "0xc2b8D22b0D8bD90bcc31271067dA6e6d18C6D814",
+			VoteContractAddress:  "",
+			PrizePoolContractAddress: "0xe7cCf1ee0bc2E136452c0A66E5080a506EFd54AF",
+			Network:             "sepolia",
+			ChainID:             11155111,
+			PrivateKey:          "",
+		},
 	}
 
 	// 尝试从YAML配置文件加载
@@ -121,13 +140,13 @@ func LoadConfig() error {
 			ChainID             int    `yaml:"chain_id"`
 			PrivateKey          string `yaml:"private_key"`
 		}{
-			ContractAddress:       defaultConfig.Blockchain.ContractAddress,
-			CheckinContractAddress: defaultConfig.Blockchain.CheckinContractAddress,
-			NftContractAddress:   defaultConfig.Blockchain.NftContractAddress,
-			VoteContractAddress:  defaultConfig.Blockchain.VoteContractAddress,
-			PrizePoolContractAddress: defaultConfig.Blockchain.PrizePoolContractAddress,
-			Network:             defaultConfig.Blockchain.Network,
-			ChainID:             defaultConfig.Blockchain.ChainID,
+			ContractAddress:       getEnv("BLOCKCHAIN_CONTRACT_ADDRESS", defaultConfig.Blockchain.ContractAddress),
+			CheckinContractAddress: getEnv("CHECKIN_CONTRACT_ADDRESS", defaultConfig.Blockchain.CheckinContractAddress),
+			NftContractAddress:   getEnv("NFT_CONTRACT_ADDRESS", defaultConfig.Blockchain.NftContractAddress),
+			VoteContractAddress:  getEnv("VOTE_CONTRACT_ADDRESS", defaultConfig.Blockchain.VoteContractAddress),
+			PrizePoolContractAddress: getEnv("PRIZE_POOL_CONTRACT_ADDRESS", defaultConfig.Blockchain.PrizePoolContractAddress),
+			Network:             getEnv("BLOCKCHAIN_NETWORK", defaultConfig.Blockchain.Network),
+			ChainID:             getEnvAsInt("BLOCKCHAIN_CHAIN_ID", defaultConfig.Blockchain.ChainID),
 			PrivateKey:          blockchainPrivateKey,
 		},
 	}

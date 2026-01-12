@@ -145,10 +145,10 @@ services/vote_blockchain_service.go:327:2: declared and not used: receipt
 
 ## 资金链路上链
 TODO: 
-- 拆分合约
-    - 奖金托管合约
-    - 赞助托管合约
-    - 奖金分发合约
+- ~~拆分合约~~
+    - ~~奖金托管合约~~
+    - ~~赞助托管合约~~
+    - ~~奖金分发合约~~
 - 后端API接口
     - 创建活动时的资金托管
     - 奖金分发
@@ -168,3 +168,7 @@ TODO:
 - 根据需求文档：sdp/PRD401.md 中 3.2.1、3.2.2 需求 和 开发文档： sdp/DEV401_Sponsor.md 实现文档中智能合约包含的所有功能，严格按照文档要求完成，不要额外操作。
 - 我已配置好 .env 文件，将 PrizePoolContract.sol 合约部署到 Sepolia 测试网络中，并验证源码，部署成功后，将合约地址记录到 contract/deployments_sponsor.json 中，不要额外操作。
 - 将 PrizePool 合约地址回填到 backend 项目中（包含后端API接口），保证链上和链下数据结合起来，不要额外操作
+
+### PART1
+- 创建活动时, 并没有注册活动
+- PrizePool 服务初始化失败，无法检查活动注册状态: PrizePool 合约地址未配置，解决报错

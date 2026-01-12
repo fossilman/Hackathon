@@ -210,6 +210,37 @@ func (s *HackathonService) CreateHackathon(hackathon *models.Hackathon, stages [
 			fmt.Printf("Vote 合约注册交易已发送，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
 		}()
 
+		// 将活动注册到 PrizePool 合约（不阻塞活动创建）
+		go func() {
+			prizePoolService, err := NewPrizePoolBlockchainService()
+			if err != nil {
+				fmt.Printf("PrizePool 服务初始化失败，无法注册活动到 PrizePool 合约: %v\n", err)
+				return
+			}
+			defer prizePoolService.Close()
+
+			// 检查活动是否已在 PrizePool 合约中注册
+			isRegistered, err := prizePoolService.IsEventRegistered(hackathon.ID)
+			if err != nil {
+				fmt.Printf("查询活动 PrizePool 注册状态失败: %v\n", err)
+				return
+			}
+
+			if isRegistered {
+				fmt.Printf("活动 %d 已在 PrizePool 合约中注册\n", hackathon.ID)
+				return
+			}
+
+			// 使用服务端钱包地址作为 organizer 地址
+			tx, err := prizePoolService.RegisterEvent(hackathon.ID, prizePoolService.address.Hex())
+			if err != nil {
+				fmt.Printf("活动注册到 PrizePool 合约失败: %v\n", err)
+				return
+			}
+
+			fmt.Printf("PrizePool 合约注册交易已发送，活动ID: %d, 交易哈希: %s\n", hackathon.ID, tx.Hash().Hex())
+		}()
+
 		return nil
 	})
 }
@@ -1040,6 +1071,37 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 			} else {
 				fmt.Printf("活动发布时CheckIn合约注册交易可能仍在处理中或网络延迟，交易哈希: %s，请稍后手动检查\n", tx.Hash().Hex())
 			}
+		}()
+
+		// 确保活动已注册到 PrizePool 合约（不阻塞发布）
+		go func() {
+			prizePoolService, err := NewPrizePoolBlockchainService()
+			if err != nil {
+				fmt.Printf("PrizePool 服务初始化失败，无法检查活动注册状态: %v\n", err)
+				return
+			}
+			defer prizePoolService.Close()
+
+			// 检查活动是否已注册
+			isRegistered, err := prizePoolService.IsEventRegistered(hackathon.ID)
+			if err != nil {
+				fmt.Printf("查询活动 PrizePool 注册状态失败: %v\n", err)
+				return
+			}
+
+			if isRegistered {
+				fmt.Printf("活动 %d 已在 PrizePool 合约中注册\n", hackathon.ID)
+				return
+			}
+
+			// 注册活动到合约
+			tx, err := prizePoolService.RegisterEvent(hackathon.ID, prizePoolService.address.Hex())
+			if err != nil {
+				fmt.Printf("活动注册到 PrizePool 合约失败: %v\n", err)
+				return
+			}
+
+			fmt.Printf("活动发布时 PrizePool 合约注册交易已发送，交易哈希: %s\n", tx.Hash().Hex())
 		}()
 
 	// 生成海报URL和二维码
