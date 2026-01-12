@@ -1,0 +1,11 @@
+{
+  "sepolia": {
+    "prizePoolContract": {
+      "address": "0xe7cCf1ee0bc2E136452c0A66E5080a506EFd54AF",
+      "deployer": "0x5FB4f1018f3abc1e8E15660FfcdE3f1ae59dA758",
+      "deploymentHash": "0x7a3e9408cc9c3be190cb37e4aba57f1eca5539900fec091161265e8d856b61ba",
+      "deployedAt": "2026-01-12T06:37:01.578Z",
+      "blockNumber": 10026594
+    }
+  }
+}
