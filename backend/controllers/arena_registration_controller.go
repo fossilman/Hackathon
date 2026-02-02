@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -94,6 +95,12 @@ func (c *ArenaRegistrationController) Checkin(ctx *gin.Context) {
 		CheckinTxSig string `json:"checkin_tx_sig"`
 	}
 	_ = ctx.ShouldBindJSON(&body)
+
+	if body.CheckinTxSig != "" {
+		log.Printf("[上链] 签到 checkin: hackathon_id=%d participant_id=%v checkin_tx_sig=%s", id, participantID, body.CheckinTxSig)
+	} else {
+		log.Printf("[签到] 仅本地: hackathon_id=%d participant_id=%v (无 checkin_tx_sig)", id, participantID)
+	}
 
 	if err := c.registrationService.Checkin(id, participantID.(uint64), body.CheckinTxSig); err != nil {
 		utils.BadRequest(ctx, err.Error())

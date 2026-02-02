@@ -3,7 +3,9 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
+	"unicode"
 
 	"hackathon-backend/chain"
 	"hackathon-backend/config"
@@ -584,6 +586,124 @@ func (s *HackathonService) GetChainCheckinWallets(hackathonID uint64) ([]string,
 		return nil, err
 	}
 	return chain.GetCheckinWallets(hackathon.EventPDAHex)
+}
+
+// prizeToLamports 将奖项 Prize 字符串解析为 lamports（支持纯数字或带后缀如 "1000" / "1000000"）
+func prizeToLamports(prize string) uint64 {
+	// 仅保留数字
+	var digits []rune
+	for _, r := range prize {
+		if unicode.IsDigit(r) {
+			digits = append(digits, r)
+		}
+	}
+	if len(digits) == 0 {
+		return 0
+	}
+	n, _ := strconv.ParseUint(string(digits), 10, 64)
+	return n
+}
+
+// GetDistributionParams 返回前端构建 distribute 交易所需参数（活动结束后分配奖金）
+func (s *HackathonService) GetDistributionParams(id uint64, userID uint64, userRole string) (map[string]interface{}, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	if userRole == "admin" {
+		return nil, errors.New("Admin不能获取分发参数")
+	}
+	if hackathon.OrganizerID != userID {
+		return nil, errors.New("只能操作自己创建的活动")
+	}
+	if hackathon.Status != "voting" && hackathon.Status != "results" {
+		return nil, errors.New("仅可在投票阶段或公布结果后获取分发参数")
+	}
+	if hackathon.EventPDA == "" || hackathon.TreasuryPDA == "" {
+		return nil, errors.New("活动未上链，无法分发奖金")
+	}
+
+	// 按得票数排序的提交
+	var submissions []models.Submission
+	if err := database.DB.Preload("Team").Preload("Team.Leader").
+		Where("hackathon_id = ? AND draft = 0", id).Find(&submissions).Error; err != nil {
+		return nil, err
+	}
+	voteSvc := &VoteService{}
+	type subWithVotes struct {
+		sub models.Submission
+		n   int64
+	}
+	var list []subWithVotes
+	for _, sub := range submissions {
+		n, _ := voteSvc.GetVoteCount(sub.ID)
+		list = append(list, subWithVotes{sub: sub, n: n})
+	}
+	for i := 0; i < len(list)-1; i++ {
+		for j := i + 1; j < len(list); j++ {
+			if list[i].n < list[j].n {
+				list[i], list[j] = list[j], list[i]
+			}
+		}
+	}
+
+	var awards []models.HackathonAward
+	if err := database.DB.Where("hackathon_id = ?", id).Order("`rank` ASC").Find(&awards).Error; err != nil {
+		return nil, err
+	}
+
+	var winnerWallets []string
+	var winnerAmounts []uint64
+	for i, item := range list {
+		if i >= len(awards) {
+			break
+		}
+		leader := item.sub.Team.Leader
+		if leader.WalletAddress != "" {
+			winnerWallets = append(winnerWallets, leader.WalletAddress)
+			winnerAmounts = append(winnerAmounts, prizeToLamports(awards[i].Prize))
+		}
+	}
+
+	// 主办方钱包（用于 organizer_refund）
+	userSvc := &UserService{}
+	wallets, _ := userSvc.GetUserWallets(hackathon.OrganizerID)
+	organizerWallet := ""
+	if len(wallets) > 0 {
+		organizerWallet = wallets[0].Address
+	}
+
+	// 指定活动赞助商退款：HackathonSponsorEvent -> Sponsor -> Application (AmountLamports, SponsorWallet)
+	var sponsorWallets []string
+	var sponsorRefunds []uint64
+	var hse []models.HackathonSponsorEvent
+	if err := database.DB.Where("hackathon_id = ?", id).Find(&hse).Error; err == nil {
+		for _, e := range hse {
+			var sponsor models.Sponsor
+			if err := database.DB.Where("id = ?", e.SponsorID).Preload("Application").First(&sponsor).Error; err != nil {
+				continue
+			}
+			if sponsor.Application.SponsorWallet != "" && sponsor.Application.AmountLamports > 0 {
+				sponsorWallets = append(sponsorWallets, sponsor.Application.SponsorWallet)
+				sponsorRefunds = append(sponsorRefunds, sponsor.Application.AmountLamports)
+			}
+		}
+	}
+
+	organizerRefund := uint64(0) // 前端可根据金库余额再计算剩余退主办方
+
+	return map[string]interface{}{
+		"event_id":         id,
+		"event_pda":        hackathon.EventPDA,
+		"treasury_pda":     hackathon.TreasuryPDA,
+		"program_id":       config.AppConfig.SolanaProgramID,
+		"winner_wallets":   winnerWallets,
+		"winner_amounts":   winnerAmounts,
+		"organizer_wallet": organizerWallet,
+		"organizer_refund": organizerRefund,
+		"sponsor_wallets":  sponsorWallets,
+		"sponsor_refunds":  sponsorRefunds,
+	}, nil
 }
 
 // generatePosterQRCode 生成海报二维码

@@ -3,20 +3,38 @@ import { useParams } from 'react-router-dom'
 import { Card, List, Button, message, Space } from 'antd'
 import { LikeOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import request from '../api/request'
+import { sendVote } from '../solana/vote'
+
+const DEFAULT_PROGRAM_ID = '2BE9YFPLME8in2tsSeTY7CpKg7btYubQW5BFG9vdAMYX'
 
 export default function SubmissionList() {
   const { t } = useTranslation()
   const { id } = useParams()
+  const { connection } = useConnection()
+  const { publicKey, signTransaction } = useWallet()
+  const [hackathon, setHackathon] = useState<any>(null)
   const [submissions, setSubmissions] = useState<any[]>([])
   const [votedIds, setVotedIds] = useState<Set<number>>(new Set())
+  const [votingId, setVotingId] = useState<number | null>(null)
 
   useEffect(() => {
     if (id) {
+      fetchHackathon()
       fetchSubmissions()
       fetchMyVotes()
     }
   }, [id])
+
+  const fetchHackathon = async () => {
+    try {
+      const data = await request.get(`/hackathons/${id}`)
+      setHackathon(data)
+    } catch {
+      // ignore
+    }
+  }
 
   const fetchSubmissions = async () => {
     try {
@@ -38,13 +56,47 @@ export default function SubmissionList() {
   }
 
   const handleVote = async (submissionId: number) => {
+    if (votingId != null) return
+    setVotingId(submissionId)
     try {
-      await request.post(`/submissions/${submissionId}/vote`)
+      const programId = import.meta.env.VITE_SOLANA_PROGRAM_ID ?? DEFAULT_PROGRAM_ID
+      const hasChain = hackathon?.event_pda && publicKey && signTransaction
+      let voteTxSig = ''
+      if (hasChain) {
+        try {
+          const sig = await sendVote(
+            connection,
+            publicKey,
+            {
+              program_id: programId,
+              event_id: Number(id),
+              event_pda: hackathon.event_pda,
+              submission_id: submissionId,
+            },
+            signTransaction
+          )
+          voteTxSig = sig
+        } catch (chainErr: any) {
+          const errMsg = String(chainErr?.message ?? chainErr?.cause?.message ?? '')
+          if (/already in use|already exists|account already exists/i.test(errMsg)) {
+            message.info(t('submission.voteAlreadyDone'))
+            await request.post(`/submissions/${submissionId}/vote`, {})
+            await fetchMyVotes()
+            await fetchSubmissions()
+            setVotingId(null)
+            return
+          }
+          throw chainErr
+        }
+      }
+      await request.post(`/submissions/${submissionId}/vote`, voteTxSig ? { vote_tx_sig: voteTxSig } : {})
       message.success(t('submission.voteSuccess'))
       setVotedIds(new Set([...votedIds, submissionId]))
       fetchSubmissions()
     } catch (error: any) {
       message.error(error.message || t('submission.voteFailed'))
+    } finally {
+      setVotingId(null)
     }
   }
 
@@ -91,6 +143,8 @@ export default function SubmissionList() {
                     key={`vote-${submission.id}`}
                     type="primary"
                     icon={<LikeOutlined />}
+                    loading={votingId === submission.id}
+                    disabled={votingId != null}
                     onClick={() => handleVote(submission.id)}
                     data-testid={`submission-list-vote-button-${submission.id}`}
                     aria-label={`${t('submission.vote')}: ${submission.name}`}

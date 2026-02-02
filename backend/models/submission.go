@@ -32,6 +32,7 @@ type Vote struct {
 	HackathonID  uint64    `gorm:"index;not null" json:"hackathon_id"`
 	ParticipantID uint64    `gorm:"uniqueIndex:uk_participant_submission;not null" json:"participant_id"`
 	SubmissionID  uint64    `gorm:"uniqueIndex:uk_participant_submission;not null" json:"submission_id"`
+	VoteTxSig     string    `gorm:"type:varchar(128)" json:"vote_tx_sig"` // 投票上链交易签名（Solana）
 	CreatedAt     time.Time `json:"created_at"`
 
 	// 关联关系

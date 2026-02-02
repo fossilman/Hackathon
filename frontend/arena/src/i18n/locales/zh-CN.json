@@ -93,6 +93,9 @@
     "registerFailed": "报名失败",
     "checkinSuccess": "签到成功",
     "checkinFailed": "签到失败",
+    "checkinWalletRequired": "请先连接 Solana 钱包以完成链上签到",
+    "checkinNoChain": "活动尚未上链，签到仅保存至本地",
+    "checkinAlreadyDone": "您已签到，无需重复操作",
     "cancelRegisterSuccess": "取消报名成功",
     "cancelRegisterFailed": "取消报名失败",
     "connectWalletFirst": "请先连接钱包",
@@ -203,6 +206,7 @@
     "vote": "投票",
     "voteSuccess": "投票成功",
     "voteFailed": "投票失败",
+    "voteAlreadyDone": "您已对该作品投过票",
     "cancelVote": "撤回投票",
     "cancelVoteSuccess": "撤回投票成功",
     "cancelVoteFailed": "撤回投票失败"

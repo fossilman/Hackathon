@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -204,6 +205,24 @@ func (c *AdminHackathonController) GetPublishChainParams(ctx *gin.Context) {
 	utils.Success(ctx, params)
 }
 
+// GetDistributionParams 获取分发奖金链上交易参数（活动投票/结果阶段，主办方构建 distribute 交易）
+func (c *AdminHackathonController) GetDistributionParams(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+	params, err := c.hackathonService.GetDistributionParams(id, userID.(uint64), role.(string))
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	log.Printf("[上链] 获取分发参数 distribution-params: hackathon_id=%d event_pda=%v", id, params["event_pda"])
+	utils.Success(ctx, params)
+}
+
 // UpdatePublishChain 保存活动发布后的链上数据（前端在 Solana 上执行 create_event 后调用）
 func (c *AdminHackathonController) UpdatePublishChain(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
@@ -226,6 +245,9 @@ func (c *AdminHackathonController) UpdatePublishChain(ctx *gin.Context) {
 		utils.BadRequest(ctx, "参数错误")
 		return
 	}
+
+	log.Printf("[上链] 活动发布 publish-chain: hackathon_id=%d event_pda=%s treasury_pda=%s attendance_mint=%s publish_tx_sig=%s",
+		id, body.EventPDA, body.TreasuryPDA, body.AttendanceMint, body.PublishTxSig)
 
 	if err := c.hackathonService.UpdatePublishChain(id, userID.(uint64), role.(string),
 		body.EventPDA, body.EventPDAHex, body.TreasuryPDA, body.AttendanceMint, body.PublishTxSig); err != nil {

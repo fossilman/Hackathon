@@ -3,18 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, Space, message, Tag, Descriptions } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { useAuthStore } from '../store/authStore'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import { sendCheckin } from '../solana/checkin'
+
+const DEFAULT_PROGRAM_ID = '2BE9YFPLME8in2tsSeTY7CpKg7btYubQW5BFG9vdAMYX'
 
 export default function HackathonDetail() {
   const { t } = useTranslation()
   const { id } = useParams()
   const navigate = useNavigate()
+  const { connection } = useConnection()
+  const { publicKey, signTransaction } = useWallet()
   const { token, participantId } = useAuthStore()
   const [hackathon, setHackathon] = useState<any>(null)
   const [registered, setRegistered] = useState(false)
   const [checkedIn, setCheckedIn] = useState(false)
+  const [checkinLoading, setCheckinLoading] = useState(false)
   const [userTeam, setUserTeam] = useState<any>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
   const [sponsors, setSponsors] = useState<any[]>([])
@@ -92,12 +99,63 @@ export default function HackathonDetail() {
   }
 
   const handleCheckin = async () => {
+    if (checkinLoading || checkedIn) return
+    setCheckinLoading(true)
     try {
-      await request.post(`/hackathons/${id}/checkin`)
+      const statusRes = await request.get(`/hackathons/${id}/checkin-status`)
+      if (statusRes?.checked_in) {
+        message.info(t('hackathonDetail.checkinAlreadyDone'))
+        setCheckedIn(true)
+        setCheckinLoading(false)
+        return
+      }
+      const programId = import.meta.env.VITE_SOLANA_PROGRAM_ID ?? DEFAULT_PROGRAM_ID
+      const hasChain = hackathon?.event_pda && hackathon?.attendance_mint
+      let checkinTxSig = ''
+      if (hasChain && publicKey && signTransaction) {
+        try {
+          const sig = await sendCheckin(
+            connection,
+            publicKey,
+            {
+              program_id: programId,
+              event_id: Number(id),
+              event_pda: hackathon.event_pda,
+              attendance_mint: hackathon.attendance_mint,
+            },
+            signTransaction
+          )
+          checkinTxSig = sig
+        } catch (chainErr: any) {
+          const errMsg = String(chainErr?.message ?? chainErr?.cause?.message ?? '')
+          if (/already in use|already exists|account already exists/i.test(errMsg)) {
+            message.info(t('hackathonDetail.checkinAlreadyDone'))
+            try {
+              await request.post(`/hackathons/${id}/checkin`, {})
+            } catch {
+              // 后端可能已存在记录，忽略
+            }
+            await checkStatus()
+            setCheckinLoading(false)
+            return
+          }
+          throw chainErr
+        }
+      } else if (hasChain && (!publicKey || !signTransaction)) {
+        message.error(t('hackathonDetail.checkinWalletRequired'))
+        setCheckinLoading(false)
+        return
+      } else if (!hasChain) {
+        message.warning(t('hackathonDetail.checkinNoChain'))
+      }
+      await request.post(`/hackathons/${id}/checkin`, { checkin_tx_sig: checkinTxSig || undefined })
       message.success(t('hackathonDetail.checkinSuccess'))
       setCheckedIn(true)
     } catch (error: any) {
-      message.error(error.message || t('hackathonDetail.checkinFailed'))
+      const msg = error?.message || error?.cause?.message || t('hackathonDetail.checkinFailed')
+      message.error(msg)
+    } finally {
+      setCheckinLoading(false)
     }
   }
 
@@ -260,6 +318,8 @@ export default function HackathonDetail() {
             <Button 
               type="primary" 
               onClick={handleCheckin}
+              loading={checkinLoading}
+              disabled={checkinLoading}
               data-testid="hackathon-detail-checkin-button"
               aria-label={t('hackathonDetail.checkin')}
             >

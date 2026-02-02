@@ -93,6 +93,9 @@
     "registerFailed": "Registration failed",
     "checkinSuccess": "Check-in successful",
     "checkinFailed": "Check-in failed",
+    "checkinWalletRequired": "Please connect your Solana wallet to check in on-chain",
+    "checkinNoChain": "This event is not on-chain yet; check-in will be saved locally only",
+    "checkinAlreadyDone": "You have already checked in",
     "cancelRegisterSuccess": "Registration cancelled successfully",
     "cancelRegisterFailed": "Failed to cancel registration",
     "connectWalletFirst": "Please connect wallet first",
@@ -203,6 +206,7 @@
     "vote": "Vote",
     "voteSuccess": "Voted successfully",
     "voteFailed": "Failed to vote",
+    "voteAlreadyDone": "You have already voted for this submission",
     "cancelVote": "Cancel Vote",
     "cancelVoteSuccess": "Vote cancelled successfully",
     "cancelVoteFailed": "Failed to cancel vote"

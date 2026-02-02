@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +21,7 @@ func NewArenaVoteController() *ArenaVoteController {
 	}
 }
 
-// Vote 投票
+// Vote 投票（可选 body: { "vote_tx_sig": "链上交易签名" }，投票上链后传入）
 func (c *ArenaVoteController) Vote(ctx *gin.Context) {
 	submissionID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -30,6 +31,11 @@ func (c *ArenaVoteController) Vote(ctx *gin.Context) {
 
 	participantID, _ := ctx.Get("participant_id")
 
+	var body struct {
+		VoteTxSig string `json:"vote_tx_sig"`
+	}
+	_ = ctx.ShouldBindJSON(&body)
+
 	// 获取作品信息以获取活动ID
 	var submission models.Submission
 	if err := database.DB.Where("id = ?", submissionID).First(&submission).Error; err != nil {
@@ -37,7 +43,12 @@ func (c *ArenaVoteController) Vote(ctx *gin.Context) {
 		return
 	}
 
-	if err := c.voteService.Vote(submission.HackathonID, participantID.(uint64), submissionID); err != nil {
+	if body.VoteTxSig != "" {
+		log.Printf("[上链] 投票 vote: hackathon_id=%d submission_id=%d participant_id=%v vote_tx_sig=%s",
+			submission.HackathonID, submissionID, participantID, body.VoteTxSig)
+	}
+
+	if err := c.voteService.Vote(submission.HackathonID, participantID.(uint64), submissionID, body.VoteTxSig); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

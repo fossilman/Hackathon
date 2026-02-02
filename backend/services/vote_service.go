@@ -9,8 +9,8 @@ import (
 
 type VoteService struct{}
 
-// Vote 投票
-func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) error {
+// Vote 投票（voteTxSig 为可选链上交易签名，投票上链后传入）
+func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64, voteTxSig string) error {
 	// 检查活动状态
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
@@ -53,11 +53,12 @@ func (s *VoteService) Vote(hackathonID, participantID, submissionID uint64) erro
 		return errors.New("您已经对该作品投过票了")
 	}
 
-	// 创建投票记录
+	// 创建投票记录（可选带链上交易签名）
 	vote := models.Vote{
 		HackathonID:   hackathonID,
 		ParticipantID: participantID,
 		SubmissionID:  submissionID,
+		VoteTxSig:     voteTxSig,
 	}
 
 	return database.DB.Create(&vote).Error

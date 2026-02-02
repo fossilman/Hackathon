@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -35,6 +36,7 @@ type rpcError struct {
 
 // GetProgramAccounts 返回 program 下所有账户。
 func GetProgramAccounts(programID string) ([]AccountInfo, error) {
+	log.Printf("[链上] getProgramAccounts program_id=%s", programID)
 	params := []interface{}{
 		programID,
 		map[string]interface{}{"encoding": "base64"},
@@ -85,6 +87,7 @@ type AccountInfo struct {
 
 // GetTransaction 获取交易详情，用于验证 tx 是否成功。
 func GetTransaction(signature string) (confirmed bool, err error) {
+	log.Printf("[链上] getTransaction signature=%s", signature)
 	params := []interface{}{signature, map[string]string{"encoding": "json"}}
 	var raw json.RawMessage
 	if err := rpcCall("getTransaction", params, &raw); err != nil {
@@ -178,8 +181,12 @@ func GetCheckinWalletsFromProgram(programID string, eventPDAHex string) ([]strin
 }
 
 // GetCheckinWallets 从链上读取某活动的签到钱包列表（hex 格式）；hackathon 需已填 EventPDA（或传空则返回全部）。
-// GetCheckinWallets 从链上读取某活动的签到钱包列表（hex 格式）；hackathon 需已填 EventPDA（或传空则返回全部）。
 func GetCheckinWallets(eventPDAHex string) ([]string, error) {
+	log.Printf("[链上] GetCheckinWallets event_pda_hex=%s", eventPDAHex)
 	programID := config.AppConfig.SolanaProgramID
-	return GetCheckinWalletsFromProgram(programID, eventPDAHex)
+	wallets, err := GetCheckinWalletsFromProgram(programID, eventPDAHex)
+	if err == nil {
+		log.Printf("[链上] GetCheckinWallets 返回 %d 个钱包", len(wallets))
+	}
+	return wallets, err
 }

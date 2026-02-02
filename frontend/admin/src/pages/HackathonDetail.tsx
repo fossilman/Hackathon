@@ -35,6 +35,7 @@ import { StatCard } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import { sendCreateEvent, type PublishChainParams } from '../solana/createEvent'
+import { sendDistribute, type DistributionParams } from '../solana/distribute'
 import dayjs from 'dayjs'
 
 export default function HackathonDetail() {
@@ -57,6 +58,7 @@ export default function HackathonDetail() {
   })
   const [posterInfo, setPosterInfo] = useState<any>(null)
   const [publishLoading, setPublishLoading] = useState(false)
+  const [distributeLoading, setDistributeLoading] = useState(false)
   const { user } = useAuthStore()
   const { connection } = useConnection()
   const { publicKey, signTransaction } = useWallet()
@@ -179,6 +181,25 @@ export default function HackathonDetail() {
     document.body.removeChild(link)
   }
 
+  const handleDistribute = async () => {
+    if (!publicKey || !signTransaction) {
+      message.warning(t('hackathon.connectSolanaWallet'))
+      return
+    }
+    setDistributeLoading(true)
+    try {
+      const params = await request.get(`/hackathons/${id}/distribution-params`) as DistributionParams
+      const sig = await sendDistribute(connection, publicKey, params, signTransaction)
+      message.success(t('hackathon.distributeSuccess', { sig: sig.slice(0, 8) + '...' }))
+      fetchDetail()
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : t('hackathon.distributeFailed')
+      message.error(msg)
+    } finally {
+      setDistributeLoading(false)
+    }
+  }
+
   const handleSwitchStage = async (stage: string) => {
     try {
       await request.post(`/hackathons/${id}/stages/${stage}/switch`)
@@ -279,6 +300,7 @@ export default function HackathonDetail() {
   // 检查阶段时间是否已设置（需要所有5个阶段都设置）
   const hasStageTimes = stages && stages.length >= 5
   const canPublish = isCreator && hackathon?.status === 'preparation' && hasStageTimes
+  const canDistribute = isCreator && (hackathon?.status === 'voting' || hackathon?.status === 'results') && !!hackathon?.event_pda
 
   const stageLabels: Record<string, string> = {
     registration: t('hackathon.registrationStage'),
@@ -339,6 +361,19 @@ export default function HackathonDetail() {
                   {t('hackathon.publish')}
                 </Button>
               </>
+            )}
+            {canDistribute && (
+              <Button
+                type="primary"
+                icon={<RocketOutlined />}
+                onClick={handleDistribute}
+                loading={distributeLoading}
+                data-testid="hackathon-detail-distribute-button"
+                aria-label={t('hackathon.distributePrizes')}
+                title={!publicKey ? t('hackathon.connectSolanaWallet') : ''}
+              >
+                {t('hackathon.distributePrizes')}
+              </Button>
             )}
             {canManageStages && (
               <Button

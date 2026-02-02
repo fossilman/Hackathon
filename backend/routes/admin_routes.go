@@ -82,6 +82,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 				hackathons.GET("/:id/publish-chain-params", middleware.RoleMiddleware("organizer"), adminHackathonController.GetPublishChainParams)
 				hackathons.POST("/:id/publish", middleware.RoleMiddleware("organizer"), adminHackathonController.PublishHackathon)
 				hackathons.PATCH("/:id/publish-chain", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdatePublishChain)
+				hackathons.GET("/:id/distribution-params", middleware.RoleMiddleware("organizer"), adminHackathonController.GetDistributionParams)
 
 				// 阶段管理（仅Organizer，且仅活动创建者）
 				hackathons.POST("/:id/stages/:stage/switch", middleware.RoleMiddleware("organizer"), adminHackathonController.SwitchStage)
