@@ -34,5 +34,5 @@
 + 签到数据并没有上链
 + 活动结束后没有分配奖金
 + 后端上链的数据打印下日志
-
 + 投票数据没有上链
++ 分配奖金：Cannot read properties of null (reading 'length')

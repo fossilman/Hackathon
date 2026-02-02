@@ -92,7 +92,7 @@ pub mod hackathon_platform {
     }
 
     /// Distribute prizes: pay winners by rank (from treasury), remainder to organizer + sponsors.
-    /// Caller must pass sorted winner list and amounts; treasury pays from event treasury.
+    /// remaining_accounts: [winner0, winner1, ...], [sponsor0, sponsor1, ...] (writable wallet account infos).
     pub fn distribute(
         ctx: Context<Distribute>,
         winner_wallets: Vec<Pubkey>,
@@ -108,9 +108,8 @@ pub mod hackathon_platform {
         );
         let treasury = &ctx.accounts.treasury;
         let mut total = 0u64;
-        for (i, &wallet) in winner_wallets.iter().enumerate() {
+        for (i, _) in winner_wallets.iter().enumerate() {
             total += winner_amounts[i];
-            // In a full impl we would transfer lamports to wallet; simplified: just deduct from treasury
         }
         total += organizer_refund;
         for &a in &sponsor_refunds {
@@ -119,27 +118,39 @@ pub mod hackathon_platform {
         let treasury_balance = treasury.to_account_info().lamports();
         require!(treasury_balance >= total, HackathonError::InsufficientTreasury);
 
-        // Actual transfers: treasury -> winners, organizer, sponsors (CPI or direct lamport move)
+        let rem = ctx.remaining_accounts;
+        let n_winner = winner_wallets.len();
+        let n_sponsor = sponsor_wallets.len();
+        require!(
+            rem.len() >= n_winner + n_sponsor,
+            HackathonError::InvalidLength
+        );
+
         let treasury_info = treasury.to_account_info();
         let organizer_info = ctx.accounts.organizer.to_account_info();
-        **treasury_info.try_borrow_mut_lamports()? -= organizer_refund;
-        **organizer_info.try_borrow_mut_lamports()? += organizer_refund;
 
-        for (i, &amount) in sponsor_refunds.iter().enumerate() {
-            if amount == 0 {
-                continue;
-            }
-            // Would need sponsor account infos; simplified here
-            **treasury_info.try_borrow_mut_lamports()? -= amount;
-            // **sponsor_i.try_borrow_mut_lamports()? += amount;
+        // Treasury -> organizer
+        if organizer_refund > 0 {
+            **treasury_info.try_borrow_mut_lamports()? -= organizer_refund;
+            **organizer_info.try_borrow_mut_lamports()? += organizer_refund;
         }
 
+        // Treasury -> winners (remaining_accounts[0..n_winner])
         for (i, &amount) in winner_amounts.iter().enumerate() {
             if amount == 0 {
                 continue;
             }
             **treasury_info.try_borrow_mut_lamports()? -= amount;
-            // winner_wallets[i] += amount (need account infos for winners)
+            **rem[i].try_borrow_mut_lamports()? += amount;
+        }
+
+        // Treasury -> sponsors (remaining_accounts[n_winner..n_winner+n_sponsor])
+        for (i, &amount) in sponsor_refunds.iter().enumerate() {
+            if amount == 0 {
+                continue;
+            }
+            **treasury_info.try_borrow_mut_lamports()? -= amount;
+            **rem[n_winner + i].try_borrow_mut_lamports()? += amount;
         }
 
         Ok(())

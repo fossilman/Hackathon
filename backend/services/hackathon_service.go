@@ -652,8 +652,8 @@ func (s *HackathonService) GetDistributionParams(id uint64, userID uint64, userR
 		return nil, err
 	}
 
-	var winnerWallets []string
-	var winnerAmounts []uint64
+	winnerWallets := make([]string, 0)
+	winnerAmounts := make([]uint64, 0)
 	for i, item := range list {
 		if i >= len(awards) {
 			break
@@ -674,8 +674,8 @@ func (s *HackathonService) GetDistributionParams(id uint64, userID uint64, userR
 	}
 
 	// 指定活动赞助商退款：HackathonSponsorEvent -> Sponsor -> Application (AmountLamports, SponsorWallet)
-	var sponsorWallets []string
-	var sponsorRefunds []uint64
+	sponsorWallets := make([]string, 0)
+	sponsorRefunds := make([]uint64, 0)
 	var hse []models.HackathonSponsorEvent
 	if err := database.DB.Where("hackathon_id = ?", id).Find(&hse).Error; err == nil {
 		for _, e := range hse {

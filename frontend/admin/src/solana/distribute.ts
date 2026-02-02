@@ -37,40 +37,46 @@ export interface DistributionParams {
   event_id: number
   event_pda: string
   treasury_pda: string
-  winner_wallets: string[]
-  winner_amounts: number[]
-  organizer_wallet: string
-  organizer_refund: number
-  sponsor_wallets: string[]
-  sponsor_refunds: number[]
+  winner_wallets?: string[] | null
+  winner_amounts?: number[] | null
+  organizer_wallet?: string
+  organizer_refund?: number
+  sponsor_wallets?: string[] | null
+  sponsor_refunds?: number[] | null
 }
 
 /**
  * Build distribute instruction data (Anchor: discriminator + Vec<Pubkey> + Vec<u64> + u64 + Vec<u64> + Vec<Pubkey>).
+ * Backend may return null for arrays when empty; normalize to [].
  */
 async function buildDistributeData(params: DistributionParams): Promise<Uint8Array> {
   const disc = await getDistributeDiscriminator()
   const parts: Uint8Array[] = [disc]
 
-  const winnerWallets = params.winner_wallets.map((w) => new PublicKey(w))
+  const winnerWalletsList = params.winner_wallets ?? []
+  const winnerAmountsList = params.winner_amounts ?? []
+  const sponsorWalletsList = params.sponsor_wallets ?? []
+  const sponsorRefundsList = params.sponsor_refunds ?? []
+
+  const winnerWallets = winnerWalletsList.map((w) => new PublicKey(w))
   parts.push(u32Le(winnerWallets.length))
   for (const w of winnerWallets) {
     parts.push(new Uint8Array(w.toBytes()))
   }
 
-  parts.push(u32Le(params.winner_amounts.length))
-  for (const a of params.winner_amounts) {
+  parts.push(u32Le(winnerAmountsList.length))
+  for (const a of winnerAmountsList) {
     parts.push(u64Le(a))
   }
 
-  parts.push(u64Le(params.organizer_refund))
+  parts.push(u64Le(params.organizer_refund ?? 0))
 
-  parts.push(u32Le(params.sponsor_refunds.length))
-  for (const a of params.sponsor_refunds) {
+  parts.push(u32Le(sponsorRefundsList.length))
+  for (const a of sponsorRefundsList) {
     parts.push(u64Le(a))
   }
 
-  const sponsorWallets = params.sponsor_wallets.map((w) => new PublicKey(w))
+  const sponsorWallets = sponsorWalletsList.map((w) => new PublicKey(w))
   parts.push(u32Le(sponsorWallets.length))
   for (const w of sponsorWallets) {
     parts.push(new Uint8Array(w.toBytes()))
@@ -110,11 +116,20 @@ export async function sendDistribute(
   }
 
   const data = await buildDistributeData(params)
-  const keys = [
+  const winnerWalletsList = params.winner_wallets ?? []
+  const sponsorWalletsList = params.sponsor_wallets ?? []
+
+  const keys: Array<{ pubkey: PublicKey; isSigner: boolean; isWritable: boolean }> = [
     { pubkey: organizer, isSigner: true, isWritable: true },
     { pubkey: eventPda, isSigner: false, isWritable: false },
     { pubkey: treasuryPda, isSigner: false, isWritable: true },
   ]
+  for (const w of winnerWalletsList) {
+    keys.push({ pubkey: new PublicKey(w), isSigner: false, isWritable: true })
+  }
+  for (const w of sponsorWalletsList) {
+    keys.push({ pubkey: new PublicKey(w), isSigner: false, isWritable: true })
+  }
 
   const instruction = new TransactionInstruction({
     programId,
