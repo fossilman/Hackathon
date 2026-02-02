@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button, message } from 'antd'
 import { TrophyOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { ethers } from 'ethers'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { PageHeader } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
@@ -22,8 +23,10 @@ export default function Home() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { walletAddress, connectWallet, setParticipant } = useAuthStore()
+  const { publicKey, signMessage } = useWallet()
   const [hackathons, setHackathons] = useState<Hackathon[]>([])
   const [loading, setLoading] = useState(false)
+  const [connecting, setConnecting] = useState(false)
 
   const fetchHackathons = async () => {
     setLoading(true)
@@ -44,45 +47,36 @@ export default function Home() {
   }, [])
 
   const handleConnectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (!publicKey || !signMessage) {
+      message.warning(t('common.pleaseInstallPhantom'))
+      return
+    }
+    setConnecting(true)
+    try {
+      const address = publicKey.toBase58()
+      const { nonce } = await request.post('/auth/connect', {
+        wallet_address: address,
+      })
+      const messageText = `Please sign this message to authenticate: ${nonce}`
+      const encodedMessage = new TextEncoder().encode(messageText)
+      const sigBytes = await signMessage(encodedMessage)
+      const signature = btoa(String.fromCharCode(...new Uint8Array(sigBytes)))
+      const { token, participant: participantData } = await request.post('/auth/verify', {
+        wallet_address: address,
+        signature,
+      })
+      connectWallet(address, token, participantData.id, participantData)
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const accounts = await provider.send('eth_requestAccounts', [])
-        const address = accounts[0]
-        
-        // 获取nonce
-        const { nonce } = await request.post('/auth/connect', {
-          wallet_address: address,
-        })
-
-        // 签名
-        const signer = await provider.getSigner()
-        const messageText = `Please sign this message to authenticate: ${nonce}`
-        const signature = await signer.signMessage(messageText)
-
-        // 验证签名
-        const { token, participant: participantData } = await request.post('/auth/verify', {
-          wallet_address: address,
-          signature,
-        })
-
-        connectWallet(address, token, participantData.id, participantData)
-        
-        // 获取完整的 participant 信息（包括 nickname）
-        try {
-          const fullParticipant = await request.get('/profile')
-          setParticipant(fullParticipant)
-        } catch (error) {
-          // 如果获取失败，使用基本信息
-          console.warn('获取完整用户信息失败，使用基本信息')
-        }
-        
-        message.success(t('common.connected'))
-      } catch (error: any) {
-        message.error(error.message || t('common.error'))
+        const fullParticipant = await request.get('/profile')
+        setParticipant(fullParticipant)
+      } catch {
+        console.warn('获取完整用户信息失败，使用基本信息')
       }
-    } else {
-      message.error(t('common.pleaseInstallMetamask'))
+      message.success(t('common.connected'))
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : t('common.error'))
+    } finally {
+      setConnecting(false)
     }
   }
 
@@ -119,14 +113,19 @@ export default function Home() {
         }
         actions={
           !walletAddress ? (
-          <Button 
-            type="primary" 
-            onClick={handleConnectWallet}
-            data-testid="home-connect-button"
-            aria-label={t('common.connectWallet')}
-          >
-            {t('common.connectWallet')}
-          </Button>
+            publicKey ? (
+              <Button
+                type="primary"
+                onClick={handleConnectWallet}
+                loading={connecting}
+                data-testid="home-connect-button"
+                aria-label={t('common.connectWallet')}
+              >
+                {t('common.signIn')}
+              </Button>
+            ) : (
+              <WalletMultiButton style={{ height: '36px', borderRadius: 'var(--radius-md)' }} />
+            )
           ) : undefined
         }
         testId="home-header"

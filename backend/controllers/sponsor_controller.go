@@ -25,10 +25,12 @@ func NewSponsorController() *SponsorController {
 // CreateApplication 提交赞助申请（无需登录）
 func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 	var req struct {
-		Phone       string   `json:"phone" binding:"required"`
-		LogoURL     *string  `json:"logo_url,omitempty"` // 暂时设为可选
-		SponsorType string   `json:"sponsor_type" binding:"required,oneof=long_term event_specific"`
-		EventIDs    []uint64 `json:"event_ids"` // 活动指定赞助时必填
+		Phone          string   `json:"phone" binding:"required"`
+		LogoURL        *string  `json:"logo_url,omitempty"` // 暂时设为可选
+		SponsorType    string   `json:"sponsor_type" binding:"required,oneof=long_term event_specific"`
+		EventIDs       []uint64 `json:"event_ids"`          // 活动指定赞助时必填
+		SponsorWallet  string   `json:"sponsor_wallet"`     // Solana 钱包（申请时锁仓用）
+		AmountLamports uint64   `json:"amount_lamports"`   // 锁仓金额（lamports）
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -66,11 +68,13 @@ func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 	}
 
 	application := models.SponsorApplication{
-		Phone:       req.Phone,
-		LogoURL:     logoURL,
-		SponsorType: req.SponsorType,
-		EventIDs:    eventIDsJSON,
-		Status:      "pending",
+		Phone:          req.Phone,
+		LogoURL:        logoURL,
+		SponsorType:    req.SponsorType,
+		EventIDs:       eventIDsJSON,
+		Status:         "pending",
+		SponsorWallet:  req.SponsorWallet,
+		AmountLamports: req.AmountLamports,
 	}
 
 	if err := c.sponsorService.CreateApplication(&application); err != nil {
@@ -82,6 +86,25 @@ func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 		"application_id": application.ID,
 		"message":        "申请已提交，请使用手机号查询审核结果",
 	})
+}
+
+// UpdateApplicationChain 保存赞助商申请链上数据（创建 escrow 后调用）
+func (c *SponsorController) UpdateApplicationChain(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的申请ID")
+		return
+	}
+	var body struct {
+		EscrowPDA   string `json:"escrow_pda"`
+		ApplyTxSig  string `json:"apply_tx_sig"`
+	}
+	_ = ctx.ShouldBindJSON(&body)
+	if err := c.sponsorService.UpdateApplicationChain(id, body.EscrowPDA, body.ApplyTxSig); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, nil)
 }
 
 // QueryApplication 查询申请结果（无需登录）

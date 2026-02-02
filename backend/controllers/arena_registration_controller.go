@@ -80,7 +80,7 @@ func (c *ArenaRegistrationController) CancelRegistration(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// Checkin 签到
+// Checkin 签到（可选 body: { "checkin_tx_sig": "链上交易签名" }，签到+NFT 上链后传入）
 func (c *ArenaRegistrationController) Checkin(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -90,7 +90,12 @@ func (c *ArenaRegistrationController) Checkin(ctx *gin.Context) {
 
 	participantID, _ := ctx.Get("participant_id")
 
-	if err := c.registrationService.Checkin(id, participantID.(uint64)); err != nil {
+	var body struct {
+		CheckinTxSig string `json:"checkin_tx_sig"`
+	}
+	_ = ctx.ShouldBindJSON(&body)
+
+	if err := c.registrationService.Checkin(id, participantID.(uint64), body.CheckinTxSig); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

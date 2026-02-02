@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"hackathon-backend/chain"
+	"hackathon-backend/config"
 	"hackathon-backend/database"
 	"hackathon-backend/models"
 	"hackathon-backend/utils"
@@ -515,6 +517,75 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 	}, nil
 }
 
+// UpdatePublishChain 保存活动发布后的链上数据（event_pda、event_pda_hex、treasury_pda、attendance_mint、publish_tx_sig）
+func (s *HackathonService) UpdatePublishChain(id uint64, userID uint64, userRole string, eventPDA, eventPDAHex, treasuryPDA, attendanceMint, publishTxSig string) error {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return err
+	}
+	if userRole == "admin" {
+		return errors.New("Admin不能操作链上数据")
+	}
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能操作自己创建的活动")
+	}
+	if hackathon.Status != "published" {
+		return errors.New("活动未发布")
+	}
+	updates := map[string]interface{}{}
+	if eventPDA != "" {
+		updates["event_pda"] = eventPDA
+	}
+	if treasuryPDA != "" {
+		updates["treasury_pda"] = treasuryPDA
+	}
+	if attendanceMint != "" {
+		updates["attendance_mint"] = attendanceMint
+	}
+	if publishTxSig != "" {
+		updates["publish_tx_sig"] = publishTxSig
+	}
+	if eventPDAHex != "" {
+		updates["event_pda_hex"] = eventPDAHex
+	}
+	if len(updates) == 0 {
+		return nil
+	}
+	return database.DB.Model(&hackathon).Updates(updates).Error
+}
+
+// GetPublishChainParams 返回前端构建 create_event 所需参数（event_id、name、program_id、organizer_lamports）
+func (s *HackathonService) GetPublishChainParams(id uint64, userID uint64, userRole string) (map[string]interface{}, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	if userRole == "admin" {
+		return nil, errors.New("Admin不能获取发布上链参数")
+	}
+	if hackathon.OrganizerID != userID {
+		return nil, errors.New("只能操作自己创建的活动")
+	}
+	if hackathon.Status != "preparation" {
+		return nil, errors.New("只能对处于预备状态的活动获取发布上链参数")
+	}
+	return map[string]interface{}{
+		"event_id":           id,
+		"name":               hackathon.Name,
+		"program_id":         config.AppConfig.SolanaProgramID,
+		"organizer_lamports": uint64(0), // 可选：主办方初始注入金库的 lamports
+	}, nil
+}
+
+// GetChainCheckinWallets 读取链上签到钱包列表（投票、分发奖金时用链上数据保证不可篡改）
+func (s *HackathonService) GetChainCheckinWallets(hackathonID uint64) ([]string, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", hackathonID).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	return chain.GetCheckinWallets(hackathon.EventPDAHex)
+}
+
 // generatePosterQRCode 生成海报二维码
 func (s *HackathonService) generatePosterQRCode(hackathonID uint64, posterURL string) (string, error) {
 	// 构建完整的海报URL（需要根据实际部署环境配置）
@@ -780,7 +851,7 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 		"checkin":        2,
 		"team_formation": 3,
 		"submission":     4,
-		"voting":          5,
+		"voting":         5,
 	}
 
 	// 检查每个阶段的时间
@@ -946,36 +1017,35 @@ func (s *HackathonService) GetArchiveDetail(hackathonID uint64) (map[string]inte
 		return nil, err
 	}
 
-		finalResults := make([]map[string]interface{}, 0)
-		submissionIndex := 0
-		for _, award := range awards {
-			// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
-			awardResults := make([]map[string]interface{}, 0)
-			for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
-				submission := submissions[submissionIndex]
-				voteCount := submissionVoteCounts[submission.ID]
-				awardResults = append(awardResults, map[string]interface{}{
-					"team_name":      submission.Team.Name,
-					"submission_name": submission.Name,
-					"vote_count":      voteCount,
-					"prize_money":     award.Prize,
-				})
-				submissionIndex++
-			}
-			finalResults = append(finalResults, map[string]interface{}{
-				"award_name": award.Name,
-				"prize":      award.Prize,
-				"quantity":   award.Quantity,
-				"winners":    awardResults,
+	finalResults := make([]map[string]interface{}, 0)
+	submissionIndex := 0
+	for _, award := range awards {
+		// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
+		awardResults := make([]map[string]interface{}, 0)
+		for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
+			submission := submissions[submissionIndex]
+			voteCount := submissionVoteCounts[submission.ID]
+			awardResults = append(awardResults, map[string]interface{}{
+				"team_name":       submission.Team.Name,
+				"submission_name": submission.Name,
+				"vote_count":      voteCount,
+				"prize_money":     award.Prize,
 			})
+			submissionIndex++
 		}
+		finalResults = append(finalResults, map[string]interface{}{
+			"award_name": award.Name,
+			"prize":      award.Prize,
+			"quantity":   award.Quantity,
+			"winners":    awardResults,
+		})
+	}
 
 	return map[string]interface{}{
-		"hackathon":    hackathon,
-		"stats":        stats,
-		"submissions":  submissions,
-		"vote_results": voteResults,
+		"hackathon":     hackathon,
+		"stats":         stats,
+		"submissions":   submissions,
+		"vote_results":  voteResults,
 		"final_results": finalResults,
 	}, nil
 }
-

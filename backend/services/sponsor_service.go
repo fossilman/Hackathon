@@ -16,7 +16,10 @@ import (
 
 type SponsorService struct{}
 
-// CreateApplication 创建赞助商申请
+// DefaultReviewDuration 默认审核截止时间（自申请日起）
+const DefaultReviewDuration = 7 * 24 * time.Hour
+
+// CreateApplication 创建赞助商申请（设定默认审核时间；审核通过金额转主办方，失败原路返回）
 func (s *SponsorService) CreateApplication(application *models.SponsorApplication) error {
 	// 检查手机号是否已申请
 	var existing models.SponsorApplication
@@ -24,12 +27,37 @@ func (s *SponsorService) CreateApplication(application *models.SponsorApplicatio
 		return errors.New("该手机号已提交申请，请勿重复申请")
 	}
 
-	// 如果申请状态不是pending，返回错误
 	if application.Status != "pending" {
 		application.Status = "pending"
 	}
 
+	// 设定默认审核截止时间
+	deadline := time.Now().Add(DefaultReviewDuration)
+	application.ReviewDeadline = &deadline
+
 	return database.DB.Create(application).Error
+}
+
+// UpdateApplicationChain 保存赞助商申请链上数据（创建 escrow 后传入 escrow_pda、apply_tx_sig）
+func (s *SponsorService) UpdateApplicationChain(applicationID uint64, escrowPDA, applyTxSig string) error {
+	var application models.SponsorApplication
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", applicationID).First(&application).Error; err != nil {
+		return errors.New("申请不存在")
+	}
+	if application.Status != "pending" {
+		return errors.New("该申请已审核，无法更新链上数据")
+	}
+	updates := map[string]interface{}{}
+	if escrowPDA != "" {
+		updates["escrow_pda"] = escrowPDA
+	}
+	if applyTxSig != "" {
+		updates["apply_tx_sig"] = applyTxSig
+	}
+	if len(updates) == 0 {
+		return nil
+	}
+	return database.DB.Model(&application).Updates(updates).Error
 }
 
 // GetApplicationByPhone 根据手机号查询申请

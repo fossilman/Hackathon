@@ -1,0 +1,26 @@
+[features]
+seeds = true
+skip-lint = false
+
+# 使用本地 Rust/Solana 构建，不用 Docker（若仍走 Docker，请用下方 README 的 cargo build-sbf）
+[build]
+use_docker = false
+
+[toolchain]
+anchor_version = "0.32.1"
+
+[programs.localnet]
+hackathon_platform = "2BE9YFPLME8in2tsSeTY7CpKg7btYubQW5BFG9vdAMYX"
+
+[programs.devnet]
+hackathon_platform = "2BE9YFPLME8in2tsSeTY7CpKg7btYubQW5BFG9vdAMYX"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

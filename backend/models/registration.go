@@ -26,6 +26,7 @@ type Checkin struct {
 	ID            uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
 	HackathonID   uint64    `gorm:"uniqueIndex:uk_hackathon_participant;not null" json:"hackathon_id"`
 	ParticipantID uint64    `gorm:"uniqueIndex:uk_hackathon_participant;not null" json:"participant_id"`
+	CheckinTxSig  string    `gorm:"type:varchar(128)" json:"checkin_tx_sig"` // 签到上链交易签名（Solana）
 	CreatedAt     time.Time `json:"created_at"`
 
 	// 关联关系

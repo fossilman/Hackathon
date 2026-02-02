@@ -13,6 +13,8 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "pleaseInstallMetamask": "Please install Metamask",
+    "pleaseInstallPhantom": "Please connect a Solana wallet (e.g. Phantom) first",
+    "signIn": "Sign in",
     "requestFailed": "Request failed"
   },
   "nav": {

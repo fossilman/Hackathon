@@ -20,6 +20,12 @@ type Hackathon struct {
 	OrganizerID  uint64         `gorm:"index;not null" json:"organizer_id"`
 	MaxTeamSize  int            `gorm:"default:3" json:"max_team_size"`
 	MaxParticipants int         `gorm:"default:0" json:"max_participants"` // 最大参与人数，0表示不限制
+	// 链上数据（Solana 本地测试链）
+	EventPDA       string    `gorm:"type:varchar(128)" json:"event_pda"`        // 活动链上账户 PDA（base58）
+	EventPDAHex    string    `gorm:"type:varchar(64)" json:"event_pda_hex"`    // 用于链上过滤的 32 字节 hex
+	TreasuryPDA    string    `gorm:"type:varchar(128)" json:"treasury_pda"`     // 金库 PDA
+	AttendanceMint string    `gorm:"type:varchar(128)" json:"attendance_mint"`   // 签到 NFT Mint 地址
+	PublishTxSig   string    `gorm:"type:varchar(128)" json:"publish_tx_sig"`   // 发布上链交易签名
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

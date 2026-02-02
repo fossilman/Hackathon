@@ -1,7 +1,9 @@
 package services
 
 import (
+	"crypto/ed25519"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 	"hackathon-backend/utils"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/mr-tron/base58"
 	"gorm.io/gorm"
 )
 
@@ -73,18 +76,20 @@ func (s *ParticipantService) VerifySignature(walletAddress, signature string) (*
 		return nil, "", errors.New("请先获取nonce")
 	}
 
-	// 检查是否为测试钱包地址
-	isTestWallet := s.isTestWallet(walletAddress)
-	
-	if !isTestWallet {
-		// 非测试钱包，进行正常的签名验证
-		if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
+	if s.isSolanaAddress(walletAddress) {
+		if err := s.verifySolanaSignature(walletAddress, participant.Nonce, signature); err != nil {
 			return nil, "", fmt.Errorf("签名验证失败: %w", err)
 		}
 	} else {
-		// 测试钱包，只验证签名格式，不验证签名内容
-		if !s.isValidTestSignature(signature) {
-			return nil, "", errors.New("测试钱包签名格式无效")
+		isTestWallet := s.isTestWallet(walletAddress)
+		if !isTestWallet {
+			if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
+				return nil, "", fmt.Errorf("签名验证失败: %w", err)
+			}
+		} else {
+			if !s.isValidTestSignature(signature) {
+				return nil, "", errors.New("测试钱包签名格式无效")
+			}
 		}
 	}
 
@@ -164,17 +169,38 @@ func (s *ParticipantService) isTestWallet(walletAddress string) bool {
 
 // isValidTestSignature 验证测试钱包签名格式（只验证格式，不验证内容）
 func (s *ParticipantService) isValidTestSignature(signature string) bool {
-	// 移除0x前缀
 	sig := strings.TrimPrefix(signature, "0x")
-	
-	// 签名应该是130个十六进制字符（65字节 = 64字节签名 + 1字节恢复ID）
 	if len(sig) != 130 {
 		return false
 	}
-	
-	// 检查是否为有效的十六进制字符串
 	matched, _ := regexp.MatchString("^[0-9a-fA-F]{130}$", sig)
 	return matched
+}
+
+// isSolanaAddress 判断是否为 Solana 地址（base58，解码后 32 字节）
+func (s *ParticipantService) isSolanaAddress(walletAddress string) bool {
+	if strings.HasPrefix(strings.ToLower(walletAddress), "0x") {
+		return false
+	}
+	decoded, err := base58.Decode(walletAddress)
+	return err == nil && len(decoded) == 32
+}
+
+// verifySolanaSignature 验证 Solana Ed25519 签名（Phantom 等钱包 signMessage 返回 base64）
+func (s *ParticipantService) verifySolanaSignature(walletAddress, nonce, signature string) error {
+	message := []byte(fmt.Sprintf("Please sign this message to authenticate: %s", nonce))
+	pubKey, err := base58.Decode(walletAddress)
+	if err != nil || len(pubKey) != ed25519.PublicKeySize {
+		return errors.New("无效的 Solana 地址")
+	}
+	sig, err := base64.StdEncoding.DecodeString(signature)
+	if err != nil || len(sig) != ed25519.SignatureSize {
+		return errors.New("无效的签名格式")
+	}
+	if !ed25519.Verify(pubKey, message, sig) {
+		return errors.New("签名验证失败")
+	}
+	return nil
 }
 
 // GetProfile 获取参赛者信息

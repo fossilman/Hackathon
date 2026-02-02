@@ -272,3 +272,5 @@ ENV/
 # 项目特定
 # debug/  # 如果需要保留debug目录，可以注释掉这行
 
+*/**/target/
+test-ledger/

@@ -116,6 +116,8 @@
     "downloadQRCode": "下载二维码",
     "edit": "编辑",
     "publish": "发布",
+    "connectSolanaWallet": "请先连接 Solana 钱包（如 Phantom）再发布活动",
+    "publishInsufficientBalance": "本地测试链余额不足。请先在终端执行（本地验证器需已启动）：solana airdrop 2 {{address}}",
     "switchStage": "切换阶段",
     "stats": "统计信息",
     "registrationCount": "报名人数",

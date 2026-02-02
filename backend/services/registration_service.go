@@ -122,8 +122,8 @@ func (s *RegistrationService) CancelRegistration(hackathonID, participantID uint
 	return database.DB.Delete(&registration).Error
 }
 
-// Checkin 签到
-func (s *RegistrationService) Checkin(hackathonID, participantID uint64) error {
+// Checkin 签到（checkinTxSig 为可选链上交易签名，签到+NFT 上链后传入）
+func (s *RegistrationService) Checkin(hackathonID, participantID uint64, checkinTxSig string) error {
 	// 检查是否已报名
 	var registration models.Registration
 	if err := database.DB.Where("hackathon_id = ? AND participant_id = ?", hackathonID, participantID).First(&registration).Error; err != nil {
@@ -156,10 +156,11 @@ func (s *RegistrationService) Checkin(hackathonID, participantID uint64) error {
 		return errors.New("已经签到")
 	}
 
-	// 创建签到记录
+	// 创建签到记录（可选带链上交易签名）
 	checkin := models.Checkin{
 		HackathonID:   hackathonID,
 		ParticipantID: participantID,
+		CheckinTxSig:  checkinTxSig,
 	}
 
 	return database.DB.Create(&checkin).Error

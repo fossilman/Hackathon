@@ -13,12 +13,18 @@ type SponsorApplication struct {
 	LogoURL     string         `gorm:"type:longtext;not null" json:"logo_url"` // 存储base64编码的图片
 	SponsorType string         `gorm:"type:enum('long_term','event_specific');not null" json:"sponsor_type"`
 	EventIDs    string         `gorm:"type:text" json:"event_ids"` // JSON数组字符串，存储活动ID列表
-	Status      string         `gorm:"type:enum('pending','approved','rejected');default:'pending'" json:"status"`
-	CreatedAt   time.Time      `json:"created_at"`
-	ReviewedAt  *time.Time     `json:"reviewed_at"`
-	ReviewerID  *uint64        `gorm:"index" json:"reviewer_id"`
-	RejectReason string        `gorm:"type:text" json:"reject_reason"` // 拒绝原因（不对外展示）
-	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+	Status        string         `gorm:"type:enum('pending','approved','rejected');default:'pending'" json:"status"`
+	// 链上数据（赞助商申请：审核通过转主办方，失败原路退回）
+	EscrowPDA      string     `gorm:"type:varchar(128)" json:"escrow_pda"`       // Escrow PDA
+	AmountLamports uint64     `gorm:"default:0" json:"amount_lamports"`          // 锁仓金额（lamports）
+	SponsorWallet  string     `gorm:"type:varchar(128)" json:"sponsor_wallet"`  // 赞助商 Solana 钱包
+	ReviewDeadline *time.Time `json:"review_deadline"`                          // 默认审核截止时间
+	ApplyTxSig     string     `gorm:"type:varchar(128)" json:"apply_tx_sig"`    // 申请上链交易签名
+	CreatedAt      time.Time  `json:"created_at"`
+	ReviewedAt     *time.Time `json:"reviewed_at"`
+	ReviewerID     *uint64    `gorm:"index" json:"reviewer_id"`
+	RejectReason   string     `gorm:"type:text" json:"reject_reason"` // 拒绝原因（不对外展示）
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 
 	// 关联关系
 	Reviewer User `gorm:"foreignKey:ReviewerID" json:"reviewer,omitempty"`

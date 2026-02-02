@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"hackathon-backend/models"
 	"hackathon-backend/services"
 	"hackathon-backend/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 type AdminHackathonController struct {
@@ -32,9 +33,9 @@ func (c *AdminHackathonController) CreateHackathon(ctx *gin.Context) {
 
 	var req struct {
 		models.Hackathon
-		Stages          []models.HackathonStage `json:"stages"`
-		Awards          []models.HackathonAward  `json:"awards"`
-		AutoAssignStages bool                   `json:"auto_assign_stages"` // 是否自动分配阶段时间
+		Stages           []models.HackathonStage `json:"stages"`
+		Awards           []models.HackathonAward `json:"awards"`
+		AutoAssignStages bool                    `json:"auto_assign_stages"` // 是否自动分配阶段时间
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -112,7 +113,7 @@ func (c *AdminHackathonController) UpdateHackathon(ctx *gin.Context) {
 	var req struct {
 		models.Hackathon
 		Stages []models.HackathonStage `json:"stages"`
-		Awards []models.HackathonAward  `json:"awards"`
+		Awards []models.HackathonAward `json:"awards"`
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -148,7 +149,7 @@ func (c *AdminHackathonController) DeleteHackathon(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// PublishHackathon 发布活动（仅活动创建者可发布）
+// PublishHackathon 发布活动（仅活动创建者可发布）。支持一次性带链上数据：先上链 create_event 后，把 event_pda/treasury_pda/attendance_mint/publish_tx_sig 放 body 里一起提交。
 func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -156,9 +157,17 @@ func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 		return
 	}
 
-	// 获取当前用户信息
 	userID, _ := ctx.Get("user_id")
 	role, _ := ctx.Get("role")
+
+	var body struct {
+		EventPDA       string `json:"event_pda"`
+		EventPDAHex    string `json:"event_pda_hex"`
+		TreasuryPDA    string `json:"treasury_pda"`
+		AttendanceMint string `json:"attendance_mint"`
+		PublishTxSig   string `json:"publish_tx_sig"`
+	}
+	_ = ctx.ShouldBindJSON(&body) // 可选 body，不报错
 
 	result, err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string))
 	if err != nil {
@@ -166,7 +175,65 @@ func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 		return
 	}
 
+	// 若带了链上数据，一并保存（发布活动上链）
+	if body.EventPDA != "" || body.TreasuryPDA != "" || body.AttendanceMint != "" || body.PublishTxSig != "" {
+		if err := c.hackathonService.UpdatePublishChain(id, userID.(uint64), role.(string),
+			body.EventPDA, body.EventPDAHex, body.TreasuryPDA, body.AttendanceMint, body.PublishTxSig); err != nil {
+			utils.BadRequest(ctx, "发布成功但保存链上数据失败: "+err.Error())
+			return
+		}
+	}
+
 	utils.Success(ctx, result)
+}
+
+// GetPublishChainParams 获取发布上链参数，供前端构建 create_event 交易（event_id、name、program_id、organizer_lamports）
+func (c *AdminHackathonController) GetPublishChainParams(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+	params, err := c.hackathonService.GetPublishChainParams(id, userID.(uint64), role.(string))
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, params)
+}
+
+// UpdatePublishChain 保存活动发布后的链上数据（前端在 Solana 上执行 create_event 后调用）
+func (c *AdminHackathonController) UpdatePublishChain(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+
+	var body struct {
+		EventPDA       string `json:"event_pda"`
+		EventPDAHex    string `json:"event_pda_hex"`
+		TreasuryPDA    string `json:"treasury_pda"`
+		AttendanceMint string `json:"attendance_mint"`
+		PublishTxSig   string `json:"publish_tx_sig"`
+	}
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		utils.BadRequest(ctx, "参数错误")
+		return
+	}
+
+	if err := c.hackathonService.UpdatePublishChain(id, userID.(uint64), role.(string),
+		body.EventPDA, body.EventPDAHex, body.TreasuryPDA, body.AttendanceMint, body.PublishTxSig); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, nil)
 }
 
 // SwitchStage 切换活动阶段（仅活动创建者可切换）
@@ -407,4 +474,3 @@ func (c *AdminHackathonController) GetPosterQRCode(ctx *gin.Context) {
 		"poster_url":  fmt.Sprintf("/posters/%d", id),
 	})
 }
-

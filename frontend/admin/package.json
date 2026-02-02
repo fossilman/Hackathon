@@ -4,6 +4,11 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.98.4",
     "@types/node": "^20.10.5",
     "antd": "^5.11.5",
     "axios": "^1.6.2",

@@ -116,6 +116,8 @@
     "downloadQRCode": "Download QR Code",
     "edit": "Edit",
     "publish": "Publish",
+    "connectSolanaWallet": "Please connect a Solana wallet (e.g. Phantom) before publishing",
+    "publishInsufficientBalance": "Insufficient balance on localnet. Run in terminal (with local validator running): solana airdrop 2 {{address}}",
     "switchStage": "Switch Stage",
     "stats": "Statistics",
     "registrationCount": "Registrations",

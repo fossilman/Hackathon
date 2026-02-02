@@ -2,10 +2,11 @@ import { Outlet, useNavigate } from 'react-router-dom'
 import { Layout as AntLayout, Button, Space, Avatar, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
 import { TrophyOutlined, WalletOutlined, LogoutOutlined, UserOutlined, AppstoreOutlined, HistoryOutlined } from '@ant-design/icons'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useAuthStore } from '../store/authStore'
 import { getUserDisplayName } from '../utils/userDisplay'
 import LanguageSwitcher from './LanguageSwitcher'
-import { ethers } from 'ethers'
 import { message } from 'antd'
 import request from '../api/request'
 import { useTranslation } from 'react-i18next'
@@ -16,8 +17,10 @@ const { Header, Content } = AntLayout
 export default function Layout() {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { walletAddress, token, participant, connectWallet, setParticipant, clearAuth } = useAuthStore()
+  const { walletAddress, participant, connectWallet, setParticipant, clearAuth } = useAuthStore()
+  const { publicKey, signMessage } = useWallet()
   const [sponsors, setSponsors] = useState<any[]>([])
+  const [connecting, setConnecting] = useState(false)
 
   // 获取长期赞助商
   useEffect(() => {
@@ -33,45 +36,36 @@ export default function Layout() {
   }, [])
 
   const handleConnectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+    if (!publicKey || !signMessage) {
+      message.warning(t('common.pleaseInstallPhantom'))
+      return
+    }
+    setConnecting(true)
+    try {
+      const address = publicKey.toBase58()
+      const { nonce } = await request.post('/auth/connect', {
+        wallet_address: address,
+      })
+      const messageText = `Please sign this message to authenticate: ${nonce}`
+      const encodedMessage = new TextEncoder().encode(messageText)
+      const sigBytes = await signMessage(encodedMessage)
+      const signature = btoa(String.fromCharCode(...new Uint8Array(sigBytes)))
+      const { token: authToken, participant: participantData } = await request.post('/auth/verify', {
+        wallet_address: address,
+        signature,
+      })
+      connectWallet(address, authToken, participantData.id, participantData)
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const accounts = await provider.send('eth_requestAccounts', [])
-        const address = accounts[0]
-        
-        // 获取nonce
-        const { nonce } = await request.post('/auth/connect', {
-          wallet_address: address,
-        })
-
-        // 签名
-        const signer = await provider.getSigner()
-        const messageText = `Please sign this message to authenticate: ${nonce}`
-        const signature = await signer.signMessage(messageText)
-
-        // 验证签名
-        const { token: authToken, participant: participantData } = await request.post('/auth/verify', {
-          wallet_address: address,
-          signature,
-        })
-
-        connectWallet(address, authToken, participantData.id, participantData)
-        
-        // 获取完整的 participant 信息（包括 nickname）
-        try {
-          const fullParticipant = await request.get('/profile')
-          setParticipant(fullParticipant)
-        } catch (error) {
-          // 如果获取失败，使用基本信息
-          console.warn('获取完整用户信息失败，使用基本信息')
-        }
-        
-        message.success(t('common.connected'))
-      } catch (error: any) {
-        message.error(error.message || t('common.error'))
+        const fullParticipant = await request.get('/profile')
+        setParticipant(fullParticipant)
+      } catch {
+        console.warn('获取完整用户信息失败，使用基本信息')
       }
-    } else {
-      message.error(t('common.pleaseInstallMetamask'))
+      message.success(t('common.connected'))
+    } catch (error: unknown) {
+      message.error(error instanceof Error ? error.message : t('common.error'))
+    } finally {
+      setConnecting(false)
     }
   }
 
@@ -214,11 +208,12 @@ export default function Layout() {
                 </Button>
               </Dropdown>
             </Space>
-          ) : (
+          ) : publicKey ? (
             <Button
               type="primary"
               icon={<WalletOutlined />}
               onClick={handleConnectWallet}
+              loading={connecting}
               style={{
                 background: 'rgba(255, 255, 255, 0.2)',
                 borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -228,8 +223,18 @@ export default function Layout() {
               data-testid="arena-connect-button"
               aria-label={t('common.connectWallet')}
             >
-              {t('common.connectWallet')}
+              {t('common.signIn')}
             </Button>
+          ) : (
+            <WalletMultiButton
+              style={{
+                height: '36px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(255, 255, 255, 0.2)',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: 'var(--text-inverse)',
+              }}
+            />
           )}
         </div>
       </Header>

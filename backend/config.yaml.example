@@ -25,3 +25,9 @@ cors:
     - http://localhost:3000
     - http://localhost:3001
 
+# Solana 本地测试链（活动/签到/投票/赞助商链上功能）
+# program_id 需与 solana/target/deploy 部署的程序 ID 一致（见 Anchor.toml）
+solana:
+  rpc_url: "http://localhost:8899"
+  program_id: "2BE9YFPLME8in2tsSeTY7CpKg7btYubQW5BFG9vdAMYX"
+

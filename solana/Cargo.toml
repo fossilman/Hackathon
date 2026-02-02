@@ -1,0 +1,17 @@
+[workspace]
+members = [
+    "programs/*"
+]
+resolver = "2"
+
+[profile.release]
+overflow-checks = true
+
+# 用本地 vendored 的 constant_time_eq（声明 0.4.2 + edition 2021），避免 crates.io 0.4.2 的 edition2024 解析失败
+[patch.crates-io]
+constant_time_eq = { path = "vendor/constant_time_eq" }
+
+[workspace.metadata]
+keywords = ["solana", "hackathon", "anchor"]
+description = "Hackathon platform Solana programs"
+name = "hackathon-solana"

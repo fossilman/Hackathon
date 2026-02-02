@@ -1,7 +1,8 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { Layout as AntLayout, Menu, Button, Avatar, Dropdown, Space } from 'antd'
+import { Layout as AntLayout, Menu, Button, Dropdown } from 'antd'
 import type { MenuProps } from 'antd'
 import { useTranslation } from 'react-i18next'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { useAuthStore } from '../store/authStore'
 import LanguageSwitcher from './LanguageSwitcher'
 import {
@@ -125,6 +126,9 @@ export default function Layout() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }} data-testid="admin-header-actions">
           <LanguageSwitcher />
+          {user?.role === 'organizer' && (
+            <WalletMultiButton style={{ height: '36px', borderRadius: 'var(--radius-md)' }} />
+          )}
           <span style={{ fontSize: '14px', opacity: 0.95, fontWeight: 500 }} data-testid="admin-user-name">{user?.name}</span>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <Button

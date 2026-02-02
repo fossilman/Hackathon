@@ -109,3 +109,20 @@ func (c *ArenaHackathonController) GetArchiveDetail(ctx *gin.Context) {
 	utils.Success(ctx, archive)
 }
 
+// GetChainCheckins 读取链上签到钱包列表（投票、分发奖金时用链上数据保证仅签到地址有效）
+func (c *ArenaHackathonController) GetChainCheckins(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+
+	wallets, err := c.hackathonService.GetChainCheckinWallets(id)
+	if err != nil {
+		utils.InternalServerError(ctx, err.Error())
+		return
+	}
+
+	utils.Success(ctx, gin.H{"wallets": wallets})
+}
+

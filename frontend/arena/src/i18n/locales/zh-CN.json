@@ -13,6 +13,8 @@
     "connected": "连接成功",
     "disconnected": "已断开连接",
     "pleaseInstallMetamask": "请安装Metamask",
+    "pleaseInstallPhantom": "请先连接 Solana 钱包（如 Phantom）",
+    "signIn": "登录",
     "requestFailed": "请求失败"
   },
   "nav": {

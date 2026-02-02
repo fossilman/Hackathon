@@ -30,9 +30,11 @@ import {
   SettingOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { StatCard } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
+import { sendCreateEvent, type PublishChainParams } from '../solana/createEvent'
 import dayjs from 'dayjs'
 
 export default function HackathonDetail() {
@@ -54,7 +56,10 @@ export default function HackathonDetail() {
     total: 0,
   })
   const [posterInfo, setPosterInfo] = useState<any>(null)
+  const [publishLoading, setPublishLoading] = useState(false)
   const { user } = useAuthStore()
+  const { connection } = useConnection()
+  const { publicKey, signTransaction } = useWallet()
 
   const statusMap: Record<string, { label: string; color: string }> = {
     preparation: { label: t('dashboard.statusPreparation'), color: 'default' },
@@ -116,13 +121,49 @@ export default function HackathonDetail() {
   }, [id])
 
   const handlePublish = async () => {
+    if (!publicKey || !signTransaction) {
+      message.warning(t('hackathon.connectSolanaWallet'))
+      return
+    }
+    setPublishLoading(true)
     try {
-      const result = await request.post(`/hackathons/${id}/publish`)
+      const params = await request.get(`/hackathons/${id}/publish-chain-params`) as PublishChainParams
+      const chainResult = await sendCreateEvent(
+        connection,
+        publicKey,
+        {
+          event_id: params.event_id,
+          name: params.name,
+          program_id: params.program_id,
+          organizer_lamports: params.organizer_lamports ?? 0,
+        },
+        signTransaction
+      )
+      const result = await request.post(`/hackathons/${id}/publish`, {
+        event_pda: chainResult.eventPda,
+        event_pda_hex: chainResult.eventPdaHex,
+        treasury_pda: chainResult.treasuryPda,
+        attendance_mint: chainResult.attendanceMint,
+        publish_tx_sig: chainResult.signature,
+      })
       message.success(t('hackathon.publishSuccess'))
       setPosterInfo(result)
       fetchDetail()
-    } catch (error) {
-      message.error(t('hackathon.publishFailed'))
+    } catch (error: unknown) {
+      const isInsufficient =
+        error instanceof Error && error.message === 'INSUFFICIENT_BALANCE'
+      if (isInsufficient && publicKey) {
+        const addr = publicKey.toBase58()
+        message.error({
+          content: t('hackathon.publishInsufficientBalance', { address: addr }),
+          duration: 8,
+        })
+      } else {
+        const msg = error instanceof Error ? error.message : t('hackathon.publishFailed')
+        message.error(msg)
+      }
+    } finally {
+      setPublishLoading(false)
     }
   }
 
@@ -290,9 +331,10 @@ export default function HackathonDetail() {
                   icon={<RocketOutlined />}
                   onClick={handlePublish}
                   disabled={!canPublish}
+                  loading={publishLoading}
                   data-testid="hackathon-detail-publish-button"
                   aria-label={t('hackathon.publish')}
-                  title={!hasStageTimes ? t('hackathon.stages') : ''}
+                  title={!hasStageTimes ? t('hackathon.stages') : (!publicKey ? t('hackathon.connectSolanaWallet') : '')}
                 >
                   {t('hackathon.publish')}
                 </Button>

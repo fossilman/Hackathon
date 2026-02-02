@@ -31,6 +31,7 @@ func SetupArenaRoutes(router *gin.Engine) {
 			hackathons.GET("/:id", arenaHackathonController.GetHackathonByID)
 			hackathons.GET("/archive", arenaHackathonController.GetArchiveList)
 			hackathons.GET("/archive/:id", arenaHackathonController.GetArchiveDetail)
+			hackathons.GET("/:id/chain-checkins", arenaHackathonController.GetChainCheckins)
 		}
 
 		// 赞助商相关（无需认证）

@@ -21,6 +21,8 @@ type Config struct {
 	ServerMode     string   `yaml:"-"`
 	CORSOrigins    []string `yaml:"-"`
 	TestWallets    []string `yaml:"-"` // 测试钱包地址列表
+	SolanaRPCURL   string   `yaml:"-"` // Solana RPC（本地测试链如 http://localhost:8899）
+	SolanaProgramID string `yaml:"-"` // Hackathon 程序 ID
 
 	// YAML配置结构
 	Database struct {
@@ -41,6 +43,10 @@ type Config struct {
 	CORS struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
+	Solana struct {
+		RPCURL     string `yaml:"rpc_url"`
+		ProgramID  string `yaml:"program_id"`
+	} `yaml:"solana"`
 }
 
 var AppConfig *Config
@@ -50,16 +56,18 @@ var AppConfig *Config
 func LoadConfig() error {
 	// 默认配置
 	defaultConfig := &Config{
-		DBHost:         "localhost",
-		DBPort:         "3306",
-		DBUser:         "root",
-		DBPassword:     "password",
-		DBName:         "hackathon_db",
-		JWTSecret:      "your-secret-key-change-in-production",
-		JWTExpireHours: 24,
-		ServerPort:     "8000",
-		ServerMode:     "debug",
-		CORSOrigins:    []string{"http://localhost:3000", "http://localhost:3001"},
+		DBHost:          "localhost",
+		DBPort:          "3306",
+		DBUser:          "root",
+		DBPassword:      "password",
+		DBName:          "hackathon_db",
+		JWTSecret:       "your-secret-key-change-in-production",
+		JWTExpireHours:  24,
+		ServerPort:      "8000",
+		ServerMode:      "debug",
+		CORSOrigins:     []string{"http://localhost:3000", "http://localhost:3001"},
+		SolanaRPCURL:    "http://localhost:8899",
+		SolanaProgramID: "HackP1atfmLqJqQz7nVBw3kP1atfmLqJqQz7nVBw3k",
 		TestWallets: []string{
 			"0x1111111111111111111111111111111111111111",
 			"0x2222222222222222222222222222222222222222",
@@ -94,10 +102,12 @@ func LoadConfig() error {
 		DBName:         getEnv("DB_NAME", defaultConfig.DBName),
 		JWTSecret:      getEnv("JWT_SECRET", defaultConfig.JWTSecret),
 		JWTExpireHours: getEnvAsInt("JWT_EXPIRE_HOURS", defaultConfig.JWTExpireHours),
-		ServerPort:     getEnv("SERVER_PORT", defaultConfig.ServerPort),
-		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
-		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
-		TestWallets:    testWallets,
+		ServerPort:       getEnv("SERVER_PORT", defaultConfig.ServerPort),
+		ServerMode:       getEnv("SERVER_MODE", defaultConfig.ServerMode),
+		CORSOrigins:      getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
+		TestWallets:      testWallets,
+		SolanaRPCURL:     getEnv("SOLANA_RPC_URL", defaultConfig.SolanaRPCURL),
+		SolanaProgramID:  getEnv("SOLANA_PROGRAM_ID", defaultConfig.SolanaProgramID),
 	}
 
 	return nil
@@ -145,6 +155,12 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if len(yamlConfig.CORS.AllowOrigins) > 0 {
 		defaultConfig.CORSOrigins = yamlConfig.CORS.AllowOrigins
+	}
+	if yamlConfig.Solana.RPCURL != "" {
+		defaultConfig.SolanaRPCURL = yamlConfig.Solana.RPCURL
+	}
+	if yamlConfig.Solana.ProgramID != "" {
+		defaultConfig.SolanaProgramID = yamlConfig.Solana.ProgramID
 	}
 
 	return nil
