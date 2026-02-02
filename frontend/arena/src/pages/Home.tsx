@@ -53,7 +53,13 @@ export default function Home() {
     }
     setConnecting(true)
     try {
-      const address = publicKey.toBase58()
+      const raw = publicKey.toBase58()
+      const address = typeof raw === 'string' ? raw.trim() : String(raw).trim()
+      if (!address || address.length < 32 || address.length > 44) {
+        message.warning(t('common.walletAddressInvalid'))
+        setConnecting(false)
+        return
+      }
       const { nonce } = await request.post('/auth/connect', {
         wallet_address: address,
       })
@@ -74,7 +80,9 @@ export default function Home() {
       }
       message.success(t('common.connected'))
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : t('common.error'))
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      const msg = err.response?.data?.message || err.message || t('common.error')
+      message.error({ content: msg, duration: 5 })
     } finally {
       setConnecting(false)
     }

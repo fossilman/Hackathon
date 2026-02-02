@@ -32,10 +32,22 @@ func (c *ArenaAuthController) Connect(ctx *gin.Context) {
 		utils.BadRequest(ctx, "参数错误: "+err.Error())
 		return
 	}
+	req.WalletAddress = strings.TrimSpace(req.WalletAddress)
+	if req.WalletAddress == "" {
+		utils.BadRequest(ctx, "钱包地址不能为空")
+		return
+	}
+	if !strings.HasPrefix(strings.ToLower(req.WalletAddress), "0x") {
+		req.WalletAddress = normalizeSolanaAddress(req.WalletAddress)
+	}
+	if req.WalletAddress == "" {
+		utils.BadRequest(ctx, "钱包地址不能为空")
+		return
+	}
 
 	// 验证钱包地址格式（支持 Solana base58 或以太坊 0x）
 	if !isValidWalletAddress(req.WalletAddress) {
-		utils.BadRequest(ctx, "无效的钱包地址格式")
+		utils.BadRequest(ctx, "无效的钱包地址格式，请使用 Solana 钱包（如 Phantom）连接")
 		return
 	}
 
@@ -61,10 +73,23 @@ func (c *ArenaAuthController) Verify(ctx *gin.Context) {
 		utils.BadRequest(ctx, "参数错误: "+err.Error())
 		return
 	}
+	req.WalletAddress = strings.TrimSpace(req.WalletAddress)
+	req.Signature = strings.TrimSpace(req.Signature)
+	if req.WalletAddress == "" || req.Signature == "" {
+		utils.BadRequest(ctx, "钱包地址和签名不能为空")
+		return
+	}
+	if !strings.HasPrefix(strings.ToLower(req.WalletAddress), "0x") {
+		req.WalletAddress = normalizeSolanaAddress(req.WalletAddress)
+	}
+	if req.WalletAddress == "" {
+		utils.BadRequest(ctx, "钱包地址不能为空")
+		return
+	}
 
 	// 验证钱包地址格式（支持 Solana 或以太坊）
 	if !isValidWalletAddress(req.WalletAddress) {
-		utils.BadRequest(ctx, "无效的钱包地址格式")
+		utils.BadRequest(ctx, "无效的钱包地址格式，请使用 Solana 钱包（如 Phantom）连接")
 		return
 	}
 
@@ -100,9 +125,28 @@ func isValidEthereumAddress(address string) bool {
 	return matched && common.IsHexAddress(address)
 }
 
+// solanaBase58Chars 仅保留 Solana/Bitcoin base58 字符（去除空格、换行等）
+var solanaBase58Regex = regexp.MustCompile(`^[1-9A-HJ-NP-Za-km-z]{32,44}$`)
+
+func normalizeSolanaAddress(s string) string {
+	s = strings.TrimSpace(s)
+	// 只保留 base58 字符，防止前端带入不可见字符
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= '1' && r <= '9') || (r >= 'A' && r <= 'Z' && r != 'O' && r != 'I') || (r >= 'a' && r <= 'z' && r != 'l') {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
 // isValidSolanaAddress 验证 Solana 地址格式（base58，解码后 32 字节）
 func isValidSolanaAddress(address string) bool {
-	if strings.HasPrefix(strings.ToLower(address), "0x") {
+	address = normalizeSolanaAddress(address)
+	if address == "" || strings.HasPrefix(strings.ToLower(address), "0x") {
+		return false
+	}
+	if !solanaBase58Regex.MatchString(address) {
 		return false
 	}
 	decoded, err := base58.Decode(address)

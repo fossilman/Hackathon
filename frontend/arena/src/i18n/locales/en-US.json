@@ -14,6 +14,7 @@
     "disconnected": "Disconnected",
     "pleaseInstallMetamask": "Please install Metamask",
     "pleaseInstallPhantom": "Please connect a Solana wallet (e.g. Phantom) first",
+    "walletAddressInvalid": "Invalid wallet address. Please disconnect and reconnect your wallet",
     "signIn": "Sign in",
     "requestFailed": "Request failed"
   },

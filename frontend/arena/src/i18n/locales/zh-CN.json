@@ -14,6 +14,7 @@
     "disconnected": "已断开连接",
     "pleaseInstallMetamask": "请安装Metamask",
     "pleaseInstallPhantom": "请先连接 Solana 钱包（如 Phantom）",
+    "walletAddressInvalid": "钱包地址异常，请断开钱包后重新连接再试",
     "signIn": "登录",
     "requestFailed": "请求失败"
   },

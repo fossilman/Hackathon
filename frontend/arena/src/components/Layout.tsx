@@ -1,6 +1,5 @@
 import { Outlet, useNavigate } from 'react-router-dom'
-import { Layout as AntLayout, Button, Space, Avatar, Dropdown } from 'antd'
-import type { MenuProps } from 'antd'
+import { Layout as AntLayout, Button, Space, Avatar } from 'antd'
 import { TrophyOutlined, WalletOutlined, LogoutOutlined, UserOutlined, AppstoreOutlined, HistoryOutlined } from '@ant-design/icons'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
@@ -18,7 +17,7 @@ export default function Layout() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { walletAddress, participant, connectWallet, setParticipant, clearAuth } = useAuthStore()
-  const { publicKey, signMessage } = useWallet()
+  const { publicKey, signMessage, disconnect } = useWallet()
   const [sponsors, setSponsors] = useState<any[]>([])
   const [connecting, setConnecting] = useState(false)
 
@@ -42,7 +41,13 @@ export default function Layout() {
     }
     setConnecting(true)
     try {
-      const address = publicKey.toBase58()
+      const raw = publicKey.toBase58()
+      const address = typeof raw === 'string' ? raw.trim() : String(raw).trim()
+      if (!address || address.length < 32 || address.length > 44) {
+        message.warning(t('common.walletAddressInvalid'))
+        setConnecting(false)
+        return
+      }
       const { nonce } = await request.post('/auth/connect', {
         wallet_address: address,
       })
@@ -63,28 +68,28 @@ export default function Layout() {
       }
       message.success(t('common.connected'))
     } catch (error: unknown) {
-      message.error(error instanceof Error ? error.message : t('common.error'))
+      const err = error as { response?: { data?: { message?: string } }; message?: string }
+      const msg = err.response?.data?.message || err.message || t('common.error')
+      message.error({
+        content: msg,
+        duration: 5,
+      })
+      // 登录失败后可再次点击重试，不清除钱包连接
     } finally {
       setConnecting(false)
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearAuth()
+    try {
+      await disconnect()
+    } catch {
+      // 忽略钱包断开失败
+    }
     message.success(t('common.disconnected'))
     navigate('/')
   }
-
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: t('nav.logout'),
-      danger: true,
-      onClick: handleLogout,
-      'data-testid': 'arena-menu-logout',
-    },
-  ]
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -192,21 +197,20 @@ export default function Layout() {
                 />
                 <span>{getUserDisplayName(participant, walletAddress)}</span>
               </Button>
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                <Button
-                  type="text"
-                  icon={<LogoutOutlined />}
-                  style={{ 
-                    color: 'var(--text-inverse)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: 'var(--radius-md)',
-                  }}
-                  data-testid="arena-user-menu-button"
-                  aria-label={t('nav.userMenu')}
-                >
-                  {t('nav.logout')}
-                </Button>
-              </Dropdown>
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={handleLogout}
+                style={{ 
+                  color: 'var(--text-inverse)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+                data-testid="arena-logout-button"
+                aria-label={t('nav.logout')}
+              >
+                {t('nav.logout')}
+              </Button>
             </Space>
           ) : publicKey ? (
             <Button
