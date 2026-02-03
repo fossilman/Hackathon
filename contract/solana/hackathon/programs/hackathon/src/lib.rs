@@ -6,10 +6,12 @@ pub mod activity;
 pub mod check_in;
 pub mod error;
 pub mod state;
+pub mod sponsor;
 pub mod vote;
 
 use activity::*;
 use check_in::*;
+use sponsor::*;
 use vote::*;
 
 declare_id!("DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg");
@@ -73,11 +75,46 @@ pub mod hackathon {
     ) -> Result<()> {
         vote::upload_vote_tally(ctx, candidate_ids, vote_counts)
     }
+
+    // ---------- 赞助商资金管理 ----------
+
+    /// 初始化赞助商配置与金库。admin_wallet 为主办方（Admin）绑定钱包，审核通过后金额转入该地址。
+    /// review_period_secs 默认建议 3 天（259200），可在项目配置中设置。
+    pub fn initialize_sponsor_config(
+        ctx: Context<InitializeSponsorConfig>,
+        admin_wallet: Pubkey,
+        review_period_secs: u64,
+    ) -> Result<()> {
+        sponsor::initialize_sponsor_config(ctx, admin_wallet, review_period_secs)
+    }
+
+    /// 长期赞助商申请：将金额存入金库并创建申请记录。
+    pub fn sponsor_apply(
+        ctx: Context<SponsorApply>,
+        application_id: u64,
+        amount_lamports: u64,
+    ) -> Result<()> {
+        sponsor::sponsor_apply(ctx, application_id, amount_lamports)
+    }
+
+    /// 审核通过：将金库中该申请金额转入主办方钱包。
+    pub fn approve_sponsor(ctx: Context<ReviewSponsor>, application_id: u64) -> Result<()> {
+        sponsor::approve_sponsor(ctx, application_id)
+    }
+
+    /// 审核失败：金额原路返回给赞助商。
+    pub fn reject_sponsor(ctx: Context<ReviewSponsor>, application_id: u64) -> Result<()> {
+        sponsor::reject_sponsor(ctx, application_id)
+    }
 }
 
 // Re-export for IDL / external use (Anchor expects these in the crate root for account types)
 pub use activity::{DeleteActivity, Initialize, PublishActivity, StartCheckIn, StartRegistration};
 pub use check_in::UploadCheckIns;
 pub use error::HackathonError;
-pub use state::{Activity, ActivityCheckIns, ActivityPhase, CandidateVote, VoteRecord, VoteTally};
+pub use sponsor::{InitializeSponsorConfig, ReviewSponsor, SponsorApply};
+pub use state::{
+    Activity, ActivityCheckIns, ActivityPhase, CandidateVote, SponsorApplication,
+    SponsorApplicationStatus, SponsorConfig, VoteRecord, VoteTally,
+};
 pub use vote::{CastVote, RevokeVote, UploadVoteTally};

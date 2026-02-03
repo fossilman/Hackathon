@@ -6,6 +6,7 @@ import { expect } from "chai";
 import { program, provider, createTestEnv } from "./helpers";
 import { registerActivityTests } from "./activity.test";
 import { registerCheckInTests } from "./check_in.test";
+import { registerSponsorTests } from "./sponsor.test";
 import { registerVoteTests } from "./vote.test";
 
 const authority = anchor.web3.Keypair.generate();
@@ -41,5 +42,9 @@ describe("hackathon", () => {
 
   describe("投票与汇总 (vote)", () => {
     registerVoteTests(env);
+  });
+
+  describe("赞助商资金管理 (sponsor)", () => {
+    registerSponsorTests(env);
   });
 });

@@ -22,4 +22,17 @@ pub enum HackathonError {
     InvalidPhaseForTally,
     #[msg("Candidate IDs and vote counts length mismatch")]
     TallyLengthMismatch,
+    // 赞助商资金管理
+    #[msg("Sponsor config already initialized")]
+    ConfigAlreadyInitialized,
+    #[msg("Only config authority can approve or reject")]
+    NotConfigAuthority,
+    #[msg("Application is not in Pending status")]
+    ApplicationNotPending,
+    #[msg("Sponsor application amount must be greater than zero")]
+    ZeroAmount,
+    #[msg("Sponsor wallet account does not match application")]
+    SponsorWalletMismatch,
+    #[msg("Invalid treasury PDA")]
+    InvalidTreasury,
 }

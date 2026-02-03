@@ -51,3 +51,39 @@ pub struct VoteTally {
     pub counts: Vec<CandidateVote>,
     pub bump: u8,
 }
+
+// ---------- 赞助商资金管理 ----------
+
+/// 全局配置：主办方钱包（Admin 绑定）、审核期限等
+#[account]
+pub struct SponsorConfig {
+    /// 有权审核（approve/reject）的账户
+    pub authority: Pubkey,
+    /// 主办方钱包，审核通过后金额转入此地址
+    pub admin_wallet: Pubkey,
+    /// 默认审核时间（秒），如 3 天 = 259200
+    pub review_period_secs: u64,
+    /// 金库 PDA 的 bump，用于 approve/reject 时 CPI 签名
+    pub treasury_bump: u8,
+    pub bump: u8,
+}
+
+/// 金库 PDA：仅持 SOL、无数据（space=0），以便系统程序能从其转出
+/// bump 存在 SponsorConfig.treasury_bump 中
+
+#[derive(Clone, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
+pub enum SponsorApplicationStatus {
+    Pending,
+    Approved,
+    Rejected,
+}
+
+/// 长期赞助商申请：钱存入金库，审核通过转主办方，拒绝则原路返回
+#[account]
+pub struct SponsorApplication {
+    pub sponsor: Pubkey,
+    pub amount_lamports: u64,
+    pub status: SponsorApplicationStatus,
+    pub applied_at: i64,
+    pub bump: u8,
+}

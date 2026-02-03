@@ -53,6 +53,35 @@ export function voteTallyPda(programId: PublicKey, activity: PublicKey): [Public
   );
 }
 
+export function configPda(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("config")],
+    programId
+  );
+}
+
+export function treasuryPda(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("treasury")],
+    programId
+  );
+}
+
+export function sponsorApplicationPda(
+  programId: PublicKey,
+  applicationId: number | anchor.BN | string
+): [PublicKey, number] {
+  const idBn =
+    typeof applicationId === "number"
+      ? new anchor.BN(applicationId)
+      : new anchor.BN(applicationId.toString());
+  const leBytes = idBn.toArrayLike(Buffer, "le", 8);
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("sponsor_application"), leBytes],
+    programId
+  );
+}
+
 export type TestEnv = {
   program: Program<Hackathon>;
   provider: anchor.AnchorProvider;
@@ -62,6 +91,9 @@ export type TestEnv = {
   checkInsPda: (activity: PublicKey) => [PublicKey, number];
   voteRecordPda: (activity: PublicKey, voter: PublicKey) => [PublicKey, number];
   voteTallyPda: (activity: PublicKey) => [PublicKey, number];
+  configPda: () => [PublicKey, number];
+  treasuryPda: () => [PublicKey, number];
+  sponsorApplicationPda: (applicationId: number | anchor.BN | string) => [PublicKey, number];
   TITLE: string;
   DESCRIPTION_HASH: Buffer;
 };
@@ -79,6 +111,10 @@ export function createTestEnv(
     checkInsPda: (activity) => checkInsPda(program.programId, activity),
     voteRecordPda: (activity, voter) => voteRecordPda(program.programId, activity, voter),
     voteTallyPda: (activity) => voteTallyPda(program.programId, activity),
+    configPda: () => configPda(program.programId),
+    treasuryPda: () => treasuryPda(program.programId),
+    sponsorApplicationPda: (applicationId) =>
+      sponsorApplicationPda(program.programId, applicationId),
     TITLE,
     DESCRIPTION_HASH,
   };
