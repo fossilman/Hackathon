@@ -9,6 +9,7 @@ export interface WalletLoginParams {
   wallet_address: string
   phone: string
   signature: string
+  wallet_type?: 'metamask' | 'phantom'
 }
 
 export interface LoginResponse {

@@ -29,8 +29,15 @@ func (s *ParticipantService) GenerateNonce() (string, error) {
 	return hex.EncodeToString(bytes), nil
 }
 
-// ConnectWallet 连接钱包，获取nonce
-func (s *ParticipantService) ConnectWallet(walletAddress string) (string, error) {
+// ConnectWallet 连接钱包，获取nonce；walletType 可选，默认 metamask
+func (s *ParticipantService) ConnectWallet(walletAddress, walletType string) (string, error) {
+	if walletType == "" {
+		walletType = "metamask"
+	}
+	if walletType != "metamask" && walletType != "phantom" {
+		walletType = "metamask"
+	}
+
 	var participant models.Participant
 
 	// 查找或创建参赛者
@@ -39,6 +46,7 @@ func (s *ParticipantService) ConnectWallet(walletAddress string) (string, error)
 		// 创建新参赛者
 		participant = models.Participant{
 			WalletAddress: walletAddress,
+			WalletType:    walletType,
 		}
 		if err := database.DB.Create(&participant).Error; err != nil {
 			return "", fmt.Errorf("创建参赛者失败: %w", err)
@@ -62,8 +70,15 @@ func (s *ParticipantService) ConnectWallet(walletAddress string) (string, error)
 	return nonce, nil
 }
 
-// VerifySignature 验证签名并登录
-func (s *ParticipantService) VerifySignature(walletAddress, signature string) (*models.Participant, string, error) {
+// VerifySignature 验证签名并登录；walletType 可选，用于更新参赛者钱包类型
+func (s *ParticipantService) VerifySignature(walletAddress, signature, walletType string) (*models.Participant, string, error) {
+	if walletType == "" {
+		walletType = "metamask"
+	}
+	if walletType != "metamask" && walletType != "phantom" {
+		walletType = "metamask"
+	}
+
 	var participant models.Participant
 	if err := database.DB.Where("wallet_address = ? AND deleted_at IS NULL", walletAddress).First(&participant).Error; err != nil {
 		return nil, "", errors.New("钱包地址未注册")
@@ -73,24 +88,29 @@ func (s *ParticipantService) VerifySignature(walletAddress, signature string) (*
 		return nil, "", errors.New("请先获取nonce")
 	}
 
-	// 检查是否为测试钱包地址
-	isTestWallet := s.isTestWallet(walletAddress)
-	
-	if !isTestWallet {
-		// 非测试钱包，进行正常的签名验证
-		if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
+	// 按钱包类型验证签名
+	if walletType == "phantom" {
+		message := fmt.Sprintf("Please sign this message to authenticate: %s", participant.Nonce)
+		if err := utils.VerifySolanaSignature(walletAddress, message, signature); err != nil {
 			return nil, "", fmt.Errorf("签名验证失败: %w", err)
 		}
 	} else {
-		// 测试钱包，只验证签名格式，不验证签名内容
-		if !s.isValidTestSignature(signature) {
-			return nil, "", errors.New("测试钱包签名格式无效")
+		isTestWallet := s.isTestWallet(walletAddress)
+		if !isTestWallet {
+			if err := s.verifyEthereumSignature(walletAddress, participant.Nonce, signature); err != nil {
+				return nil, "", fmt.Errorf("签名验证失败: %w", err)
+			}
+		} else {
+			if !s.isValidTestSignature(signature) {
+				return nil, "", errors.New("测试钱包签名格式无效")
+			}
 		}
 	}
 
-	// 更新最后登录时间
+	// 更新最后登录时间与钱包类型
 	now := time.Now()
 	participant.LastLoginAt = &now
+	participant.WalletType = walletType
 	participant.Nonce = "" // 清除nonce
 	if err := database.DB.Save(&participant).Error; err != nil {
 		return nil, "", fmt.Errorf("更新登录信息失败: %w", err)
@@ -188,9 +208,12 @@ func (s *ParticipantService) GetProfile(participantID uint64) (*models.Participa
 
 // UpdateProfile 更新参赛者信息
 func (s *ParticipantService) UpdateProfile(participantID uint64, updates map[string]interface{}) error {
-	// 不允许修改钱包地址
+	// 不允许修改钱包地址与钱包类型
 	if _, ok := updates["wallet_address"]; ok {
 		return errors.New("不允许修改钱包地址")
+	}
+	if _, ok := updates["wallet_type"]; ok {
+		return errors.New("不允许修改钱包类型")
 	}
 
 	return database.DB.Model(&models.Participant{}).Where("id = ? AND deleted_at IS NULL", participantID).Updates(updates).Error

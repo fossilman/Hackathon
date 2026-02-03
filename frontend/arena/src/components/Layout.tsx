@@ -5,11 +5,16 @@ import { TrophyOutlined, WalletOutlined, LogoutOutlined, UserOutlined, AppstoreO
 import { useAuthStore } from '../store/authStore'
 import { getUserDisplayName } from '../utils/userDisplay'
 import LanguageSwitcher from './LanguageSwitcher'
-import { ethers } from 'ethers'
-import { message } from 'antd'
+import { message, Modal } from 'antd'
 import request from '../api/request'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
+import {
+  getAvailableWalletOptions,
+  connectWithProvider,
+  connectWithPhantomSolana,
+  type WalletOption,
+} from '../utils/wallet'
 
 const { Header, Content } = AntLayout
 
@@ -32,47 +37,42 @@ export default function Layout() {
     fetchLongTermSponsors()
   }, [])
 
-  const handleConnectWallet = async () => {
-    if (typeof window.ethereum !== 'undefined') {
+  const walletOptions = getAvailableWalletOptions()
+  const [walletModalOpen, setWalletModalOpen] = useState(false)
+
+  const doConnect = async (option: WalletOption) => {
+    try {
+      const res = option.type === 'phantom'
+        ? await connectWithPhantomSolana(option.solana)
+        : await connectWithProvider(option.provider)
+      connectWallet(res.address, res.token, res.participant.id, res.participant)
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const accounts = await provider.send('eth_requestAccounts', [])
-        const address = accounts[0]
-        
-        // 获取nonce
-        const { nonce } = await request.post('/auth/connect', {
-          wallet_address: address,
-        })
-
-        // 签名
-        const signer = await provider.getSigner()
-        const messageText = `Please sign this message to authenticate: ${nonce}`
-        const signature = await signer.signMessage(messageText)
-
-        // 验证签名
-        const { token: authToken, participant: participantData } = await request.post('/auth/verify', {
-          wallet_address: address,
-          signature,
-        })
-
-        connectWallet(address, authToken, participantData.id, participantData)
-        
-        // 获取完整的 participant 信息（包括 nickname）
-        try {
-          const fullParticipant = await request.get('/profile')
-          setParticipant(fullParticipant)
-        } catch (error) {
-          // 如果获取失败，使用基本信息
-          console.warn('获取完整用户信息失败，使用基本信息')
-        }
-        
-        message.success(t('common.connected'))
-      } catch (error: any) {
-        message.error(error.message || t('common.error'))
+        const fullParticipant = await request.get('/profile')
+        setParticipant(fullParticipant)
+      } catch {
+        console.warn('获取完整用户信息失败，使用基本信息')
       }
-    } else {
-      message.error(t('common.pleaseInstallMetamask'))
+      message.success(t('common.connected'))
+    } catch (error: any) {
+      message.error(error?.message || t('common.error'))
     }
+  }
+
+  const handleConnectWallet = async () => {
+    if (walletOptions.length === 0) {
+      message.error(t('common.pleaseInstallWallet'))
+      return
+    }
+    if (walletOptions.length > 1) {
+      setWalletModalOpen(true)
+      return
+    }
+    doConnect(walletOptions[0])
+  }
+
+  const handleSelectWallet = (option: WalletOption) => {
+    setWalletModalOpen(false)
+    doConnect(option)
   }
 
   const handleLogout = () => {
@@ -282,6 +282,33 @@ export default function Layout() {
           </div>
         )}
       </Content>
+
+      <Modal
+        title={t('common.chooseWallet')}
+        open={walletModalOpen}
+        onCancel={() => setWalletModalOpen(false)}
+        footer={null}
+        data-testid="layout-wallet-select-modal"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0' }}>
+          {walletOptions.map((option, index) => {
+            const label = option.type === 'phantom'
+              ? t('common.walletPhantomSolana')
+              : t('common.walletMetaMask')
+            return (
+              <Button
+                key={index}
+                size="large"
+                block
+                onClick={() => handleSelectWallet(option)}
+                data-testid={`layout-wallet-option-${option.type}`}
+              >
+                {label}
+              </Button>
+            )
+          })}
+        </div>
+      </Modal>
     </AntLayout>
   )
 }

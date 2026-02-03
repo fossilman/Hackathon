@@ -13,6 +13,11 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "pleaseInstallMetamask": "Please install Metamask",
+    "pleaseInstallWallet": "Please install MetaMask or Phantom wallet",
+    "chooseWallet": "Choose wallet to use",
+    "walletMetaMask": "MetaMask on EVM",
+    "walletPhantom": "Phantom on Solana",
+    "walletPhantomSolana": "Phantom on Solana",
     "requestFailed": "Request failed"
   },
   "nav": {

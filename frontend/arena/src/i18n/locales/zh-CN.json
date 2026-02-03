@@ -13,6 +13,11 @@
     "connected": "连接成功",
     "disconnected": "已断开连接",
     "pleaseInstallMetamask": "请安装Metamask",
+    "pleaseInstallWallet": "请安装 MetaMask 或 Phantom 钱包",
+    "chooseWallet": "选择要使用的钱包",
+    "walletMetaMask": "MetaMask on EVM",
+    "walletPhantom": "Phantom on Solana",
+    "walletPhantomSolana": "Phantom on Solana",
     "requestFailed": "请求失败"
   },
   "nav": {

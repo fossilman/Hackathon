@@ -22,11 +22,12 @@ type User struct {
 
 // UserWallet 用户钱包地址表（一个用户可以有多个钱包地址）
 type UserWallet struct {
-	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID    uint64    `gorm:"index;not null" json:"user_id"`
-	Address   string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"address"` // 钱包地址，唯一
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID         uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID     uint64    `gorm:"index;not null" json:"user_id"`
+	Address    string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"address"`    // 钱包地址，唯一
+	WalletType string    `gorm:"type:varchar(20);default:metamask" json:"wallet_type"`    // 钱包类型：metamask | phantom
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 // TableName 指定表名

@@ -19,6 +19,7 @@ import { useAuthStore } from '../store/authStore'
 interface Wallet {
   id: number
   address: string
+  wallet_type?: string
   created_at: string
 }
 
@@ -201,6 +202,13 @@ export default function Profile() {
               dataIndex: 'address',
               key: 'address',
               ellipsis: true,
+            },
+            {
+              title: t('profile.walletType'),
+              dataIndex: 'wallet_type',
+              key: 'wallet_type',
+              width: 120,
+              render: (type: string) => type === 'phantom' ? t('login.walletPhantom') : t('login.walletMetaMask'),
             },
             {
               title: t('profile.bindTime'),

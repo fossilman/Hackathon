@@ -164,3 +164,35 @@ go run scripts/migrate_team_index.go
 - 一个活动可以创建多个队伍，队伍名称可以相同
 - 队伍的唯一性由队长的ID保证
 
+## migrate_user_wallets_wallet_type.go - user_wallets 表增加 wallet_type 字段
+
+### 功能
+为 `user_wallets` 表增加 `wallet_type` 字段，用于区分 MetaMask / Phantom 等钱包类型。
+
+### 使用方法
+```bash
+cd backend
+go run scripts/migrate_user_wallets_wallet_type.go
+```
+
+### 迁移说明
+- 新增列：`wallet_type VARCHAR(20) NOT NULL DEFAULT 'metamask'`
+- 可选值：`metamask` | `phantom`
+- 若列已存在则跳过
+
+## migrate_participants_wallet_type.go - participants 表增加 wallet_type 字段
+
+### 功能
+为 `participants`（参赛者）表增加 `wallet_type` 字段，用于记录参赛者连接时使用的钱包类型（MetaMask / Phantom）。
+
+### 使用方法
+```bash
+cd backend
+go run scripts/migrate_participants_wallet_type.go
+```
+
+### 迁移说明
+- 新增列：`wallet_type VARCHAR(20) NOT NULL DEFAULT 'metamask'`
+- 可选值：`metamask` | `phantom`
+- 若列已存在则跳过
+

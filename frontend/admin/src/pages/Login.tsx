@@ -1,18 +1,59 @@
 import { useState } from 'react'
-import { Form, Input, Button, Card, message, Tabs, Alert } from 'antd'
+import { Form, Input, Button, Card, message, Tabs, Alert, Modal } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { login, loginWithWallet } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import '../index.css'
 
+type WalletProviderType = 'metamask' | 'phantom'
+
+interface InjectedProvider {
+  isMetaMask?: boolean
+  isPhantom?: boolean
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+}
+
+interface PhantomSolanaProvider {
+  connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toBase58: () => string } }>
+  signMessage: (message: Uint8Array, display?: 'utf8' | 'hex') => Promise<{ signature: Uint8Array }>
+}
+
 declare global {
   interface Window {
-    ethereum?: {
-      isMetaMask?: boolean
-      request: (args: { method: string; params?: any[] }) => Promise<any>
-    }
+    ethereum?: InjectedProvider & { providers?: InjectedProvider[] }
+    phantom?: { ethereum?: InjectedProvider; solana?: PhantomSolanaProvider }
   }
+}
+
+type WalletLoginOption = { type: 'metamask'; provider: InjectedProvider } | { type: 'phantom'; solana: PhantomSolanaProvider }
+
+/** 可选钱包：MetaMask（EVM）、Phantom（Solana）。选 Phantom 时使用 Solana 网络。 */
+function getAvailableWalletOptions(): WalletLoginOption[] {
+  const options: WalletLoginOption[] = []
+  const ethereum = window.ethereum
+  const phantomSolana = window.phantom?.solana
+
+  if (ethereum?.providers && Array.isArray(ethereum.providers)) {
+    for (const p of ethereum.providers) {
+      if (p && typeof p.request === 'function' && p.isMetaMask) {
+        options.push({ type: 'metamask', provider: p })
+        break
+      }
+    }
+    if (options.length === 0 && ethereum.providers.length > 0) {
+      const p = ethereum.providers.find((x: InjectedProvider) => x && typeof x.request === 'function')
+      if (p) options.push({ type: 'metamask', provider: p as InjectedProvider })
+    }
+  } else if (ethereum && typeof ethereum.request === 'function' && !ethereum.isPhantom) {
+    options.push({ type: 'metamask', provider: ethereum })
+  }
+
+  if (phantomSolana && typeof phantomSolana.connect === 'function' && typeof phantomSolana.signMessage === 'function') {
+    options.push({ type: 'phantom', solana: phantomSolana })
+  }
+
+  return options
 }
 
 export default function Login() {
@@ -47,42 +88,90 @@ export default function Login() {
 
   const [walletForm] = Form.useForm()
 
+  const [walletSelectModalOpen, setWalletSelectModalOpen] = useState(false)
+  const [pendingWalletValues, setPendingWalletValues] = useState<{ phone: string } | null>(null)
+  const walletOptions = getAvailableWalletOptions()
+
+  const doWalletLogin = async (option: WalletLoginOption, values: { phone: string }) => {
+    if (option.type === 'phantom') {
+      const { publicKey } = await option.solana.connect()
+      const walletAddress = publicKey.toBase58()
+      const signMessage = `${t('login.signMessage')}\n\nWallet Address: ${walletAddress}\nPhone: ${values.phone}\nTimestamp: ${Date.now()}`
+      const messageBytes = new TextEncoder().encode(signMessage)
+      const { signature } = await option.solana.signMessage(messageBytes, 'utf8')
+      const signatureBase64 = btoa(String.fromCharCode(...signature))
+      return loginWithWallet({
+        wallet_address: walletAddress,
+        phone: values.phone,
+        signature: signatureBase64,
+        wallet_type: 'phantom',
+      })
+    }
+    const accounts = await option.provider.request({ method: 'eth_requestAccounts' }) as string[]
+    const walletAddress = accounts[0]
+    if (!walletAddress) {
+      message.error(t('login.noWalletAddress'))
+      return
+    }
+    const signMessage = `${t('login.signMessage')}\n\nWallet Address: ${walletAddress}\nPhone: ${values.phone}\nTimestamp: ${Date.now()}`
+    const signature = await option.provider.request({
+      method: 'personal_sign',
+      params: [signMessage, walletAddress],
+    }) as string
+    return loginWithWallet({
+      wallet_address: walletAddress,
+      phone: values.phone,
+      signature,
+      wallet_type: 'metamask',
+    })
+  }
+
   const handleWalletLogin = async (values: { phone: string }) => {
-    if (!window.ethereum) {
-      message.error(t('login.installMetamask'))
+    const list = getAvailableWalletProviders()
+    if (list.length === 0) {
+      message.error(t('login.installWallet'))
       return
     }
 
     setWalletLoading(true)
     try {
-      // 请求连接钱包
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
-      const walletAddress = accounts[0]
-
-      if (!walletAddress) {
-        message.error(t('login.noWalletAddress'))
+      if (list.length > 1) {
+        setPendingWalletValues(values)
+        setWalletSelectModalOpen(true)
+        setWalletLoading(false)
         return
       }
-
-      // 生成签名消息
-      const signMessage = `${t('login.signMessage')}\n\nWallet Address: ${walletAddress}\nPhone: ${values.phone}\nTimestamp: ${Date.now()}`
-      
-      // 请求签名
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [signMessage, walletAddress],
-      })
-
-      // 调用登录接口
-      const data = await loginWithWallet({
-        wallet_address: walletAddress,
-        phone: values.phone,
-        signature: signature,
-      })
-
+      const data = await doWalletLogin(list[0], values)
+      if (!data) return
       setAuth(data.token, data.user)
       message.success(t('login.loginSuccess'))
-      // 根据角色跳转到不同页面
+      if (data.user.role === 'sponsor') {
+        navigate('/profile', { replace: true })
+      } else {
+        navigate('/dashboard', { replace: true })
+      }
+      await new Promise(resolve => setTimeout(resolve, 100))
+    } catch (error: any) {
+      if (error?.code === 4001) {
+        message.error(t('login.signRejected'))
+      } else {
+        message.error(error?.response?.data?.message || t('login.walletLoginFailed'))
+      }
+    } finally {
+      setWalletLoading(false)
+    }
+  }
+
+  const handleSelectWalletAndLogin = async (option: WalletLoginOption) => {
+    if (!pendingWalletValues) return
+    setWalletSelectModalOpen(false)
+    setWalletLoading(true)
+    try {
+      const data = await doWalletLogin(option, pendingWalletValues)
+      setPendingWalletValues(null)
+      if (!data) return
+      setAuth(data.token, data.user)
+      message.success(t('login.loginSuccess'))
       if (data.user.role === 'sponsor') {
         navigate('/profile', { replace: true })
       } else {
@@ -248,6 +337,31 @@ export default function Login() {
           ]}
         />
       </Card>
+
+      <Modal
+        title={t('login.chooseWallet')}
+        open={walletSelectModalOpen}
+        onCancel={() => { setWalletSelectModalOpen(false); setPendingWalletValues(null) }}
+        footer={null}
+        data-testid="login-wallet-select-modal"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '8px 0' }}>
+          {walletOptions.map((option, index) => {
+            const label = option.type === 'phantom' ? t('login.walletPhantomSolana') : t('login.walletMetaMask')
+            return (
+              <Button
+                key={index}
+                size="large"
+                block
+                onClick={() => handleSelectWalletAndLogin(option)}
+                data-testid={`login-wallet-option-${option.type}`}
+              >
+                {label}
+              </Button>
+            )
+          })}
+        </div>
+      </Modal>
     </div>
   )
 }

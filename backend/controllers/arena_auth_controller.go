@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"regexp"
 	"strings"
 
@@ -24,6 +25,7 @@ func NewArenaAuthController() *ArenaAuthController {
 func (c *ArenaAuthController) Connect(ctx *gin.Context) {
 	var req struct {
 		WalletAddress string `json:"wallet_address" binding:"required"`
+		WalletType    string `json:"wallet_type"` // 可选：metamask | phantom
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -31,13 +33,20 @@ func (c *ArenaAuthController) Connect(ctx *gin.Context) {
 		return
 	}
 
-	// 验证钱包地址格式
-	if !isValidEthereumAddress(req.WalletAddress) {
-		utils.BadRequest(ctx, "无效的钱包地址格式")
-		return
+	// 按钱包类型校验地址格式
+	if req.WalletType == "phantom" {
+		if !utils.IsValidSolanaAddress(req.WalletAddress) {
+			utils.BadRequest(ctx, "无效的 Solana 地址格式")
+			return
+		}
+	} else {
+		if !isValidEthereumAddress(req.WalletAddress) {
+			utils.BadRequest(ctx, "无效的钱包地址格式")
+			return
+		}
 	}
 
-	nonce, err := c.participantService.ConnectWallet(req.WalletAddress)
+	nonce, err := c.participantService.ConnectWallet(req.WalletAddress, req.WalletType)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
@@ -53,6 +62,7 @@ func (c *ArenaAuthController) Verify(ctx *gin.Context) {
 	var req struct {
 		WalletAddress string `json:"wallet_address" binding:"required"`
 		Signature     string `json:"signature" binding:"required"`
+		WalletType    string `json:"wallet_type"` // 可选：metamask | phantom
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -60,19 +70,28 @@ func (c *ArenaAuthController) Verify(ctx *gin.Context) {
 		return
 	}
 
-	// 验证钱包地址格式
-	if !isValidEthereumAddress(req.WalletAddress) {
-		utils.BadRequest(ctx, "无效的钱包地址格式")
-		return
+	// 按钱包类型校验地址与签名格式
+	if req.WalletType == "phantom" {
+		if !utils.IsValidSolanaAddress(req.WalletAddress) {
+			utils.BadRequest(ctx, "无效的 Solana 地址格式")
+			return
+		}
+		if !isValidSolanaSignature(req.Signature) {
+			utils.BadRequest(ctx, "无效的 Solana 签名格式")
+			return
+		}
+	} else {
+		if !isValidEthereumAddress(req.WalletAddress) {
+			utils.BadRequest(ctx, "无效的钱包地址格式")
+			return
+		}
+		if !isValidSignature(req.Signature) {
+			utils.BadRequest(ctx, "无效的签名格式")
+			return
+		}
 	}
 
-	// 验证签名格式
-	if !isValidSignature(req.Signature) {
-		utils.BadRequest(ctx, "无效的签名格式")
-		return
-	}
-
-	participant, token, err := c.participantService.VerifySignature(req.WalletAddress, req.Signature)
+	participant, token, err := c.participantService.VerifySignature(req.WalletAddress, req.Signature, req.WalletType)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
@@ -83,6 +102,7 @@ func (c *ArenaAuthController) Verify(ctx *gin.Context) {
 		"participant": gin.H{
 			"id":             participant.ID,
 			"wallet_address": participant.WalletAddress,
+			"wallet_type":    participant.WalletType,
 			"nickname":       participant.Nickname,
 		},
 	})
@@ -108,19 +128,24 @@ func isValidEthereumAddress(address string) bool {
 	return common.IsHexAddress(address)
 }
 
-// isValidSignature 验证签名格式
+// isValidSignature 验证 EVM 签名格式
 func isValidSignature(signature string) bool {
-	// 移除0x前缀
 	sig := strings.TrimPrefix(signature, "0x")
-	
-	// 签名应该是130个十六进制字符（65字节 = 64字节签名 + 1字节恢复ID）
 	if len(sig) != 130 {
 		return false
 	}
-	
-	// 检查是否为有效的十六进制字符串
 	matched, _ := regexp.MatchString("^[0-9a-fA-F]{130}$", sig)
 	return matched
+}
+
+// isValidSolanaSignature 验证 Solana/Ed25519 签名格式（base64，64 字节）
+func isValidSolanaSignature(signature string) bool {
+	sig := strings.TrimSpace(signature)
+	if len(sig) == 0 {
+		return false
+	}
+	dec, err := base64.StdEncoding.DecodeString(sig)
+	return err == nil && len(dec) == 64
 }
 
 // GetProfile 获取当前参赛者信息

@@ -53,6 +53,7 @@ func (c *AdminAuthController) LoginWithWallet(ctx *gin.Context) {
 		WalletAddress string `json:"wallet_address" binding:"required"`
 		Phone         string `json:"phone" binding:"required"`
 		Signature     string `json:"signature" binding:"required"` // 签名验证（后续可添加）
+		WalletType    string `json:"wallet_type"`                 // 钱包类型：metamask | phantom，可选
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -60,14 +61,28 @@ func (c *AdminAuthController) LoginWithWallet(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: 验证签名（后续实现）
-	// 目前先简单验证钱包地址格式
-	if len(req.WalletAddress) < 20 {
-		utils.BadRequest(ctx, "无效的钱包地址")
-		return
+	if req.WalletType == "" {
+		req.WalletType = "metamask"
+	}
+	if req.WalletType != "metamask" && req.WalletType != "phantom" {
+		req.WalletType = "metamask"
 	}
 
-	user, token, err := c.userService.LoginWithWallet(req.WalletAddress, req.Phone)
+	// 按钱包类型验证地址格式（Phantom 为 Solana 地址）
+	if req.WalletType == "phantom" {
+		if !utils.IsValidSolanaAddress(req.WalletAddress) {
+			utils.BadRequest(ctx, "无效的 Solana 地址")
+			return
+		}
+	} else {
+		if len(req.WalletAddress) < 20 {
+			utils.BadRequest(ctx, "无效的钱包地址")
+			return
+		}
+	}
+	// TODO: 验证签名（后续实现）
+
+	user, token, err := c.userService.LoginWithWallet(req.WalletAddress, req.Phone, req.WalletType)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return

@@ -44,7 +44,14 @@ func (s *UserService) Login(phone, password string) (*models.User, string, error
 }
 
 // LoginWithWallet Web3钱包登录（需要手机号）
-func (s *UserService) LoginWithWallet(walletAddress, phone string) (*models.User, string, error) {
+func (s *UserService) LoginWithWallet(walletAddress, phone, walletType string) (*models.User, string, error) {
+	if walletType == "" {
+		walletType = "metamask"
+	}
+	if walletType != "metamask" && walletType != "phantom" {
+		walletType = "metamask"
+	}
+
 	// 先根据手机号查找用户
 	var user models.User
 	if err := database.DB.Where("phone = ? AND deleted_at IS NULL", phone).First(&user).Error; err != nil {
@@ -65,12 +72,14 @@ func (s *UserService) LoginWithWallet(walletAddress, phone string) (*models.User
 		if existingWallet.UserID != user.ID {
 			return nil, "", errors.New("钱包地址已被其他用户绑定")
 		}
-		// 钱包地址已绑定给当前用户，直接登录
+		// 更新钱包类型（可选，保持最新）
+		database.DB.Model(&existingWallet).Update("wallet_type", walletType)
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 钱包地址未绑定，创建绑定关系
 		wallet := models.UserWallet{
-			UserID:  user.ID,
-			Address: walletAddress,
+			UserID:     user.ID,
+			Address:    walletAddress,
+			WalletType: walletType,
 		}
 		if err := database.DB.Create(&wallet).Error; err != nil {
 			return nil, "", fmt.Errorf("绑定钱包地址失败: %w", err)
@@ -87,8 +96,15 @@ func (s *UserService) LoginWithWallet(walletAddress, phone string) (*models.User
 	return &user, token, nil
 }
 
-// BindWallet 绑定钱包地址
-func (s *UserService) BindWallet(userID uint64, walletAddress string) error {
+// BindWallet 绑定钱包地址，walletType 可选，默认 metamask
+func (s *UserService) BindWallet(userID uint64, walletAddress, walletType string) error {
+	if walletType == "" {
+		walletType = "metamask"
+	}
+	if walletType != "metamask" && walletType != "phantom" {
+		walletType = "metamask"
+	}
+
 	// 检查钱包地址是否已被绑定
 	var existingWallet models.UserWallet
 	if err := database.DB.Where("address = ?", walletAddress).First(&existingWallet).Error; err == nil {
@@ -103,8 +119,9 @@ func (s *UserService) BindWallet(userID uint64, walletAddress string) error {
 
 	// 创建钱包记录
 	wallet := models.UserWallet{
-		UserID:  userID,
-		Address: walletAddress,
+		UserID:     userID,
+		Address:    walletAddress,
+		WalletType: walletType,
 	}
 
 	if err := database.DB.Create(&wallet).Error; err != nil {
