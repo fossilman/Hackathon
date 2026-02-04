@@ -42,6 +42,6 @@ pub fn upload_check_ins(
     check_ins.authority = ctx.accounts.authority.key();
     check_ins.attendees = attendee_pubkeys;
     check_ins.bump = ctx.bumps.check_ins;
-    ctx.accounts.activity.phase = ActivityPhase::Voting;
+    ctx.accounts.activity.phase = ActivityPhase::TeamFormation;
     Ok(())
 }

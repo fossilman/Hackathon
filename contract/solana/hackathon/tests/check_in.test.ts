@@ -82,7 +82,7 @@ export function registerCheckInTests(env: TestEnv): void {
   });
 
   describe("upload_check_ins", () => {
-    it("happy path: 签到阶段结束后将签到名单上链，活动进入投票阶段", async () => {
+    it("happy path: 签到阶段结束后将签到名单上链，活动进入组队阶段", async () => {
       const [activityPdaAddr] = activityPda(authority.publicKey, ACTIVITY_ID_CHECKIN);
       const [checkInsPdaAddr] = checkInsPda(activityPdaAddr);
       const attendees = [authority.publicKey.toBase58(), other.publicKey.toBase58()];
@@ -106,7 +106,7 @@ export function registerCheckInTests(env: TestEnv): void {
       expect(checkIns.attendees.some((p: PublicKey) => p.equals(other.publicKey))).to.be.true;
 
       const activity = await program.account.activity.fetch(activityPdaAddr);
-      expect(activity.phase.voting !== undefined).to.be.true;
+      expect(activity.phase.teamFormation !== undefined).to.be.true;
     });
 
     it("fail: 非签到阶段不能上传签到名单（仍为 Registration）", async () => {

@@ -115,6 +115,21 @@ export function registerVoteTests(env: TestEnv): void {
         .signers([authority])
         .rpc();
       await program.methods
+        .startTeamFormation()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startSubmission()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startVoting()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
         .uploadVoteTally([new anchor.BN(1)], [new anchor.BN(10)])
         .accounts({
           authority: authority.publicKey,
@@ -215,6 +230,21 @@ export function registerVoteTests(env: TestEnv): void {
         })
         .signers([authority])
         .rpc();
+      await program.methods
+        .startTeamFormation()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startSubmission()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startVoting()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
       const [voteRecordPdaAddr] = voteRecordPda(activityPdaAddr, stranger.publicKey);
       try {
         await program.methods
@@ -271,6 +301,22 @@ export function registerVoteTests(env: TestEnv): void {
           checkIns: checkInsPdaAddr,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
+        .signers([authority])
+        .rpc();
+
+      await program.methods
+        .startTeamFormation()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startSubmission()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startVoting()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
         .signers([authority])
         .rpc();
 
@@ -376,6 +422,21 @@ export function registerVoteTests(env: TestEnv): void {
           checkIns: checkInsPdaAddr,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startTeamFormation()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startSubmission()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
+        .signers([authority])
+        .rpc();
+      await program.methods
+        .startVoting()
+        .accounts({ authority: authority.publicKey, activity: activityPdaAddr })
         .signers([authority])
         .rpc();
       try {

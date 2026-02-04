@@ -25,12 +25,18 @@ const ANCHOR_DISCRIMINATOR_START_CHECK_IN = new Uint8Array([
 const ANCHOR_DISCRIMINATOR_START_TEAM_FORMATION = new Uint8Array([
   236, 242, 132, 165, 119, 105, 105, 24,
 ])
+const ANCHOR_DISCRIMINATOR_START_SUBMISSION = new Uint8Array([
+  190, 59, 91, 67, 254, 135, 221, 182,
+])
 const ANCHOR_DISCRIMINATOR_START_VOTING = new Uint8Array([
   68, 29, 234, 70, 139, 251, 237, 179,
 ])
 const ANCHOR_DISCRIMINATOR_START_RESULTS = new Uint8Array([
   181, 153, 118, 134, 245, 64, 50, 41,
 ])
+// upload_check_ins / upload_vote_tally 指令 discriminator（sha256("global:upload_check_ins") 等前 8 字节）
+const ANCHOR_DISCRIMINATOR_UPLOAD_CHECK_INS = new Uint8Array([229, 85, 118, 34, 116, 217, 94, 132])
+const ANCHOR_DISCRIMINATOR_UPLOAD_VOTE_TALLY = new Uint8Array([137, 246, 218, 62, 167, 234, 252, 218])
 
 export interface PreparePublishData {
   program_id: string
@@ -83,6 +89,22 @@ export function deriveActivityPDA(
     u64LeBytes(activityId),
   ]
   return PublicKey.findProgramAddressSync(seeds, programId)
+}
+
+/** 根据 activity PDA 推导 check_ins PDA */
+export function deriveCheckInsPDA(activityPDA: PublicKey, programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('check_ins'), activityPDA.toBuffer()],
+    programId
+  )
+}
+
+/** 根据 activity PDA 推导 vote_tally PDA */
+export function deriveVoteTallyPDA(activityPDA: PublicKey, programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('vote_tally'), activityPDA.toBuffer()],
+    programId
+  )
 }
 
 /**
@@ -151,20 +173,30 @@ export interface PrepareSwitchStageData {
     | 'start_registration'
     | 'start_check_in'
     | 'start_team_formation'
+    | 'start_submission'
     | 'start_voting'
     | 'start_results'
+    | 'upload_check_ins'
+    | 'upload_vote_tally'
+  /** 签到->组队时：链上签到名单（Solana 地址） */
+  attendee_pubkeys?: string[]
+  /** 投票->公布结果时：作品 ID 列表 */
+  candidate_ids?: number[]
+  /** 投票->公布结果时：对应得票数 */
+  vote_counts?: number[]
 }
 
 const SWITCH_STAGE_DISCRIMINATORS: Record<string, Uint8Array> = {
   start_registration: ANCHOR_DISCRIMINATOR_START_REGISTRATION,
   start_check_in: ANCHOR_DISCRIMINATOR_START_CHECK_IN,
   start_team_formation: ANCHOR_DISCRIMINATOR_START_TEAM_FORMATION,
+  start_submission: ANCHOR_DISCRIMINATOR_START_SUBMISSION,
   start_voting: ANCHOR_DISCRIMINATOR_START_VOTING,
   start_results: ANCHOR_DISCRIMINATOR_START_RESULTS,
 }
 
 /**
- * 构建阶段切换指令的未签名交易（报名/签到/组队/投票/公布结果，用于 Phantom 签名）
+ * 构建阶段切换指令的未签名交易（报名/签到/组队/上传代码/投票/公布结果，用于 Phantom 签名）
  */
 export function buildSwitchStageTransaction(
   prepare: PrepareSwitchStageData,
@@ -173,6 +205,13 @@ export function buildSwitchStageTransaction(
 ): Transaction {
   if (!prepare.program_id || !prepare.chain_activity_address || !prepare.chain_instruction) {
     throw new Error('prepare 缺少 program_id / chain_activity_address / chain_instruction')
+  }
+  // 签到->组队、投票->公布结果 使用单独构建函数
+  if (prepare.chain_instruction === 'upload_check_ins') {
+    return buildUploadCheckInsTransaction(prepare, authority, recentBlockhash)
+  }
+  if (prepare.chain_instruction === 'upload_vote_tally') {
+    return buildUploadVoteTallyTransaction(prepare, authority, recentBlockhash)
   }
   const data = SWITCH_STAGE_DISCRIMINATORS[prepare.chain_instruction]
   if (!data) {
@@ -188,6 +227,96 @@ export function buildSwitchStageTransaction(
     programId,
     keys,
     data: data instanceof Uint8Array ? data : new Uint8Array(data),
+  })
+  const transaction = new Transaction().add(ix)
+  transaction.recentBlockhash = recentBlockhash
+  transaction.feePayer = authority
+  return transaction
+}
+
+/**
+ * 构建 upload_check_ins 未签名交易（签到->组队时将签到名单上链）
+ */
+export function buildUploadCheckInsTransaction(
+  prepare: PrepareSwitchStageData,
+  authority: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  if (!prepare.program_id || !prepare.chain_activity_address || !Array.isArray(prepare.attendee_pubkeys)) {
+    throw new Error('prepare 缺少 program_id / chain_activity_address / attendee_pubkeys')
+  }
+  const programId = new PublicKey(prepare.program_id)
+  const activityPDA = new PublicKey(prepare.chain_activity_address)
+  const [checkInsPDA] = deriveCheckInsPDA(activityPDA, programId)
+  const pubkeys = prepare.attendee_pubkeys.map((addr) => new PublicKey(addr))
+  // 指令数据：discriminator(8) + Vec<Pubkey>: len(4) + 32*len
+  const data = new Uint8Array(8 + 4 + 32 * pubkeys.length)
+  data.set(ANCHOR_DISCRIMINATOR_UPLOAD_CHECK_INS, 0)
+  new DataView(data.buffer).setUint32(8, pubkeys.length, true)
+  pubkeys.forEach((pk, i) => data.set(pk.toBuffer(), 12 + i * 32))
+  const ix = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: authority, isSigner: true, isWritable: true },
+      { pubkey: activityPDA, isSigner: false, isWritable: true },
+      { pubkey: checkInsPDA, isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+  const transaction = new Transaction().add(ix)
+  transaction.recentBlockhash = recentBlockhash
+  transaction.feePayer = authority
+  return transaction
+}
+
+/**
+ * 构建 upload_vote_tally 未签名交易（投票->公布结果时将投票汇总上链）
+ */
+export function buildUploadVoteTallyTransaction(
+  prepare: PrepareSwitchStageData,
+  authority: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  if (
+    !prepare.program_id ||
+    !prepare.chain_activity_address ||
+    !Array.isArray(prepare.candidate_ids) ||
+    !Array.isArray(prepare.vote_counts) ||
+    prepare.candidate_ids.length !== prepare.vote_counts.length
+  ) {
+    throw new Error('prepare 缺少 program_id / chain_activity_address / candidate_ids / vote_counts 或长度不一致')
+  }
+  const programId = new PublicKey(prepare.program_id)
+  const activityPDA = new PublicKey(prepare.chain_activity_address)
+  const [voteTallyPDA] = deriveVoteTallyPDA(activityPDA, programId)
+  const n = prepare.candidate_ids.length
+  // 指令数据：discriminator(8) + Vec<u64> candidate_ids: len(4) + 8*n + Vec<u64> vote_counts: len(4) + 8*n
+  const data = new Uint8Array(8 + 4 + 8 * n + 4 + 8 * n)
+  let off = 0
+  data.set(ANCHOR_DISCRIMINATOR_UPLOAD_VOTE_TALLY, off)
+  off += 8
+  new DataView(data.buffer).setUint32(off, n, true)
+  off += 4
+  for (let i = 0; i < n; i++) {
+    new DataView(data.buffer).setBigUint64(off, BigInt(prepare.candidate_ids![i]), true)
+    off += 8
+  }
+  new DataView(data.buffer).setUint32(off, n, true)
+  off += 4
+  for (let i = 0; i < n; i++) {
+    new DataView(data.buffer).setBigUint64(off, BigInt(prepare.vote_counts![i]), true)
+    off += 8
+  }
+  const ix = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: authority, isSigner: true, isWritable: true },
+      { pubkey: activityPDA, isSigner: false, isWritable: true },
+      { pubkey: voteTallyPDA, isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
   })
   const transaction = new Transaction().add(ix)
   transaction.recentBlockhash = recentBlockhash

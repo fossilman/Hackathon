@@ -9,6 +9,7 @@ pub enum ActivityPhase {
     Registration, // 报名中，不可删除
     CheckIn,      // 签到阶段
     TeamFormation, // 组队阶段
+    Submission,   // 上传代码阶段
     Voting,       // 投票阶段
     Ended,        // 投票结束/公布结果
 }

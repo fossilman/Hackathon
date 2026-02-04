@@ -54,6 +54,11 @@ pub mod hackathon {
         activity::start_team_formation(ctx)
     }
 
+    /// 将活动状态改为上传代码阶段。
+    pub fn start_submission(ctx: Context<StartSubmission>) -> Result<()> {
+        activity::start_submission(ctx)
+    }
+
     /// 将活动状态改为投票阶段。
     pub fn start_voting(ctx: Context<StartVoting>) -> Result<()> {
         activity::start_voting(ctx)
@@ -126,7 +131,7 @@ pub mod hackathon {
 // Re-export for IDL / external use (Anchor expects these in the crate root for account types)
 pub use activity::{
     DeleteActivity, Initialize, PublishActivity, StartCheckIn, StartRegistration, StartResults,
-    StartTeamFormation, StartVoting,
+    StartSubmission, StartTeamFormation, StartVoting,
 };
 pub use check_in::UploadCheckIns;
 pub use error::HackathonError;

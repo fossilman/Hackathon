@@ -74,6 +74,17 @@ pub struct StartTeamFormation<'info> {
 }
 
 #[derive(Accounts)]
+pub struct StartSubmission<'info> {
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = authority
+    )]
+    pub activity: Account<'info, Activity>,
+}
+
+#[derive(Accounts)]
 pub struct StartVoting<'info> {
     pub authority: Signer<'info>,
 
@@ -134,6 +145,11 @@ pub fn start_check_in(ctx: Context<StartCheckIn>) -> Result<()> {
 
 pub fn start_team_formation(ctx: Context<StartTeamFormation>) -> Result<()> {
     ctx.accounts.activity.phase = ActivityPhase::TeamFormation;
+    Ok(())
+}
+
+pub fn start_submission(ctx: Context<StartSubmission>) -> Result<()> {
+    ctx.accounts.activity.phase = ActivityPhase::Submission;
     Ok(())
 }
 

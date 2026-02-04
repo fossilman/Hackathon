@@ -67,6 +67,8 @@ export default function HackathonDetail() {
   const [posterInfo, setPosterInfo] = useState<any>(null)
   const [publishLoading, setPublishLoading] = useState(false)
   const [switchStageLoading, setSwitchStageLoading] = useState(false)
+  const [chainCheckIns, setChainCheckIns] = useState<string[] | null>(null)
+  const [chainVoteTally, setChainVoteTally] = useState<{ candidate_id: number; vote_count: number }[] | null>(null)
   const { user } = useAuthStore()
 
   const statusMap: Record<string, { label: string; color: string }> = {
@@ -114,6 +116,25 @@ export default function HackathonDetail() {
             qr_code_url: '',
           })
         }
+      }
+      // 若已上链，拉取链上签到与投票汇总（用于活动详情展示）
+      if (hackathonData?.chain_activity_address) {
+        try {
+          const [checkInsRes, tallyRes] = await Promise.all([
+            request.get(`/hackathons/${id}/chain-check-ins`).catch(() => ({ data: { attendee_addresses: [] } })),
+            request.get(`/hackathons/${id}/chain-vote-tally`).catch(() => ({ data: { counts: [] } })),
+          ])
+          const ci = (checkInsRes as any)?.attendee_addresses
+          const vt = (tallyRes as any)?.counts
+          setChainCheckIns(Array.isArray(ci) ? ci : null)
+          setChainVoteTally(Array.isArray(vt) && vt.length > 0 ? vt : null)
+        } catch {
+          setChainCheckIns(null)
+          setChainVoteTally(null)
+        }
+      } else {
+        setChainCheckIns(null)
+        setChainVoteTally(null)
       }
     } catch (error) {
       message.error(t('hackathon.fetchDetailFailed'))
@@ -425,6 +446,50 @@ export default function HackathonDetail() {
             />
           </Descriptions.Item>
         </Descriptions>
+
+        {/* 链上签到与投票汇总（有链上地址时展示，上链后可在详情页查看） */}
+        {hackathon.chain_activity_address && (chainCheckIns !== null || chainVoteTally !== null) && (
+          <>
+            <Divider orientation="left" style={{ marginTop: '32px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 600 }}>{t('hackathon.chainCheckInsTitle')} / {t('hackathon.chainVoteTallyTitle')}</span>
+            </Divider>
+            <Row gutter={16} style={{ marginTop: 16 }}>
+              <Col xs={24} md={12}>
+                <Card size="small" title={t('hackathon.chainCheckInsTitle')} data-testid="chain-check-ins-card">
+                  {chainCheckIns === null || chainCheckIns.length === 0 ? (
+                    <span className="text-secondary">{t('hackathon.chainCheckInsEmpty')}</span>
+                  ) : (
+                    <ul style={{ margin: 0, paddingLeft: 20, maxHeight: 200, overflowY: 'auto' }}>
+                      {chainCheckIns.map((addr, i) => (
+                        <li key={i} style={{ wordBreak: 'break-all', fontSize: 12 }}>
+                          {addr.length > 20 ? `${addr.slice(0, 10)}...${addr.slice(-8)}` : addr}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Card>
+              </Col>
+              <Col xs={24} md={12}>
+                <Card size="small" title={t('hackathon.chainVoteTallyTitle')} data-testid="chain-vote-tally-card">
+                  {chainVoteTally === null || chainVoteTally.length === 0 ? (
+                    <span className="text-secondary">{t('hackathon.chainVoteTallyEmpty')}</span>
+                  ) : (
+                    <Table
+                      size="small"
+                      rowKey="candidate_id"
+                      pagination={false}
+                      dataSource={chainVoteTally}
+                      columns={[
+                        { title: t('hackathon.candidateId'), dataIndex: 'candidate_id', width: 100 },
+                        { title: t('hackathon.voteCount'), dataIndex: 'vote_count', width: 100 },
+                      ]}
+                    />
+                  )}
+                </Card>
+              </Col>
+            </Row>
+          </>
+        )}
 
         {/* 活动海报二维码（仅已发布的活动显示） */}
         {hackathon.status === 'published' && (

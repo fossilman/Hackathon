@@ -516,10 +516,10 @@ func (s *HackathonService) PreparePublish(id uint64, userID uint64, userRole str
 	descHash := sha256.Sum256([]byte(hackathon.Description))
 	descHashHex := fmt.Sprintf("%x", descHash)
 	return map[string]interface{}{
-		"program_id":          programID,
-		"rpc_url":             rpcURL,
-		"activity_id":         id,
-		"title":               hackathon.Name,
+		"program_id":           programID,
+		"rpc_url":              rpcURL,
+		"activity_id":          id,
+		"title":                hackathon.Name,
 		"description_hash_hex": descHashHex,
 	}, nil
 }
@@ -605,10 +605,10 @@ func (s *HackathonService) GetPosterQRCode(hackathonID uint64) (string, error) {
 	return s.generatePosterQRCode(hackathonID, posterURL)
 }
 
-// NeedChainStageUpdate 判断该阶段是否需要更新链上活动状态（报名、签到、组队、投票、公布结果均需链上更新）。
+// NeedChainStageUpdate 判断该阶段是否需要更新链上活动状态（报名、签到、组队、上传代码、投票、公布结果均需链上更新）。
 func NeedChainStageUpdate(stage string) bool {
 	switch stage {
-	case "registration", "checkin", "team_formation", "voting", "results":
+	case "registration", "checkin", "team_formation", "submission", "voting", "results":
 		return true
 	default:
 		return false
@@ -616,6 +616,8 @@ func NeedChainStageUpdate(stage string) bool {
 }
 
 // PrepareSwitchStage 返回切换阶段时如需更新链上状态，前端构建并签名交易所需的数据。
+// 签到->组队：返回 upload_check_ins + attendee_pubkeys（仅 Phantom 钱包签到用户）。
+// 投票->公布结果：返回 upload_vote_tally + candidate_ids + vote_counts。
 func (s *HackathonService) PrepareSwitchStage(id uint64, stage string, userID uint64, userRole string) (map[string]interface{}, error) {
 	if !NeedChainStageUpdate(stage) {
 		return map[string]interface{}{"need_chain_update": false}, nil
@@ -638,12 +640,72 @@ func (s *HackathonService) PrepareSwitchStage(id uint64, stage string, userID ui
 	if err != nil {
 		return nil, err
 	}
+
+	// 签到->组队：需将签到信息上链，返回 upload_check_ins 及签到者 Solana 地址列表
+	if stage == "team_formation" {
+		var checkins []struct {
+			WalletAddress string `gorm:"column:wallet_address"`
+			WalletType    string `gorm:"column:wallet_type"`
+		}
+		if err := database.DB.Model(&models.Checkin{}).
+			Joins("INNER JOIN participants ON participants.id = checkins.participant_id").
+			Where("checkins.hackathon_id = ?", id).
+			Select("participants.wallet_address, participants.wallet_type").
+			Find(&checkins).Error; err != nil {
+			return nil, fmt.Errorf("获取签到列表失败: %w", err)
+		}
+		attendeePubkeys := make([]string, 0)
+		for _, c := range checkins {
+			if c.WalletType == "phantom" && strings.TrimSpace(c.WalletAddress) != "" {
+				attendeePubkeys = append(attendeePubkeys, c.WalletAddress)
+			}
+		}
+		return map[string]interface{}{
+			"need_chain_update":      true,
+			"program_id":             programID,
+			"rpc_url":                rpcURL,
+			"chain_activity_address": chainAddr,
+			"activity_id":            id,
+			"chain_instruction":      "upload_check_ins",
+			"attendee_pubkeys":       attendeePubkeys,
+		}, nil
+	}
+
+	// 投票->公布结果：需将投票汇总上链，返回 upload_vote_tally 及 candidate_ids、vote_counts
+	if stage == "results" {
+		var submissions []models.Submission
+		if err := database.DB.Where("hackathon_id = ? AND draft = 0", id).Find(&submissions).Error; err != nil {
+			return nil, fmt.Errorf("获取作品列表失败: %w", err)
+		}
+		voteSvc := &VoteService{}
+		candidateIDs := make([]uint64, 0, len(submissions))
+		voteCounts := make([]uint64, 0, len(submissions))
+		for _, sub := range submissions {
+			count, _ := voteSvc.GetVoteCount(sub.ID)
+			if count < 0 {
+				count = 0
+			}
+			candidateIDs = append(candidateIDs, sub.ID)
+			voteCounts = append(voteCounts, uint64(count))
+		}
+		return map[string]interface{}{
+			"need_chain_update":      true,
+			"program_id":             programID,
+			"rpc_url":                rpcURL,
+			"chain_activity_address": chainAddr,
+			"activity_id":            id,
+			"chain_instruction":      "upload_vote_tally",
+			"candidate_ids":          candidateIDs,
+			"vote_counts":            voteCounts,
+		}, nil
+	}
+
+	// 其他阶段：仅更新链上活动状态
 	chainInstruction := map[string]string{
-		"registration":   "start_registration",
-		"checkin":        "start_check_in",
-		"team_formation": "start_team_formation",
-		"voting":         "start_voting",
-		"results":        "start_results",
+		"registration": "start_registration",
+		"checkin":      "start_check_in",
+		"submission":   "start_submission",
+		"voting":       "start_voting",
 	}[stage]
 	return map[string]interface{}{
 		"need_chain_update":      true,
@@ -655,7 +717,7 @@ func (s *HackathonService) PrepareSwitchStage(id uint64, stage string, userID ui
 	}, nil
 }
 
-// SwitchStage 切换活动阶段（仅活动创建者可切换）。若阶段为 registration/checkin/team_formation/voting/results 且活动已上链，需传入主办方已签名的链上交易并先更新链上状态再更新 DB。
+// SwitchStage 切换活动阶段（仅活动创建者可切换）。若阶段为 registration/checkin/team_formation/submission/voting/results 且活动已上链，需传入主办方已签名的链上交易并先更新链上状态再更新 DB。
 func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, userRole string, signedTxBase64 string) error {
 	validStages := map[string]bool{
 		"published":      true,
@@ -946,6 +1008,40 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 	}
 
 	return nil
+}
+
+// GetChainCheckIns 获取活动链上签到名单（仅当活动已上链且已上传签到数据时有效）
+func (s *HackathonService) GetChainCheckIns(id uint64) ([]string, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	chainAddr := strings.TrimSpace(hackathon.ChainActivityAddress)
+	if chainAddr == "" {
+		return nil, nil
+	}
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		return nil, err
+	}
+	return solana.FetchCheckIns(rpcURL, programID, chainAddr)
+}
+
+// GetChainVoteTally 获取活动链上投票汇总（仅当活动已上链且已上传投票汇总时有效）
+func (s *HackathonService) GetChainVoteTally(id uint64) ([]solana.CandidateVote, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	chainAddr := strings.TrimSpace(hackathon.ChainActivityAddress)
+	if chainAddr == "" {
+		return nil, nil
+	}
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		return nil, err
+	}
+	return solana.FetchVoteTally(rpcURL, programID, chainAddr)
 }
 
 // GetArchiveHackathons 获取活动集锦列表（已结束的活动）

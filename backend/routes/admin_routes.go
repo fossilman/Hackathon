@@ -87,6 +87,8 @@ func SetupAdminRoutes(router *gin.Engine) {
 				hackathons.POST("/:id/stages/:stage/switch", middleware.RoleMiddleware("organizer"), adminHackathonController.SwitchStage)
 				hackathons.GET("/:id/stages", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetStageTimes)
 				hackathons.PUT("/:id/stages", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdateStageTimes)
+				hackathons.GET("/:id/chain-check-ins", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetChainCheckIns)
+				hackathons.GET("/:id/chain-vote-tally", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.GetChainVoteTally)
 
 				// 归档活动（Organizer和Admin都可以，但需检查权限）
 				hackathons.POST("/:id/archive", middleware.RoleMiddleware("organizer", "admin"), adminHackathonController.ArchiveHackathon)

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"hackathon-backend/models"
 	"hackathon-backend/services"
+	"hackathon-backend/solana"
 	"hackathon-backend/utils"
 )
 
@@ -413,6 +414,42 @@ func (c *AdminHackathonController) GetStageTimes(ctx *gin.Context) {
 	}
 
 	utils.Success(ctx, stages)
+}
+
+// GetChainCheckIns 获取活动链上签到名单（活动详情页展示）
+func (c *AdminHackathonController) GetChainCheckIns(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	list, err := c.hackathonService.GetChainCheckIns(id)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	if list == nil {
+		list = []string{}
+	}
+	utils.Success(ctx, map[string]interface{}{"attendee_addresses": list})
+}
+
+// GetChainVoteTally 获取活动链上投票汇总（活动详情页展示）
+func (c *AdminHackathonController) GetChainVoteTally(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	list, err := c.hackathonService.GetChainVoteTally(id)
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	if list == nil {
+		list = []solana.CandidateVote{}
+	}
+	utils.Success(ctx, map[string]interface{}{"counts": list})
 }
 
 // GetHackathonStats 获取活动统计信息
