@@ -39,9 +39,11 @@ import dayjs from 'dayjs'
 import { getSolanaExplorerAddressUrl } from '../config/solana'
 import {
   buildPublishActivityTransaction,
+  buildSwitchStageTransaction,
   signTransactionWithPhantom,
   getLatestBlockhash,
   type PreparePublishData,
+  type PrepareSwitchStageData,
 } from '../utils/solanaPublish'
 
 export default function HackathonDetail() {
@@ -64,6 +66,7 @@ export default function HackathonDetail() {
   })
   const [posterInfo, setPosterInfo] = useState<any>(null)
   const [publishLoading, setPublishLoading] = useState(false)
+  const [switchStageLoading, setSwitchStageLoading] = useState(false)
   const { user } = useAuthStore()
 
   const statusMap: Record<string, { label: string; color: string }> = {
@@ -168,12 +171,36 @@ export default function HackathonDetail() {
   }
 
   const handleSwitchStage = async (stage: string) => {
+    setSwitchStageLoading(true)
     try {
-      await request.post(`/hackathons/${id}/stages/${stage}/switch`)
+      const prepare = (await request.get(
+        `/hackathons/${id}/stages/${stage}/switch/prepare`
+      )) as PrepareSwitchStageData
+
+      if (prepare.need_chain_update && prepare.rpc_url && prepare.chain_instruction) {
+        const phantom = (window as any).phantom?.solana
+        if (!phantom || typeof phantom.connect !== 'function') {
+          message.error(t('hackathon.publishNeedPhantom'))
+          return
+        }
+        const { publicKey } = await phantom.connect()
+        const authority = new PublicKey(publicKey.toBase58())
+        const blockhash = await getLatestBlockhash(prepare.rpc_url)
+        const transaction = buildSwitchStageTransaction(prepare, authority, blockhash)
+        const signedBase64 = await signTransactionWithPhantom(transaction)
+        await request.post(`/hackathons/${id}/stages/${stage}/switch`, {
+          signed_transaction: signedBase64,
+        })
+      } else {
+        await request.post(`/hackathons/${id}/stages/${stage}/switch`)
+      }
       message.success(t('hackathon.switchStageSuccess'))
-      fetchDetail()
-    } catch (error) {
-      message.error(t('hackathon.switchStageFailed'))
+      await fetchDetail()
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || t('hackathon.switchStageFailed')
+      message.error(msg)
+    } finally {
+      setSwitchStageLoading(false)
     }
   }
 
@@ -551,8 +578,9 @@ export default function HackathonDetail() {
                 </Tag>
                 <Button
                   type="primary"
+                  loading={switchStageLoading}
                   onClick={() => handleSwitchStage(nextStage.to)}
-                  disabled={nextStage.to === 'published' && !hasStageTimes}
+                  disabled={(nextStage.to === 'published' && !hasStageTimes) || switchStageLoading}
                   style={{ marginLeft: '16px' }}
                   data-testid="hackathon-detail-switch-stage-button"
                   aria-label={`${t('hackathon.switchTo')} ${nextStage.label}`}

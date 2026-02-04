@@ -213,7 +213,29 @@ func (c *AdminHackathonController) UpdateChainActivityAddress(ctx *gin.Context) 
 	utils.Success(ctx, nil)
 }
 
-// SwitchStage 切换活动阶段（仅活动创建者可切换）
+// PrepareSwitchStage 返回切换阶段时如需更新链上状态，前端构建并签名交易所需的数据。
+func (c *AdminHackathonController) PrepareSwitchStage(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	stage := ctx.Param("stage")
+	if stage == "" {
+		utils.BadRequest(ctx, "阶段参数不能为空")
+		return
+	}
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+	result, err := c.hackathonService.PrepareSwitchStage(id, stage, userID.(uint64), role.(string))
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, result)
+}
+
+// SwitchStage 切换活动阶段（仅活动创建者可切换）。若阶段为 registration/checkin 且活动已上链，需传 signed_transaction。
 func (c *AdminHackathonController) SwitchStage(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -227,11 +249,16 @@ func (c *AdminHackathonController) SwitchStage(ctx *gin.Context) {
 		return
 	}
 
-	// 获取当前用户信息
+	// 可选：切换为 registration/checkin 且活动已上链时，需传主办方已签名交易
+	var body struct {
+		SignedTransaction string `json:"signed_transaction"`
+	}
+	_ = ctx.ShouldBindJSON(&body)
+
 	userID, _ := ctx.Get("user_id")
 	role, _ := ctx.Get("role")
 
-	if err := c.hackathonService.SwitchStage(id, stage, userID.(uint64), role.(string)); err != nil {
+	if err := c.hackathonService.SwitchStage(id, stage, userID.(uint64), role.(string), body.SignedTransaction); err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}

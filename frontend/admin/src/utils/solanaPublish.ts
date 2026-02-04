@@ -15,6 +15,23 @@ const ANCHOR_DISCRIMINATOR_PUBLISH_ACTIVITY = new Uint8Array([
   20, 103, 95, 10, 205, 95, 194, 150,
 ])
 
+// start_registration / start_check_in 仅 8 字节 discriminator，无 args（与 idl 一致）
+const ANCHOR_DISCRIMINATOR_START_REGISTRATION = new Uint8Array([
+  82, 180, 24, 158, 181, 152, 150, 176,
+])
+const ANCHOR_DISCRIMINATOR_START_CHECK_IN = new Uint8Array([
+  103, 94, 164, 75, 177, 116, 94, 218,
+])
+const ANCHOR_DISCRIMINATOR_START_TEAM_FORMATION = new Uint8Array([
+  236, 242, 132, 165, 119, 105, 105, 24,
+])
+const ANCHOR_DISCRIMINATOR_START_VOTING = new Uint8Array([
+  68, 29, 234, 70, 139, 251, 237, 179,
+])
+const ANCHOR_DISCRIMINATOR_START_RESULTS = new Uint8Array([
+  181, 153, 118, 134, 245, 64, 50, 41,
+])
+
 export interface PreparePublishData {
   program_id: string
   rpc_url: string
@@ -121,4 +138,59 @@ export async function getLatestBlockhash(rpcUrl: string): Promise<string> {
   const connection = new Connection(rpcUrl)
   const { value } = await connection.getLatestBlockhashAndContext('finalized')
   return value.blockhash
+}
+
+/** 切换阶段 prepare 接口返回（需链上更新时） */
+export interface PrepareSwitchStageData {
+  need_chain_update: boolean
+  program_id?: string
+  rpc_url?: string
+  chain_activity_address?: string
+  activity_id?: number
+  chain_instruction?:
+    | 'start_registration'
+    | 'start_check_in'
+    | 'start_team_formation'
+    | 'start_voting'
+    | 'start_results'
+}
+
+const SWITCH_STAGE_DISCRIMINATORS: Record<string, Uint8Array> = {
+  start_registration: ANCHOR_DISCRIMINATOR_START_REGISTRATION,
+  start_check_in: ANCHOR_DISCRIMINATOR_START_CHECK_IN,
+  start_team_formation: ANCHOR_DISCRIMINATOR_START_TEAM_FORMATION,
+  start_voting: ANCHOR_DISCRIMINATOR_START_VOTING,
+  start_results: ANCHOR_DISCRIMINATOR_START_RESULTS,
+}
+
+/**
+ * 构建阶段切换指令的未签名交易（报名/签到/组队/投票/公布结果，用于 Phantom 签名）
+ */
+export function buildSwitchStageTransaction(
+  prepare: PrepareSwitchStageData,
+  authority: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  if (!prepare.program_id || !prepare.chain_activity_address || !prepare.chain_instruction) {
+    throw new Error('prepare 缺少 program_id / chain_activity_address / chain_instruction')
+  }
+  const data = SWITCH_STAGE_DISCRIMINATORS[prepare.chain_instruction]
+  if (!data) {
+    throw new Error(`不支持的 chain_instruction: ${prepare.chain_instruction}`)
+  }
+  const programId = new PublicKey(prepare.program_id)
+  const activityPDA = new PublicKey(prepare.chain_activity_address)
+  const keys = [
+    { pubkey: authority, isSigner: true, isWritable: false },
+    { pubkey: activityPDA, isSigner: false, isWritable: true },
+  ]
+  const ix = new TransactionInstruction({
+    programId,
+    keys,
+    data: data instanceof Uint8Array ? data : new Uint8Array(data),
+  })
+  const transaction = new Transaction().add(ix)
+  transaction.recentBlockhash = recentBlockhash
+  transaction.feePayer = authority
+  return transaction
 }

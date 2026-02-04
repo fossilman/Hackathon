@@ -49,6 +49,21 @@ pub mod hackathon {
         activity::start_check_in(ctx)
     }
 
+    /// 将活动状态改为组队阶段。
+    pub fn start_team_formation(ctx: Context<StartTeamFormation>) -> Result<()> {
+        activity::start_team_formation(ctx)
+    }
+
+    /// 将活动状态改为投票阶段。
+    pub fn start_voting(ctx: Context<StartVoting>) -> Result<()> {
+        activity::start_voting(ctx)
+    }
+
+    /// 将活动状态改为结束（公布结果）。
+    pub fn start_results(ctx: Context<StartResults>) -> Result<()> {
+        activity::start_results(ctx)
+    }
+
     /// 签到阶段结束后，主办方将签到名单上链；上链后活动进入投票阶段。
     pub fn upload_check_ins(
         ctx: Context<UploadCheckIns>,
@@ -109,7 +124,10 @@ pub mod hackathon {
 }
 
 // Re-export for IDL / external use (Anchor expects these in the crate root for account types)
-pub use activity::{DeleteActivity, Initialize, PublishActivity, StartCheckIn, StartRegistration};
+pub use activity::{
+    DeleteActivity, Initialize, PublishActivity, StartCheckIn, StartRegistration, StartResults,
+    StartTeamFormation, StartVoting,
+};
 pub use check_in::UploadCheckIns;
 pub use error::HackathonError;
 pub use sponsor::{InitializeSponsorConfig, ReviewSponsor, SponsorApply};

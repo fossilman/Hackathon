@@ -605,8 +605,58 @@ func (s *HackathonService) GetPosterQRCode(hackathonID uint64) (string, error) {
 	return s.generatePosterQRCode(hackathonID, posterURL)
 }
 
-// SwitchStage 切换活动阶段（仅活动创建者可切换）
-func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, userRole string) error {
+// NeedChainStageUpdate 判断该阶段是否需要更新链上活动状态（报名、签到、组队、投票、公布结果均需链上更新）。
+func NeedChainStageUpdate(stage string) bool {
+	switch stage {
+	case "registration", "checkin", "team_formation", "voting", "results":
+		return true
+	default:
+		return false
+	}
+}
+
+// PrepareSwitchStage 返回切换阶段时如需更新链上状态，前端构建并签名交易所需的数据。
+func (s *HackathonService) PrepareSwitchStage(id uint64, stage string, userID uint64, userRole string) (map[string]interface{}, error) {
+	if !NeedChainStageUpdate(stage) {
+		return map[string]interface{}{"need_chain_update": false}, nil
+	}
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	if userRole == "admin" {
+		return nil, errors.New("Admin不能切换活动阶段")
+	}
+	if hackathon.OrganizerID != userID {
+		return nil, errors.New("只能切换自己创建的活动阶段")
+	}
+	chainAddr := strings.TrimSpace(hackathon.ChainActivityAddress)
+	if chainAddr == "" {
+		return map[string]interface{}{"need_chain_update": false}, nil
+	}
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		return nil, err
+	}
+	chainInstruction := map[string]string{
+		"registration":   "start_registration",
+		"checkin":        "start_check_in",
+		"team_formation": "start_team_formation",
+		"voting":         "start_voting",
+		"results":        "start_results",
+	}[stage]
+	return map[string]interface{}{
+		"need_chain_update":      true,
+		"program_id":             programID,
+		"rpc_url":                rpcURL,
+		"chain_activity_address": chainAddr,
+		"activity_id":            id,
+		"chain_instruction":      chainInstruction,
+	}, nil
+}
+
+// SwitchStage 切换活动阶段（仅活动创建者可切换）。若阶段为 registration/checkin/team_formation/voting/results 且活动已上链，需传入主办方已签名的链上交易并先更新链上状态再更新 DB。
+func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, userRole string, signedTxBase64 string) error {
 	validStages := map[string]bool{
 		"published":      true,
 		"registration":   true,
@@ -634,6 +684,21 @@ func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, u
 	// 检查是否是活动创建者
 	if hackathon.OrganizerID != userID {
 		return errors.New("只能切换自己创建的活动阶段")
+	}
+
+	// 若该阶段需要更新链上活动状态且活动已上链，则必须先提交已签名交易再更新 DB
+	if NeedChainStageUpdate(stage) && strings.TrimSpace(hackathon.ChainActivityAddress) != "" {
+		signedTxBase64 = strings.TrimSpace(signedTxBase64)
+		if signedTxBase64 == "" {
+			return errors.New("切换到此阶段需更新链上活动状态，请使用钱包授权后提交已签名交易（signed_transaction）")
+		}
+		_, rpcURL, err := solana.PreparePublishConfig()
+		if err != nil {
+			return err
+		}
+		if _, err := solana.SubmitSignedTransaction(signedTxBase64, rpcURL); err != nil {
+			return fmt.Errorf("链上活动状态更新失败: %w", err)
+		}
 	}
 
 	return database.DB.Model(&hackathon).Update("status", stage).Error

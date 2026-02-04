@@ -62,6 +62,39 @@ pub struct StartCheckIn<'info> {
     pub activity: Account<'info, Activity>,
 }
 
+#[derive(Accounts)]
+pub struct StartTeamFormation<'info> {
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = authority
+    )]
+    pub activity: Account<'info, Activity>,
+}
+
+#[derive(Accounts)]
+pub struct StartVoting<'info> {
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = authority
+    )]
+    pub activity: Account<'info, Activity>,
+}
+
+#[derive(Accounts)]
+pub struct StartResults<'info> {
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        has_one = authority
+    )]
+    pub activity: Account<'info, Activity>,
+}
+
 pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
     msg!("Greetings from: {:?}", ctx.program_id);
     Ok(())
@@ -96,5 +129,20 @@ pub fn start_registration(ctx: Context<StartRegistration>) -> Result<()> {
 
 pub fn start_check_in(ctx: Context<StartCheckIn>) -> Result<()> {
     ctx.accounts.activity.phase = ActivityPhase::CheckIn;
+    Ok(())
+}
+
+pub fn start_team_formation(ctx: Context<StartTeamFormation>) -> Result<()> {
+    ctx.accounts.activity.phase = ActivityPhase::TeamFormation;
+    Ok(())
+}
+
+pub fn start_voting(ctx: Context<StartVoting>) -> Result<()> {
+    ctx.accounts.activity.phase = ActivityPhase::Voting;
+    Ok(())
+}
+
+pub fn start_results(ctx: Context<StartResults>) -> Result<()> {
+    ctx.accounts.activity.phase = ActivityPhase::Ended;
     Ok(())
 }
