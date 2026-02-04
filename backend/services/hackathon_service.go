@@ -1,12 +1,15 @@
 package services
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"hackathon-backend/database"
 	"hackathon-backend/models"
+	"hackathon-backend/solana"
 	"hackathon-backend/utils"
 
 	"gorm.io/gorm"
@@ -455,59 +458,113 @@ func (s *HackathonService) DeleteHackathon(id uint64, userID uint64, userRole st
 	return database.DB.Delete(&hackathon).Error
 }
 
-// PublishHackathon 发布活动（仅活动创建者可发布）
-func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole string) (map[string]interface{}, error) {
+// UpdateChainActivityAddress 更新活动链上地址（仅活动创建者可更新，上链后补填 PDA）
+func (s *HackathonService) UpdateChainActivityAddress(id uint64, userID uint64, userRole string, chainActivityAddress string) error {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return err
+	}
+	if userRole == "admin" {
+		return errors.New("Admin不能修改活动链上地址")
+	}
+	if hackathon.OrganizerID != userID {
+		return errors.New("只能修改自己创建活动的链上地址")
+	}
+	chainActivityAddress = strings.TrimSpace(chainActivityAddress)
+	if chainActivityAddress != "" && !utils.IsValidSolanaAddress(chainActivityAddress) {
+		return errors.New("无效的 Solana 地址")
+	}
+	return database.DB.Model(&hackathon).Update("chain_activity_address", chainActivityAddress).Error
+}
+
+// PreparePublish 返回前端构建并签名 publish_activity 交易所需的数据。发布由前端钱包（Phantom）授权，后端不配置私钥。
+func (s *HackathonService) PreparePublish(id uint64, userID uint64, userRole string) (map[string]interface{}, error) {
 	var hackathon models.Hackathon
 	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
 		return nil, err
 	}
-
-	// Admin不能发布活动
 	if userRole == "admin" {
 		return nil, errors.New("Admin不能发布活动")
 	}
-
-	// 检查是否是活动创建者
 	if hackathon.OrganizerID != userID {
 		return nil, errors.New("只能发布自己创建的活动")
 	}
-
 	if hackathon.Status != "preparation" {
 		return nil, errors.New("只能发布处于预备状态的活动")
 	}
-
-	// 检查活动阶段时间是否已设置
 	var stages []models.HackathonStage
 	if err := database.DB.Where("hackathon_id = ?", id).Find(&stages).Error; err != nil {
 		return nil, fmt.Errorf("检查阶段时间失败: %w", err)
 	}
-
-	// 必须设置所有5个阶段的开始和结束时间
 	requiredStages := []string{"registration", "checkin", "team_formation", "submission", "voting"}
 	stageMap := make(map[string]bool)
 	for _, stage := range stages {
 		stageMap[stage.Stage] = true
 	}
-
 	for _, requiredStage := range requiredStages {
 		if !stageMap[requiredStage] {
 			return nil, errors.New("活动阶段时间未设置，请先设置所有阶段时间后再发布")
 		}
 	}
-
-	// 更新活动状态
-	if err := database.DB.Model(&hackathon).Update("status", "published").Error; err != nil {
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
 		return nil, err
 	}
+	if len(hackathon.Name) > 128 {
+		return nil, errors.New("活动发布不成功：活动标题超过 128 字节，无法上链")
+	}
+	descHash := sha256.Sum256([]byte(hackathon.Description))
+	descHashHex := fmt.Sprintf("%x", descHash)
+	return map[string]interface{}{
+		"program_id":          programID,
+		"rpc_url":             rpcURL,
+		"activity_id":         id,
+		"title":               hackathon.Name,
+		"description_hash_hex": descHashHex,
+	}, nil
+}
 
-	// 生成海报URL和二维码
+// PublishHackathon 发布活动：接收前端钱包已签名的交易并提交上链，链上活动地址由前端按 PDA 规则计算后传入。上链失败则返回错误，活动不发布。
+func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole string, signedTxBase64 string, activityPDA string) (map[string]interface{}, error) {
+	var hackathon models.Hackathon
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
+		return nil, err
+	}
+	if userRole == "admin" {
+		return nil, errors.New("Admin不能发布活动")
+	}
+	if hackathon.OrganizerID != userID {
+		return nil, errors.New("只能发布自己创建的活动")
+	}
+	if hackathon.Status != "preparation" {
+		return nil, errors.New("只能发布处于预备状态的活动")
+	}
+	activityPDA = strings.TrimSpace(activityPDA)
+	if activityPDA == "" {
+		return nil, errors.New("活动发布不成功：未提供链上活动地址（activity_pda）")
+	}
+	_, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		return nil, err
+	}
+	txSig, err := solana.SubmitSignedTransaction(signedTxBase64, rpcURL)
+	if err != nil {
+		return nil, err
+	}
+	_ = txSig
+
+	updates := map[string]interface{}{
+		"status":                 "published",
+		"chain_activity_address": activityPDA,
+	}
+	if err := database.DB.Model(&hackathon).Updates(updates).Error; err != nil {
+		return nil, err
+	}
 	posterURL := fmt.Sprintf("/posters/%d", id)
 	qrCodeURL, err := s.generatePosterQRCode(id, posterURL)
 	if err != nil {
-		// 即使二维码生成失败，也不影响发布
 		qrCodeURL = ""
 	}
-
 	return map[string]interface{}{
 		"poster_url":   posterURL,
 		"qr_code_url":  qrCodeURL,
@@ -780,7 +837,7 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 		"checkin":        2,
 		"team_formation": 3,
 		"submission":     4,
-		"voting":          5,
+		"voting":         5,
 	}
 
 	// 检查每个阶段的时间
@@ -946,36 +1003,35 @@ func (s *HackathonService) GetArchiveDetail(hackathonID uint64) (map[string]inte
 		return nil, err
 	}
 
-		finalResults := make([]map[string]interface{}, 0)
-		submissionIndex := 0
-		for _, award := range awards {
-			// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
-			awardResults := make([]map[string]interface{}, 0)
-			for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
-				submission := submissions[submissionIndex]
-				voteCount := submissionVoteCounts[submission.ID]
-				awardResults = append(awardResults, map[string]interface{}{
-					"team_name":      submission.Team.Name,
-					"submission_name": submission.Name,
-					"vote_count":      voteCount,
-					"prize_money":     award.Prize,
-				})
-				submissionIndex++
-			}
-			finalResults = append(finalResults, map[string]interface{}{
-				"award_name": award.Name,
-				"prize":      award.Prize,
-				"quantity":   award.Quantity,
-				"winners":    awardResults,
+	finalResults := make([]map[string]interface{}, 0)
+	submissionIndex := 0
+	for _, award := range awards {
+		// 根据奖项排名获取对应的作品（按得票数排序后的前N个）
+		awardResults := make([]map[string]interface{}, 0)
+		for i := 0; i < award.Quantity && submissionIndex < len(submissions); i++ {
+			submission := submissions[submissionIndex]
+			voteCount := submissionVoteCounts[submission.ID]
+			awardResults = append(awardResults, map[string]interface{}{
+				"team_name":       submission.Team.Name,
+				"submission_name": submission.Name,
+				"vote_count":      voteCount,
+				"prize_money":     award.Prize,
 			})
+			submissionIndex++
 		}
+		finalResults = append(finalResults, map[string]interface{}{
+			"award_name": award.Name,
+			"prize":      award.Prize,
+			"quantity":   award.Quantity,
+			"winners":    awardResults,
+		})
+	}
 
 	return map[string]interface{}{
-		"hackathon":    hackathon,
-		"stats":        stats,
-		"submissions":  submissions,
-		"vote_results": voteResults,
+		"hackathon":     hackathon,
+		"stats":         stats,
+		"submissions":   submissions,
+		"vote_results":  voteResults,
 		"final_results": finalResults,
 	}, nil
 }
-

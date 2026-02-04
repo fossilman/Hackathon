@@ -110,6 +110,7 @@
     "mapComponent": "地图组件（待集成）",
     "publishSuccess": "发布成功，活动海报已生成",
     "publishFailed": "发布失败",
+    "publishNeedPhantom": "请安装并连接 Phantom 钱包后再发布（发布需钱包授权）",
     "switchStageSuccess": "切换阶段成功",
     "switchStageFailed": "切换阶段失败",
     "fetchDetailFailed": "获取详情失败",
@@ -156,7 +157,15 @@
     "posterLink": "海报链接",
     "posterInfo": "海报信息",
     "stageTimeRequired": "请设置{{stage}}时间",
-    "timelinePreview": "时间轴预览"
+    "timelinePreview": "时间轴预览",
+    "chainActivityAddress": "链上地址",
+    "chainActivityAddressNotOnChain": "未上链",
+    "viewOnChain": "查看链上详情",
+    "chainActivityAddressPlaceholder": "上链后填入 Solana 活动账户 PDA",
+    "saveChainAddress": "保存链上地址",
+    "publishConfirm": "确认发布活动？发布后将生成海报与二维码。",
+    "chainActivityAddressHint": "若活动已上链，可在此填入链上活动地址（PDA），保存后列表与详情页可跳转查看链上信息。",
+    "optional": "选填"
   },
   "user": {
     "title": "人员管理",

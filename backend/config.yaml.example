@@ -25,3 +25,8 @@ cors:
     - http://localhost:3000
     - http://localhost:3001
 
+# Solana 活动发布上链（发布由前端 Phantom 钱包授权，无需配置 authority_key）
+# solana:
+#   program_id: "DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg"
+#   rpc_url: "http://127.0.0.1:8899"   # 本地网络
+

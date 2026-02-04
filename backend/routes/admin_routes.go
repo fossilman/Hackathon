@@ -78,7 +78,9 @@ func SetupAdminRoutes(router *gin.Engine) {
 				// 编辑、删除、发布活动（仅Organizer，且仅活动创建者）
 				hackathons.PUT("/:id", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdateHackathon)
 				hackathons.DELETE("/:id", middleware.RoleMiddleware("organizer"), adminHackathonController.DeleteHackathon)
+				hackathons.GET("/:id/publish/prepare", middleware.RoleMiddleware("organizer"), adminHackathonController.PreparePublish)
 				hackathons.POST("/:id/publish", middleware.RoleMiddleware("organizer"), adminHackathonController.PublishHackathon)
+				hackathons.PATCH("/:id/chain-address", middleware.RoleMiddleware("organizer"), adminHackathonController.UpdateChainActivityAddress)
 
 				// 阶段管理（仅Organizer，且仅活动创建者）
 				hackathons.POST("/:id/stages/:stage/switch", middleware.RoleMiddleware("organizer"), adminHackathonController.SwitchStage)

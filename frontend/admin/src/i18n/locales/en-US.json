@@ -110,6 +110,7 @@
     "mapComponent": "Map component (to be integrated)",
     "publishSuccess": "Published successfully, poster generated",
     "publishFailed": "Failed to publish",
+    "publishNeedPhantom": "Please install and connect Phantom wallet to publish (wallet signature required)",
     "switchStageSuccess": "Stage switched successfully",
     "switchStageFailed": "Failed to switch stage",
     "fetchDetailFailed": "Failed to fetch details",
@@ -156,7 +157,15 @@
     "posterLink": "Poster Link",
     "posterInfo": "Poster Info",
     "stageTimeRequired": "Please set {{stage}} time",
-    "timelinePreview": "Timeline Preview"
+    "timelinePreview": "Timeline Preview",
+    "chainActivityAddress": "On-Chain Address",
+    "chainActivityAddressNotOnChain": "Not on chain",
+    "viewOnChain": "View on chain",
+    "chainActivityAddressPlaceholder": "Enter Solana activity account PDA after publishing on chain",
+    "saveChainAddress": "Save chain address",
+    "publishConfirm": "Publish this hackathon? Poster and QR code will be generated.",
+    "chainActivityAddressHint": "If already on chain, enter the activity PDA here so list and detail pages can link to chain explorer.",
+    "optional": "optional"
   },
   "user": {
     "title": "User Management",

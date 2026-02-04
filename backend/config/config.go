@@ -41,6 +41,11 @@ type Config struct {
 	CORS struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
+	Solana struct {
+		ProgramID    string `yaml:"program_id"`
+		RPCURL       string `yaml:"rpc_url"`
+		AuthorityKey string `yaml:"authority_key"` // Base58 私钥，用于发布活动上链；也可用环境变量 SOLANA_AUTHORITY_KEY
+	} `yaml:"solana"`
 }
 
 var AppConfig *Config
@@ -97,7 +102,16 @@ func LoadConfig() error {
 		ServerPort:     getEnv("SERVER_PORT", defaultConfig.ServerPort),
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
-		TestWallets:    testWallets,
+		TestWallets: testWallets,
+		Solana: struct {
+			ProgramID    string `yaml:"program_id"`
+			RPCURL       string `yaml:"rpc_url"`
+			AuthorityKey string `yaml:"authority_key"`
+		}{
+			ProgramID:    getEnv("SOLANA_PROGRAM_ID", defaultConfig.Solana.ProgramID),
+			RPCURL:       getEnv("SOLANA_RPC_URL", defaultConfig.Solana.RPCURL),
+			AuthorityKey: getEnv("SOLANA_AUTHORITY_KEY", defaultConfig.Solana.AuthorityKey),
+		},
 	}
 
 	return nil
@@ -145,6 +159,15 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if len(yamlConfig.CORS.AllowOrigins) > 0 {
 		defaultConfig.CORSOrigins = yamlConfig.CORS.AllowOrigins
+	}
+	if yamlConfig.Solana.ProgramID != "" {
+		defaultConfig.Solana.ProgramID = yamlConfig.Solana.ProgramID
+	}
+	if yamlConfig.Solana.RPCURL != "" {
+		defaultConfig.Solana.RPCURL = yamlConfig.Solana.RPCURL
+	}
+	if yamlConfig.Solana.AuthorityKey != "" {
+		defaultConfig.Solana.AuthorityKey = yamlConfig.Solana.AuthorityKey
 	}
 
 	return nil

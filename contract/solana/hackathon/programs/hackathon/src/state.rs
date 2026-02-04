@@ -4,8 +4,9 @@ use anchor_lang::prelude::*;
 
 #[derive(Clone, AnchorSerialize, AnchorDeserialize, PartialEq, Eq)]
 pub enum ActivityPhase {
-    Draft,        // 可删除
-    Registration, // 不可删除
+    Draft,        // 草稿，可删除
+    Published,    // 已发布（链上已创建，未进入报名）
+    Registration, // 报名中，不可删除
     CheckIn,      // 签到阶段
     Voting,       // 投票阶段（签到结束后进入）
     Ended,        // 投票结束

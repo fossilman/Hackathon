@@ -35,6 +35,20 @@
 + 当主办方发布活动后，后续的上链操作gas非均来自这个金库
 + 根据tpl/solana_test_rules.md中的规范增加测试用例
 
+### PART3
++ Admin管理平台，活动卡片页页面，加上活动上链的地址，点击后可以查看链上信息的详情
++ 点击发布按钮后，显示发布成功，但数据并未上链，如果数据上链失败，应该返回报错，活动发布不成功，地址是后端生成的，而不是前端填入的，不用下载依赖，先完善代码
++ 未配置 Solana 发布密钥（SOLANA_AUTHORITY_KEY），这个通过前端授权
++ 活动发布不成功：上链失败 Transaction simulation failed: Error processing Instruction 2: custom program error: 0x65
++ 当环境是local时，查看链上信息时需要拼装?cluster=custom&customUrl=${地址信息}
++ 当发布活动时，activityPhase应该是发布状态而非草稿状态
 
-solana-test-validator
+
+
+
+
+
+solana-test-validator --reset
+anchor deploy --provider.cluster localnet
 anchor test --skip-local-validator
+solana airdrop 100 

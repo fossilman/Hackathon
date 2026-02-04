@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { Table, Button, Select, Space, message, Card, Tag, Input } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { PlusOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { PlusOutlined, EyeOutlined, SearchOutlined, LinkOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import request from '../api/request'
 import dayjs from 'dayjs'
 import { useAuthStore } from '../store/authStore'
+import { getSolanaExplorerAddressUrl } from '../config/solana'
 
 interface Hackathon {
   id: number
@@ -15,6 +16,7 @@ interface Hackathon {
   end_time: string
   created_at: string
   organizer_id?: number
+  chain_activity_address?: string | null
 }
 
 export default function HackathonList() {
@@ -135,6 +137,31 @@ export default function HackathonList() {
       render: (time: string) => dayjs(time).format('YYYY-MM-DD HH:mm'),
     },
     {
+      title: t('hackathon.chainActivityAddress'),
+      dataIndex: 'chain_activity_address',
+      key: 'chain_activity_address',
+      width: 180,
+      ellipsis: true,
+      render: (addr: string | null | undefined, record: Hackathon) => {
+        const address = record.chain_activity_address
+        if (!address) {
+          return <span className="text-secondary">{t('hackathon.chainActivityAddressNotOnChain')}</span>
+        }
+        const url = getSolanaExplorerAddressUrl(address)
+        return (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={address}
+            data-testid={`hackathon-list-chain-link-${record.id}`}
+          >
+            <LinkOutlined /> {address.slice(0, 6)}...{address.slice(-4)}
+          </a>
+        )
+      },
+    },
+    {
       title: t('hackathon.actions'),
       key: 'action',
       width: 150,
@@ -209,7 +236,7 @@ export default function HackathonList() {
           dataSource={hackathons}
           loading={loading}
           rowKey="id"
-          scroll={{ x: 1000 }}
+          scroll={{ x: 1180 }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,

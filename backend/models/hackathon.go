@@ -20,6 +20,7 @@ type Hackathon struct {
 	OrganizerID  uint64         `gorm:"index;not null" json:"organizer_id"`
 	MaxTeamSize  int            `gorm:"default:3" json:"max_team_size"`
 	MaxParticipants int         `gorm:"default:0" json:"max_participants"` // 最大参与人数，0表示不限制
+	ChainActivityAddress string `gorm:"type:varchar(64);index" json:"chain_activity_address"` // Solana 活动账户 PDA，上链后可查
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

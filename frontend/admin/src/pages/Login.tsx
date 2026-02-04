@@ -127,21 +127,20 @@ export default function Login() {
   }
 
   const handleWalletLogin = async (values: { phone: string }) => {
-    const list = getAvailableWalletProviders()
-    if (list.length === 0) {
+    if (walletOptions.length === 0) {
       message.error(t('login.installWallet'))
       return
     }
 
     setWalletLoading(true)
     try {
-      if (list.length > 1) {
+      if (walletOptions.length > 1) {
         setPendingWalletValues(values)
         setWalletSelectModalOpen(true)
         setWalletLoading(false)
         return
       }
-      const data = await doWalletLogin(list[0], values)
+      const data = await doWalletLogin(walletOptions[0], values)
       if (!data) return
       setAuth(data.token, data.user)
       message.success(t('login.loginSuccess'))

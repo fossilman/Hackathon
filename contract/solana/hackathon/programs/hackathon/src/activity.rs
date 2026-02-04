@@ -79,7 +79,7 @@ pub fn publish_activity(
     activity.activity_id = activity_id;
     activity.title = title.clone();
     activity.description_hash = description_hash;
-    activity.phase = ActivityPhase::Draft;
+    activity.phase = ActivityPhase::Published;
     activity.bump = ctx.bumps.activity;
     activity.created_at = Clock::get()?.unix_timestamp;
     Ok(())

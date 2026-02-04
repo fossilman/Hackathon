@@ -148,25 +148,69 @@ func (c *AdminHackathonController) DeleteHackathon(ctx *gin.Context) {
 	utils.Success(ctx, nil)
 }
 
-// PublishHackathon 发布活动（仅活动创建者可发布）
+// PreparePublish 返回发布活动所需数据，供前端用钱包（Phantom）构建并签名交易，无需后端配置私钥。
+func (c *AdminHackathonController) PreparePublish(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+	result, err := c.hackathonService.PreparePublish(id, userID.(uint64), role.(string))
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, result)
+}
+
+// PublishHackathon 发布活动：接收前端钱包已签名的交易并提交上链，链上地址由前端计算 PDA 传入。上链失败则返回错误，活动不发布。
 func (c *AdminHackathonController) PublishHackathon(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		utils.BadRequest(ctx, "无效的活动ID")
 		return
 	}
-
-	// 获取当前用户信息
+	var body struct {
+		SignedTransaction string `json:"signed_transaction"`
+		ActivityPDA       string `json:"activity_pda"`
+	}
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		utils.BadRequest(ctx, "请使用钱包授权后提交已签名交易（signed_transaction、activity_pda）")
+		return
+	}
 	userID, _ := ctx.Get("user_id")
 	role, _ := ctx.Get("role")
-
-	result, err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string))
+	result, err := c.hackathonService.PublishHackathon(id, userID.(uint64), role.(string), body.SignedTransaction, body.ActivityPDA)
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
 		return
 	}
-
 	utils.Success(ctx, result)
+}
+
+// UpdateChainActivityAddress 更新活动链上地址（仅活动创建者可更新，上链后补填 PDA）
+func (c *AdminHackathonController) UpdateChainActivityAddress(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的活动ID")
+		return
+	}
+	var body struct {
+		ChainActivityAddress string `json:"chain_activity_address"`
+	}
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		utils.BadRequest(ctx, "参数错误")
+		return
+	}
+	userID, _ := ctx.Get("user_id")
+	role, _ := ctx.Get("role")
+	if err := c.hackathonService.UpdateChainActivityAddress(id, userID.(uint64), role.(string), body.ChainActivityAddress); err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, nil)
 }
 
 // SwitchStage 切换活动阶段（仅活动创建者可切换）

@@ -28,12 +28,21 @@ import {
   FileTextOutlined,
   ClockCircleOutlined,
   SettingOutlined,
+  LinkOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { PublicKey } from '@solana/web3.js'
 import { StatCard } from '@shared/components'
 import request from '../api/request'
 import { useAuthStore } from '../store/authStore'
 import dayjs from 'dayjs'
+import { getSolanaExplorerAddressUrl } from '../config/solana'
+import {
+  buildPublishActivityTransaction,
+  signTransactionWithPhantom,
+  getLatestBlockhash,
+  type PreparePublishData,
+} from '../utils/solanaPublish'
 
 export default function HackathonDetail() {
   const { t } = useTranslation()
@@ -54,6 +63,7 @@ export default function HackathonDetail() {
     total: 0,
   })
   const [posterInfo, setPosterInfo] = useState<any>(null)
+  const [publishLoading, setPublishLoading] = useState(false)
   const { user } = useAuthStore()
 
   const statusMap: Record<string, { label: string; color: string }> = {
@@ -116,13 +126,32 @@ export default function HackathonDetail() {
   }, [id])
 
   const handlePublish = async () => {
+    setPublishLoading(true)
     try {
-      const result = await request.post(`/hackathons/${id}/publish`)
+      const prepare = await request.get(`/hackathons/${id}/publish/prepare`) as PreparePublishData
+      const phantom = (window as any).phantom?.solana
+      if (!phantom || typeof phantom.connect !== 'function') {
+        message.error(t('hackathon.publishNeedPhantom'))
+        return
+      }
+      const { publicKey } = await phantom.connect()
+      const authority = new PublicKey(publicKey.toBase58())
+      const blockhash = await getLatestBlockhash(prepare.rpc_url)
+      const { transaction, activityPDA } = buildPublishActivityTransaction(prepare, authority, blockhash)
+      const signedBase64 = await signTransactionWithPhantom(transaction)
+      const result = await request.post(`/hackathons/${id}/publish`, {
+        signed_transaction: signedBase64,
+        activity_pda: activityPDA.toBase58(),
+      })
       message.success(t('hackathon.publishSuccess'))
       setPosterInfo(result)
-      fetchDetail()
-    } catch (error) {
-      message.error(t('hackathon.publishFailed'))
+      await fetchDetail()
+    } catch (err: any) {
+      if (!err?.response) {
+        message.error(t('hackathon.publishFailed'))
+      }
+    } finally {
+      setPublishLoading(false)
     }
   }
 
@@ -289,7 +318,8 @@ export default function HackathonDetail() {
                   type="primary"
                   icon={<RocketOutlined />}
                   onClick={handlePublish}
-                  disabled={!canPublish}
+                  loading={publishLoading}
+                  disabled={!canPublish || publishLoading}
                   data-testid="hackathon-detail-publish-button"
                   aria-label={t('hackathon.publish')}
                   title={!hasStageTimes ? t('hackathon.stages') : ''}
@@ -336,6 +366,24 @@ export default function HackathonDetail() {
               {hackathon.location_detail}
             </Descriptions.Item>
           )}
+          <Descriptions.Item label={t('hackathon.chainActivityAddress')} span={2} data-testid="hackathon-detail-chain-address">
+            {hackathon.chain_activity_address ? (
+              <a
+                href={getSolanaExplorerAddressUrl(hackathon.chain_activity_address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={hackathon.chain_activity_address}
+              >
+                <LinkOutlined /> {t('hackathon.viewOnChain')} (
+                {hackathon.chain_activity_address.length > 16
+                  ? `${hackathon.chain_activity_address.slice(0, 8)}...${hackathon.chain_activity_address.slice(-8)}`
+                  : hackathon.chain_activity_address}
+                )
+              </a>
+            ) : (
+              <span className="text-secondary">{t('hackathon.chainActivityAddressNotOnChain')}</span>
+            )}
+          </Descriptions.Item>
           <Descriptions.Item label={t('hackathon.description')} span={2} data-testid="hackathon-detail-description">
             <div
               dangerouslySetInnerHTML={{ __html: hackathon.description }}
