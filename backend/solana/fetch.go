@@ -72,12 +72,20 @@ func FetchCheckIns(rpcURL, programID, activityAddr string) (attendees []string, 
 	// 每个 Pubkey 32 字节
 	for i := uint32(0); i < n; i++ {
 		off := head + i*32
-		if off+32 > len(data) {
+		if int(off)+32 > len(data) { // 强制转换为 int
 			break
 		}
-		pubkey := solana.PublicKeyFromBytes(data[off : off+32])
+		pubkey := solana.PublicKeyFromBytes(data[int(off) : int(off)+32]) // 同样转换
 		attendees = append(attendees, pubkey.String())
 	}
+	// for i := uint32(0); i < n; i++ {
+	// 	off := head + i*32
+	// 	if off+32 > len(data) {
+	// 		break
+	// 	}
+	// 	pubkey := solana.PublicKeyFromBytes(data[off : off+32])
+	// 	attendees = append(attendees, pubkey.String())
+	// }
 	return attendees, nil
 }
 
@@ -113,13 +121,24 @@ func FetchVoteTally(rpcURL, programID, activityAddr string) (counts []CandidateV
 	}
 	for i := uint32(0); i < n; i++ {
 		off := head + i*16
-		if off+16 > len(data) {
+		if int(off)+16 > len(data) { // 转为 int 进行比较
 			break
 		}
 		counts = append(counts, CandidateVote{
-			CandidateID: binary.LittleEndian.Uint64(data[off : off+8]),
-			VoteCount:   binary.LittleEndian.Uint64(data[off+8 : off+16]),
+			CandidateID: binary.LittleEndian.Uint64(data[int(off) : int(off)+8]),
+			VoteCount:   binary.LittleEndian.Uint64(data[int(off)+8 : int(off)+16]),
 		})
 	}
+
+	// for i := uint32(0); i < n; i++ {
+	// 	off := head + i*16
+	// 	if off+16 > len(data) {
+	// 		break
+	// 	}
+	// 	counts = append(counts, CandidateVote{
+	// 		CandidateID: binary.LittleEndian.Uint64(data[off : off+8]),
+	// 		VoteCount:   binary.LittleEndian.Uint64(data[off+8 : off+16]),
+	// 	})
+	// }
 	return counts, nil
 }
