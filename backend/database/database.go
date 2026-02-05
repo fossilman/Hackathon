@@ -26,8 +26,15 @@ func InitDB() error {
 	)
 
 	var err error
+	// 使用 Silent 避免迁移阶段大量 SQL 日志拖慢启动；正式跑请求时可按需在业务里设 LogMode
+	logMode := logger.Info
+	if config.AppConfig.ServerMode == "release" {
+		logMode = logger.Error
+	}
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:                   logger.Default.LogMode(logMode),
+		PrepareStmt:              false, // 关闭可加快启动，多数 CRUD 场景影响很小
+		DisableForeignKeyConstraintWhenMigrating: true, // 迁移时暂不建外键，加快迁移
 	})
 
 	if err != nil {
@@ -36,9 +43,13 @@ func InitDB() error {
 
 	log.Println("Database connected successfully")
 
-	// 自动迁移
-	if err := AutoMigrate(); err != nil {
-		return fmt.Errorf("failed to migrate database: %w", err)
+	// 自动迁移（可通过 SKIP_AUTO_MIGRATE=true 或 config database.skip_auto_migrate 跳过以加快启动）
+	if !config.AppConfig.SkipAutoMigrate {
+		if err := AutoMigrate(); err != nil {
+			return fmt.Errorf("failed to migrate database: %w", err)
+		}
+	} else {
+		log.Println("AutoMigrate skipped (SKIP_AUTO_MIGRATE/skip_auto_migrate)")
 	}
 
 	return nil

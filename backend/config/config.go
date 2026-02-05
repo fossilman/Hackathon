@@ -10,25 +10,27 @@ import (
 )
 
 type Config struct {
-	DBHost         string   `yaml:"-"` // 不从YAML直接读取，从database子结构读取
-	DBPort         string   `yaml:"-"`
-	DBUser         string   `yaml:"-"`
-	DBPassword     string   `yaml:"-"`
-	DBName         string   `yaml:"-"`
-	JWTSecret      string   `yaml:"-"`
-	JWTExpireHours int      `yaml:"-"`
-	ServerPort     string   `yaml:"-"`
-	ServerMode     string   `yaml:"-"`
-	CORSOrigins    []string `yaml:"-"`
-	TestWallets    []string `yaml:"-"` // 测试钱包地址列表
+	DBHost          string   `yaml:"-"` // 不从YAML直接读取，从database子结构读取
+	DBPort          string   `yaml:"-"`
+	DBUser          string   `yaml:"-"`
+	DBPassword      string   `yaml:"-"`
+	DBName          string   `yaml:"-"`
+	SkipAutoMigrate bool     `yaml:"-"` // 为 true 时启动跳过自动迁移，加快启动（表已就绪时使用）
+	JWTSecret       string   `yaml:"-"`
+	JWTExpireHours  int      `yaml:"-"`
+	ServerPort      string   `yaml:"-"`
+	ServerMode      string   `yaml:"-"`
+	CORSOrigins     []string `yaml:"-"`
+	TestWallets     []string `yaml:"-"` // 测试钱包地址列表
 
 	// YAML配置结构
 	Database struct {
-		Host     string `yaml:"host"`
-		Port     string `yaml:"port"`
-		User     string `yaml:"user"`
-		Password string `yaml:"password"`
-		Name     string `yaml:"name"`
+		Host            string `yaml:"host"`
+		Port            string `yaml:"port"`
+		User            string `yaml:"user"`
+		Password        string `yaml:"password"`
+		Name            string `yaml:"name"`
+		SkipAutoMigrate bool   `yaml:"skip_auto_migrate"` // 启动时跳过自动迁移
 	} `yaml:"database"`
 	JWT struct {
 		Secret      string `yaml:"secret"`
@@ -92,12 +94,13 @@ func LoadConfig() error {
 	}
 
 	AppConfig = &Config{
-		DBHost:         getEnv("DB_HOST", defaultConfig.DBHost),
-		DBPort:         getEnv("DB_PORT", defaultConfig.DBPort),
-		DBUser:         getEnv("DB_USER", defaultConfig.DBUser),
-		DBPassword:     getEnv("DB_PASSWORD", defaultConfig.DBPassword),
-		DBName:         getEnv("DB_NAME", defaultConfig.DBName),
-		JWTSecret:      getEnv("JWT_SECRET", defaultConfig.JWTSecret),
+		DBHost:          getEnv("DB_HOST", defaultConfig.DBHost),
+		DBPort:          getEnv("DB_PORT", defaultConfig.DBPort),
+		DBUser:          getEnv("DB_USER", defaultConfig.DBUser),
+		DBPassword:      getEnv("DB_PASSWORD", defaultConfig.DBPassword),
+		DBName:          getEnv("DB_NAME", defaultConfig.DBName),
+		SkipAutoMigrate: getEnvAsBool("SKIP_AUTO_MIGRATE", defaultConfig.SkipAutoMigrate),
+		JWTSecret:       getEnv("JWT_SECRET", defaultConfig.JWTSecret),
 		JWTExpireHours: getEnvAsInt("JWT_EXPIRE_HOURS", defaultConfig.JWTExpireHours),
 		ServerPort:     getEnv("SERVER_PORT", defaultConfig.ServerPort),
 		ServerMode:     getEnv("SERVER_MODE", defaultConfig.ServerMode),
@@ -144,6 +147,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if yamlConfig.Database.Name != "" {
 		defaultConfig.DBName = yamlConfig.Database.Name
+	}
+	if yamlConfig.Database.SkipAutoMigrate {
+		defaultConfig.SkipAutoMigrate = true
 	}
 	if yamlConfig.JWT.Secret != "" {
 		defaultConfig.JWTSecret = yamlConfig.JWT.Secret
@@ -202,6 +208,18 @@ func getEnvAsInt(key string, defaultValue int) int {
 		var result int
 		if _, err := fmt.Sscanf(value, "%d", &result); err == nil {
 			return result
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		switch value {
+		case "1", "true", "TRUE", "yes", "on":
+			return true
+		case "0", "false", "FALSE", "no", "off":
+			return false
 		}
 	}
 	return defaultValue

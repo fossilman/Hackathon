@@ -8,6 +8,8 @@ database:
   user: root
   password: password
   name: hackathon_db
+  # 表结构已就绪时设为 true 可跳过启动时的自动迁移，加快启动（也可用环境变量 SKIP_AUTO_MIGRATE=true）
+  # skip_auto_migrate: false
 
 # JWT配置
 jwt:

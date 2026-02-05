@@ -236,7 +236,7 @@ export default function HackathonList() {
           dataSource={hackathons}
           loading={loading}
           rowKey="id"
-          scroll={{ x: 1180 }}
+          scroll={{ x: 820 }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,

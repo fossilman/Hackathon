@@ -54,10 +54,24 @@
 + 投票 -> 公布结果：除了需要更新活动状态，还需要将投票信息上链，补全代码
 + 签到信息和投票信息上链后，可以在活动详情页面查看
 
+### PART6
++ 签到信息上链报错
+链上活动状态更新失败: (*jsonrpc.RPCError)(0xc0005a8330)({ Code: (int) -32002, Message: (string) (len=91) "Transaction simulation failed: Error processing Instruction 2: custom program error: 0x1773", Data: (map[string]interface {}) (len=7) { (string) (len=8) "accounts": (interface {}) <nil>, (string) (len=3) "err": (map[string]interface {}) (len=1) { (string) (len=16) "InstructionError": ([]interface {}) (len=2 cap=2) { (json.Number) (len=1) "2", (map[string]interface {}) (len=1) { (string) (len=6) "Custom": (json.Number) (len=4) "6003" } } }, (string) (len=17) "innerInstructions": (interface {}) <nil>, (string) (len=4) "logs": ([]interface {}) (len=11 cap=16) { (string) (len=62) "Program ComputeBudget111111111111111111111111111111 invoke [1]", (string) (len=59) "Program ComputeBudget111111111111111111111111111111 success", (string) (len=62) "Program ComputeBudget111111111111111111111111111111 invoke [1]", (string) (len=59) "Program ComputeBudget111111111111111111111111111111 success", (string) (len=63) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg invoke [1]", (string) (len=40) "Program log: Instruction: UploadCheckIns", (string) (len=51) "Program 11111111111111111111111111111111 invoke [2]", (string) (len=48) "Program 11111111111111111111111111111111 success", (string) (len=182) "Program log: AnchorError caused by account: activity. Error Code: InvalidPhaseForCheckInUpload. Error Number: 6003. Error Message: Only check-in phase allows uploading check-in list.", (string) (len=90) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg consumed 9125 of 199700 compute units", (string) (len=89) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg failed: custom program error: 0x1773" }, (string) (len=20) "replacementBlockhash": (interface {}) <nil>, (string) (len=10) "returnData": (interface {}) <nil>, (string) (len=13) "unitsConsumed": (json.Number) (len=4) "9425" } })
++ 签到信息上链：页面显示成功，但活动卡片没有显示签到信息上链的地址
++ 投票信息上链报错：
+链上活动状态更新失败: (*jsonrpc.RPCError)(0xc0005c8810)({ Code: (int) -32002, Message: (string) (len=91) "Transaction simulation failed: Error processing Instruction 2: custom program error: 0x1777", Data: (map[string]interface {}) (len=7) { (string) (len=8) "accounts": (interface {}) <nil>, (string) (len=3) "err": (map[string]interface {}) (len=1) { (string) (len=16) "InstructionError": ([]interface {}) (len=2 cap=2) { (json.Number) (len=1) "2", (map[string]interface {}) (len=1) { (string) (len=6) "Custom": (json.Number) (len=4) "6007" } } }, (string) (len=17) "innerInstructions": (interface {}) <nil>, (string) (len=4) "logs": ([]interface {}) (len=11 cap=16) { (string) (len=62) "Program ComputeBudget111111111111111111111111111111 invoke [1]", (string) (len=59) "Program ComputeBudget111111111111111111111111111111 success", (string) (len=62) "Program ComputeBudget111111111111111111111111111111 invoke [1]", (string) (len=59) "Program ComputeBudget111111111111111111111111111111 success", (string) (len=63) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg invoke [1]", (string) (len=41) "Program log: Instruction: UploadVoteTally", (string) (len=51) "Program 11111111111111111111111111111111 invoke [2]", (string) (len=48) "Program 11111111111111111111111111111111 success", (string) (len=164) "Program log: AnchorError caused by account: activity. Error Code: InvalidPhaseForTally. Error Number: 6007. Error Message: Only voting phase allows uploading tally.", (string) (len=91) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg consumed 11870 of 199700 compute units", (string) (len=89) "Program DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg failed: custom program error: 0x1777" }, (string) (len=20) "replacementBlockhash": (interface {}) <nil>, (string) (len=10) "returnData": (interface {}) <nil>, (string) (len=13) "unitsConsumed": (json.Number) (len=5) "12170" } })
++ 投票信息上链：页面显示成功，但活动卡片没有显示投票信息上链的地址
+
+
++ 活动管理列表页不显示签到信息上链地址和投票信息上链地址，仅在活动详情页内显示
 
 
 
 solana-test-validator --reset
 anchor deploy --provider.cluster localnet
 anchor test --skip-local-validator
-solana airdrop 100 
+solana airdrop 100 2PMjGQBiZdDJ8mxY3r2SjiwdCiVDq5Gryqb6dneDq19T
+solana balance 2PMjGQBiZdDJ8mxY3r2SjiwdCiVDq5Gryqb6dneDq19T
+
+export SKIP_AUTO_MIGRATE=true
+go run main.go

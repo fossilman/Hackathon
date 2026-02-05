@@ -5,7 +5,9 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"strings"
+	"time"
 
 	"hackathon-backend/config"
 
@@ -50,4 +52,48 @@ func SubmitSignedTransaction(signedTxBase64 string, rpcURL string) (txSignature 
 		return "", err
 	}
 	return sig.String(), nil
+}
+
+// WaitForConfirmation 轮询交易状态直到已确认或超时。确认后链上账户才可用，避免“切换到报名”时 activity 未初始化。
+func WaitForConfirmation(rpcURL, txSignature string, timeout time.Duration) error {
+	txSignature = strings.TrimSpace(txSignature)
+	if txSignature == "" || rpcURL == "" {
+		return errors.New("缺少 RPC URL 或交易签名")
+	}
+	sig, err := solana.SignatureFromBase58(txSignature)
+	if err != nil {
+		return fmt.Errorf("交易签名格式错误: %w", err)
+	}
+	client := rpc.New(rpcURL)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("等待交易确认超时: %w", ctx.Err())
+		case <-ticker.C:
+			res, err := client.GetSignatureStatuses(ctx, true, sig)
+			if err != nil {
+				continue
+			}
+			if res == nil || len(res.Value) == 0 || res.Value[0] == nil {
+				continue
+			}
+			status := res.Value[0]
+			if status.Err != nil {
+				return fmt.Errorf("交易执行失败: %v", status.Err)
+			}
+			switch status.ConfirmationStatus {
+			case rpc.ConfirmationStatusConfirmed, rpc.ConfirmationStatusFinalized:
+				return nil
+			case rpc.ConfirmationStatusProcessed:
+				// 已上链，账户通常已可读，视为成功以便尽快返回
+				return nil
+			default:
+				// 继续轮询
+			}
+		}
+	}
 }

@@ -21,6 +21,10 @@ type Hackathon struct {
 	MaxTeamSize  int            `gorm:"default:3" json:"max_team_size"`
 	MaxParticipants int         `gorm:"default:0" json:"max_participants"` // 最大参与人数，0表示不限制
 	ChainActivityAddress string `gorm:"type:varchar(64);index" json:"chain_activity_address"` // Solana 活动账户 PDA，上链后可查
+	// ChainCheckInsAddress 签到信息上链地址（check_ins PDA），由后端根据 program_id + chain_activity_address 推导，不落库
+	ChainCheckInsAddress string `gorm:"-" json:"chain_check_ins_address,omitempty"`
+	// ChainVoteTallyAddress 投票信息上链地址（vote_tally PDA），由后端根据 program_id + chain_activity_address 推导，不落库
+	ChainVoteTallyAddress string `gorm:"-" json:"chain_vote_tally_address,omitempty"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`

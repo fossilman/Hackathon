@@ -159,7 +159,32 @@ func (s *HackathonService) GetHackathonList(page, pageSize int, status, keyword,
 		return nil, 0, err
 	}
 
+	// 为有链上活动地址的项填充签到信息上链地址（check_ins PDA），供活动卡片展示
+	s.enrichChainCheckInsAddress(&hackathons)
 	return hackathons, total, nil
+}
+
+// enrichChainCheckInsAddress 根据 program_id 与 chain_activity_address 推导并填充 chain_check_ins_address、chain_vote_tally_address
+func (s *HackathonService) enrichChainCheckInsAddress(hackathons *[]models.Hackathon) {
+	if hackathons == nil || len(*hackathons) == 0 {
+		return
+	}
+	programID, _, err := solana.PreparePublishConfig()
+	if err != nil {
+		return
+	}
+	for i := range *hackathons {
+		addr := strings.TrimSpace((*hackathons)[i].ChainActivityAddress)
+		if addr == "" {
+			continue
+		}
+		if pda, err := solana.CheckInsPDA(programID, addr); err == nil {
+			(*hackathons)[i].ChainCheckInsAddress = pda.String()
+		}
+		if pda, err := solana.VoteTallyPDA(programID, addr); err == nil {
+			(*hackathons)[i].ChainVoteTallyAddress = pda.String()
+		}
+	}
 }
 
 // GetHackathonByID 根据ID获取活动详情
@@ -169,7 +194,10 @@ func (s *HackathonService) GetHackathonByID(id uint64) (*models.Hackathon, error
 		return nil, err
 	}
 
-	return &hackathon, nil
+	// 详情页展示签到信息上链地址
+	list := []models.Hackathon{hackathon}
+	s.enrichChainCheckInsAddress(&list)
+	return &list[0], nil
 }
 
 // GetHackathonStats 获取活动统计信息
@@ -551,7 +579,10 @@ func (s *HackathonService) PublishHackathon(id uint64, userID uint64, userRole s
 	if err != nil {
 		return nil, err
 	}
-	_ = txSig
+	// 等待链上确认后再写入 chain_activity_address，避免用户立即“切换到报名”时 activity 未初始化（AccountNotInitialized）
+	if err := solana.WaitForConfirmation(rpcURL, txSig, 30*time.Second); err != nil {
+		return nil, fmt.Errorf("交易已提交但确认失败: %w", err)
+	}
 
 	updates := map[string]interface{}{
 		"status":                 "published",
@@ -1008,40 +1039,6 @@ func (s *HackathonService) validateStageTimes(hackathonID uint64, stages []model
 	}
 
 	return nil
-}
-
-// GetChainCheckIns 获取活动链上签到名单（仅当活动已上链且已上传签到数据时有效）
-func (s *HackathonService) GetChainCheckIns(id uint64) ([]string, error) {
-	var hackathon models.Hackathon
-	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
-		return nil, err
-	}
-	chainAddr := strings.TrimSpace(hackathon.ChainActivityAddress)
-	if chainAddr == "" {
-		return nil, nil
-	}
-	programID, rpcURL, err := solana.PreparePublishConfig()
-	if err != nil {
-		return nil, err
-	}
-	return solana.FetchCheckIns(rpcURL, programID, chainAddr)
-}
-
-// GetChainVoteTally 获取活动链上投票汇总（仅当活动已上链且已上传投票汇总时有效）
-func (s *HackathonService) GetChainVoteTally(id uint64) ([]solana.CandidateVote, error) {
-	var hackathon models.Hackathon
-	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&hackathon).Error; err != nil {
-		return nil, err
-	}
-	chainAddr := strings.TrimSpace(hackathon.ChainActivityAddress)
-	if chainAddr == "" {
-		return nil, nil
-	}
-	programID, rpcURL, err := solana.PreparePublishConfig()
-	if err != nil {
-		return nil, err
-	}
-	return solana.FetchVoteTally(rpcURL, programID, chainAddr)
 }
 
 // GetArchiveHackathons 获取活动集锦列表（已结束的活动）

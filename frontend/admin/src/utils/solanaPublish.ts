@@ -236,6 +236,7 @@ export function buildSwitchStageTransaction(
 
 /**
  * 构建 upload_check_ins 未签名交易（签到->组队时将签到名单上链）
+ * 先插入 start_check_in 指令，确保链上处于 CheckIn 阶段再上传签到名单，避免 InvalidPhaseForCheckInUpload(6003)
  */
 export function buildUploadCheckInsTransaction(
   prepare: PrepareSwitchStageData,
@@ -248,13 +249,24 @@ export function buildUploadCheckInsTransaction(
   const programId = new PublicKey(prepare.program_id)
   const activityPDA = new PublicKey(prepare.chain_activity_address)
   const [checkInsPDA] = deriveCheckInsPDA(activityPDA, programId)
+
+  // 1) start_check_in：确保链上为 CheckIn 阶段（若当前为 Registration 则推进到 CheckIn），避免 6003
+  const startCheckInIx = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: authority, isSigner: true, isWritable: false },
+      { pubkey: activityPDA, isSigner: false, isWritable: true },
+    ],
+    data: ANCHOR_DISCRIMINATOR_START_CHECK_IN,
+  })
+
+  // 2) upload_check_ins：上传签到名单并将阶段推进到 TeamFormation
   const pubkeys = prepare.attendee_pubkeys.map((addr) => new PublicKey(addr))
-  // 指令数据：discriminator(8) + Vec<Pubkey>: len(4) + 32*len
   const data = new Uint8Array(8 + 4 + 32 * pubkeys.length)
   data.set(ANCHOR_DISCRIMINATOR_UPLOAD_CHECK_INS, 0)
   new DataView(data.buffer).setUint32(8, pubkeys.length, true)
   pubkeys.forEach((pk, i) => data.set(pk.toBuffer(), 12 + i * 32))
-  const ix = new TransactionInstruction({
+  const uploadCheckInsIx = new TransactionInstruction({
     programId,
     keys: [
       { pubkey: authority, isSigner: true, isWritable: true },
@@ -264,7 +276,8 @@ export function buildUploadCheckInsTransaction(
     ],
     data,
   })
-  const transaction = new Transaction().add(ix)
+
+  const transaction = new Transaction().add(startCheckInIx, uploadCheckInsIx)
   transaction.recentBlockhash = recentBlockhash
   transaction.feePayer = authority
   return transaction
@@ -272,6 +285,7 @@ export function buildUploadCheckInsTransaction(
 
 /**
  * 构建 upload_vote_tally 未签名交易（投票->公布结果时将投票汇总上链）
+ * 先插入 start_voting 指令，确保链上处于 Voting 阶段再上传投票汇总，避免 InvalidPhaseForTally(6007)
  */
 export function buildUploadVoteTallyTransaction(
   prepare: PrepareSwitchStageData,
@@ -291,6 +305,18 @@ export function buildUploadVoteTallyTransaction(
   const activityPDA = new PublicKey(prepare.chain_activity_address)
   const [voteTallyPDA] = deriveVoteTallyPDA(activityPDA, programId)
   const n = prepare.candidate_ids.length
+
+  // 1) start_voting：确保链上为 Voting 阶段（若当前为 Submission 等则推进到 Voting），避免 6007
+  const startVotingIx = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: authority, isSigner: true, isWritable: false },
+      { pubkey: activityPDA, isSigner: false, isWritable: true },
+    ],
+    data: ANCHOR_DISCRIMINATOR_START_VOTING,
+  })
+
+  // 2) upload_vote_tally：上传投票汇总并将阶段推进到 Ended
   // 指令数据：discriminator(8) + Vec<u64> candidate_ids: len(4) + 8*n + Vec<u64> vote_counts: len(4) + 8*n
   const data = new Uint8Array(8 + 4 + 8 * n + 4 + 8 * n)
   let off = 0
@@ -308,7 +334,7 @@ export function buildUploadVoteTallyTransaction(
     new DataView(data.buffer).setBigUint64(off, BigInt(prepare.vote_counts![i]), true)
     off += 8
   }
-  const ix = new TransactionInstruction({
+  const uploadVoteTallyIx = new TransactionInstruction({
     programId,
     keys: [
       { pubkey: authority, isSigner: true, isWritable: true },
@@ -318,7 +344,7 @@ export function buildUploadVoteTallyTransaction(
     ],
     data,
   })
-  const transaction = new Transaction().add(ix)
+  const transaction = new Transaction().add(startVotingIx, uploadVoteTallyIx)
   transaction.recentBlockhash = recentBlockhash
   transaction.feePayer = authority
   return transaction
