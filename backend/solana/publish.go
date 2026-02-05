@@ -87,10 +87,10 @@ func WaitForConfirmation(rpcURL, txSignature string, timeout time.Duration) erro
 			}
 			switch status.ConfirmationStatus {
 			case rpc.ConfirmationStatusConfirmed, rpc.ConfirmationStatusFinalized:
+				// 仅在被投票确认或终态后返回，确保 activity 账户已全局可见，避免“切换到报名”时 AccountNotInitialized
 				return nil
 			case rpc.ConfirmationStatusProcessed:
-				// 已上链，账户通常已可读，视为成功以便尽快返回
-				return nil
+				// 不在此处返回：Processed 时账户可能尚未在所有节点可见，立即“切换到报名”会报 3012
 			default:
 				// 继续轮询
 			}

@@ -11,6 +11,24 @@ import (
 	"github.com/gagliardetto/solana-go/rpc"
 )
 
+// ActivityAccountExists 检查链上 activity 账户是否已存在，用于在提交 start_registration 等前避免 AccountNotInitialized。
+func ActivityAccountExists(rpcURL, activityAddr string) (bool, error) {
+	addr := strings.TrimSpace(activityAddr)
+	if addr == "" {
+		return false, nil
+	}
+	pubkey, err := solana.PublicKeyFromBase58(addr)
+	if err != nil {
+		return false, err
+	}
+	client := rpc.New(rpcURL)
+	acc, err := client.GetAccountInfo(context.Background(), pubkey)
+	if err != nil {
+		return false, err
+	}
+	return acc != nil && acc.Value != nil && len(acc.Value.Data.GetBinary()) >= 8, nil
+}
+
 // CheckInsPDA 根据 programID 与 activity 地址推导 check_ins PDA（seeds: "check_ins", activity）
 func CheckInsPDA(programID, activityAddr string) (solana.PublicKey, error) {
 	program, err := solana.PublicKeyFromBase58(strings.TrimSpace(programID))

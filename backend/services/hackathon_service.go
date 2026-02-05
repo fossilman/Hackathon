@@ -789,6 +789,14 @@ func (s *HackathonService) SwitchStage(id uint64, stage string, userID uint64, u
 		if err != nil {
 			return err
 		}
+		// 提交前确认链上 activity 账户已存在，避免 start_registration 等报 AccountNotInitialized(3012)
+		exists, err := solana.ActivityAccountExists(rpcURL, hackathon.ChainActivityAddress)
+		if err != nil {
+			return fmt.Errorf("检查链上活动账户失败: %w", err)
+		}
+		if !exists {
+			return errors.New("链上活动账户尚未就绪，请稍后重试（若刚发布活动，请等待几秒后再切换阶段）")
+		}
 		if _, err := solana.SubmitSignedTransaction(signedTxBase64, rpcURL); err != nil {
 			return fmt.Errorf("链上活动状态更新失败: %w", err)
 		}
