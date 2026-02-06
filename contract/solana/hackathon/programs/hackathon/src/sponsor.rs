@@ -8,7 +8,7 @@ use anchor_lang::solana_program::system_instruction;
 use crate::error::HackathonError;
 use crate::state::{SponsorApplication, SponsorApplicationStatus, SponsorConfig};
 
-/// 初始化赞助商全局配置与金库。审核期限默认 3 天可在配置中设置。
+/// 初始化赞助商全局配置与金库。审核期限默认建议 3 小时（10800 秒），可在项目配置中设置。
 /// 金库为无数据 PDA (space=0)，仅持 SOL，以便系统程序能从其转出。
 pub fn initialize_sponsor_config(
     ctx: Context<InitializeSponsorConfig>,

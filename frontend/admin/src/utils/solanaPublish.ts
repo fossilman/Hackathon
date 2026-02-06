@@ -37,6 +37,11 @@ const ANCHOR_DISCRIMINATOR_START_RESULTS = new Uint8Array([
 // upload_check_ins / upload_vote_tally 指令 discriminator（sha256("global:upload_check_ins") 等前 8 字节）
 const ANCHOR_DISCRIMINATOR_UPLOAD_CHECK_INS = new Uint8Array([229, 85, 118, 34, 116, 217, 94, 132])
 const ANCHOR_DISCRIMINATOR_UPLOAD_VOTE_TALLY = new Uint8Array([137, 246, 218, 62, 167, 234, 252, 218])
+// sponsor_apply：长期赞助商申请，金额转入金库（与 idl 一致）
+const ANCHOR_DISCRIMINATOR_SPONSOR_APPLY = new Uint8Array([220, 249, 215, 239, 70, 238, 175, 200])
+// approve_sponsor / reject_sponsor：主办方链上审核（与 idl 一致）
+const ANCHOR_DISCRIMINATOR_APPROVE_SPONSOR = new Uint8Array([211, 168, 31, 70, 3, 140, 143, 222])
+const ANCHOR_DISCRIMINATOR_REJECT_SPONSOR = new Uint8Array([61, 97, 242, 119, 75, 71, 123, 220])
 
 export interface PreparePublishData {
   program_id: string
@@ -104,6 +109,174 @@ export function deriveVoteTallyPDA(activityPDA: PublicKey, programId: PublicKey)
   return PublicKey.findProgramAddressSync(
     [new TextEncoder().encode('vote_tally'), activityPDA.toBuffer()],
     programId
+  )
+}
+
+const textEncoder = new TextEncoder()
+
+/** 赞助商配置 PDA (seeds = [b"config"]) */
+export function deriveSponsorConfigPDA(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [textEncoder.encode('config')],
+    programId
+  )
+}
+
+/** 金库 PDA (seeds = [b"treasury"]) */
+export function deriveTreasuryPDA(programId: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [textEncoder.encode('treasury')],
+    programId
+  )
+}
+
+/** 赞助商申请 PDA (seeds = [b"sponsor_application", application_id le u64]) */
+export function deriveSponsorApplicationPDA(
+  programId: PublicKey,
+  applicationId: number
+): [PublicKey, number] {
+  const leBytes = new Uint8Array(8)
+  new DataView(leBytes.buffer).setBigUint64(0, BigInt(applicationId), true)
+  return PublicKey.findProgramAddressSync(
+    [textEncoder.encode('sponsor_application'), leBytes],
+    programId
+  )
+}
+
+/** 赞助商申请 prepare 接口返回结构 */
+export interface PrepareSponsorApplyData {
+  program_id: string
+  rpc_url: string
+}
+
+/**
+ * 构建 sponsor_apply 未签名交易（赞助商将 amount_lamports 转入金库并创建链上申请记录，供 Phantom 签名）
+ */
+export function buildSponsorApplyTransaction(
+  programId: PublicKey,
+  applicationId: number,
+  amountLamports: number,
+  sponsorPublicKey: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  const [configPDA] = deriveSponsorConfigPDA(programId)
+  const [treasuryPDA] = deriveTreasuryPDA(programId)
+  const [applicationPDA] = deriveSponsorApplicationPDA(programId, applicationId)
+
+  const data = new Uint8Array(8 + 8 + 8)
+  data.set(ANCHOR_DISCRIMINATOR_SPONSOR_APPLY, 0)
+  new DataView(data.buffer).setBigUint64(8, BigInt(applicationId), true)
+  new DataView(data.buffer).setBigUint64(16, BigInt(amountLamports), true)
+
+  const ix = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: sponsorPublicKey, isSigner: true, isWritable: true },
+      { pubkey: configPDA, isSigner: false, isWritable: false },
+      { pubkey: treasuryPDA, isSigner: false, isWritable: true },
+      { pubkey: applicationPDA, isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+
+  const transaction = new Transaction().add(ix)
+  transaction.recentBlockhash = recentBlockhash
+  transaction.feePayer = sponsorPublicKey
+  return transaction
+}
+
+/** SOL 转 lamports（1 SOL = 1e9 lamports） */
+export const LAMPORTS_PER_SOL = 1e9
+export function solToLamports(sol: number): number {
+  return Math.floor(sol * LAMPORTS_PER_SOL)
+}
+
+/** 赞助商审核 prepare 接口返回结构（链上 approve_sponsor / reject_sponsor 用） */
+export interface PrepareSponsorReviewData {
+  program_id: string
+  rpc_url: string
+  admin_wallet: string
+  sponsor_wallet: string
+  application_id: number
+}
+
+/**
+ * 构建 approve_sponsor 或 reject_sponsor 未签名交易（主办方钱包签名，审核通过转主办方 / 拒绝原路返回）
+ */
+function buildSponsorReviewTransaction(
+  programId: PublicKey,
+  applicationId: number,
+  authority: PublicKey,
+  adminWallet: PublicKey,
+  sponsorWallet: PublicKey,
+  recentBlockhash: string,
+  approve: boolean
+): Transaction {
+  const [configPDA] = deriveSponsorConfigPDA(programId)
+  const [treasuryPDA] = deriveTreasuryPDA(programId)
+  const [applicationPDA] = deriveSponsorApplicationPDA(programId, applicationId)
+
+  const discriminator = approve ? ANCHOR_DISCRIMINATOR_APPROVE_SPONSOR : ANCHOR_DISCRIMINATOR_REJECT_SPONSOR
+  const data = new Uint8Array(8 + 8)
+  data.set(discriminator, 0)
+  new DataView(data.buffer).setBigUint64(8, BigInt(applicationId), true)
+
+  const ix = new TransactionInstruction({
+    programId,
+    keys: [
+      { pubkey: authority, isSigner: true, isWritable: false },
+      { pubkey: configPDA, isSigner: false, isWritable: false },
+      { pubkey: treasuryPDA, isSigner: false, isWritable: true },
+      { pubkey: applicationPDA, isSigner: false, isWritable: true },
+      { pubkey: adminWallet, isSigner: false, isWritable: true },
+      { pubkey: sponsorWallet, isSigner: false, isWritable: true },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  })
+
+  const transaction = new Transaction().add(ix)
+  transaction.recentBlockhash = recentBlockhash
+  transaction.feePayer = authority
+  return transaction
+}
+
+export function buildApproveSponsorTransaction(
+  prepare: PrepareSponsorReviewData,
+  authority: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  const programId = new PublicKey(prepare.program_id)
+  const adminWallet = new PublicKey(prepare.admin_wallet)
+  const sponsorWallet = new PublicKey(prepare.sponsor_wallet)
+  return buildSponsorReviewTransaction(
+    programId,
+    prepare.application_id,
+    authority,
+    adminWallet,
+    sponsorWallet,
+    recentBlockhash,
+    true
+  )
+}
+
+export function buildRejectSponsorTransaction(
+  prepare: PrepareSponsorReviewData,
+  authority: PublicKey,
+  recentBlockhash: string
+): Transaction {
+  const programId = new PublicKey(prepare.program_id)
+  const adminWallet = new PublicKey(prepare.admin_wallet)
+  const sponsorWallet = new PublicKey(prepare.sponsor_wallet)
+  return buildSponsorReviewTransaction(
+    programId,
+    prepare.application_id,
+    authority,
+    adminWallet,
+    sponsorWallet,
+    recentBlockhash,
+    false
   )
 }
 

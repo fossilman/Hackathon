@@ -3,10 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"hackathon-backend/config"
 	"hackathon-backend/models"
 	"hackathon-backend/services"
+	"hackathon-backend/solana"
 	"hackathon-backend/utils"
 )
 
@@ -22,13 +25,28 @@ func NewSponsorController() *SponsorController {
 	}
 }
 
-// CreateApplication 提交赞助申请（无需登录）
+// PrepareSponsorApply 返回赞助商申请页构建链上 sponsor_apply 交易所需的 program_id、rpc_url（无需登录）
+func (c *SponsorController) PrepareSponsorApply(ctx *gin.Context) {
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	utils.Success(ctx, gin.H{
+		"program_id": programID,
+		"rpc_url":    rpcURL,
+	})
+}
+
+// CreateApplication 提交赞助申请（无需登录）。申请创建后需由前端用钱包对链上 sponsor_apply 交易签名并发送，金额转入金库。
 func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 	var req struct {
-		Phone       string   `json:"phone" binding:"required"`
-		LogoURL     *string  `json:"logo_url,omitempty"` // 暂时设为可选
-		SponsorType string   `json:"sponsor_type" binding:"required,oneof=long_term event_specific"`
-		EventIDs    []uint64 `json:"event_ids"` // 活动指定赞助时必填
+		Phone         string   `json:"phone" binding:"required"`
+		LogoURL       *string  `json:"logo_url,omitempty"`
+		SponsorType   string   `json:"sponsor_type" binding:"required,oneof=long_term event_specific"`
+		EventIDs      []uint64 `json:"event_ids"`
+		AmountSol     float64  `json:"amount_sol" binding:"required"`
+		WalletAddress string   `json:"wallet_address" binding:"required"` // 赞助商链上钱包（申请时签名转入金库的地址），审核链上指令需要
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -39,6 +57,11 @@ func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 	// 验证手机号格式（11位数字）
 	if len(req.Phone) != 11 {
 		utils.BadRequest(ctx, "手机号格式错误，请输入11位数字")
+		return
+	}
+
+	if req.AmountSol <= 0 {
+		utils.BadRequest(ctx, "赞助金额必须大于 0 SOL")
 		return
 	}
 
@@ -66,11 +89,13 @@ func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 	}
 
 	application := models.SponsorApplication{
-		Phone:       req.Phone,
-		LogoURL:     logoURL,
-		SponsorType: req.SponsorType,
-		EventIDs:    eventIDsJSON,
-		Status:      "pending",
+		Phone:         req.Phone,
+		LogoURL:       logoURL,
+		SponsorType:   req.SponsorType,
+		EventIDs:      eventIDsJSON,
+		AmountSol:     req.AmountSol,
+		WalletAddress: strings.TrimSpace(req.WalletAddress),
+		Status:        "pending",
 	}
 
 	if err := c.sponsorService.CreateApplication(&application); err != nil {
@@ -82,6 +107,28 @@ func (c *SponsorController) CreateApplication(ctx *gin.Context) {
 		"application_id": application.ID,
 		"message":        "申请已提交，请使用手机号查询审核结果",
 	})
+}
+
+// SubmitSponsorApplyTransaction 接收前端已签名的 sponsor_apply 交易（base64），提交到链上并返回交易签名。
+func (c *SponsorController) SubmitSponsorApplyTransaction(ctx *gin.Context) {
+	var req struct {
+		SignedTransaction string `json:"signed_transaction" binding:"required"`
+	}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(ctx, "参数错误: 缺少 signed_transaction")
+		return
+	}
+	_, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	sig, err := solana.SubmitSignedTransaction(req.SignedTransaction, rpcURL)
+	if err != nil {
+		utils.BadRequest(ctx, "链上提交失败: "+err.Error())
+		return
+	}
+	utils.Success(ctx, gin.H{"signature": sig})
 }
 
 // QueryApplication 查询申请结果（无需登录）
@@ -117,6 +164,50 @@ func (c *SponsorController) QueryApplication(ctx *gin.Context) {
 		"status":    application.Status,
 		"message":   message,
 		"created_at": application.CreatedAt,
+	})
+}
+
+// PrepareSponsorReview 返回主办方链上审核（approve_sponsor/reject_sponsor）所需数据，供前端用钱包签名。需 Admin 权限。
+func (c *SponsorController) PrepareSponsorReview(ctx *gin.Context) {
+	applicationIDStr := ctx.Query("application_id")
+	if applicationIDStr == "" {
+		utils.BadRequest(ctx, "缺少 application_id")
+		return
+	}
+	applicationID, err := strconv.ParseUint(applicationIDStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(ctx, "无效的 application_id")
+		return
+	}
+	programID, rpcURL, err := solana.PreparePublishConfig()
+	if err != nil {
+		utils.BadRequest(ctx, err.Error())
+		return
+	}
+	application, err := c.sponsorService.GetApplicationByID(applicationID)
+	if err != nil || application == nil {
+		utils.BadRequest(ctx, "申请不存在")
+		return
+	}
+	if application.Status != "pending" {
+		utils.BadRequest(ctx, "该申请已审核")
+		return
+	}
+	if application.WalletAddress == "" {
+		utils.BadRequest(ctx, "该申请缺少链上钱包地址，无法执行链上审核")
+		return
+	}
+	adminWallet := strings.TrimSpace(config.AppConfig.Solana.SponsorAdminWallet)
+	if adminWallet == "" {
+		utils.BadRequest(ctx, "未配置主办方钱包（SOLANA_SPONSOR_ADMIN_WALLET / sponsor_admin_wallet）")
+		return
+	}
+	utils.Success(ctx, gin.H{
+		"program_id":     programID,
+		"rpc_url":        rpcURL,
+		"admin_wallet":   adminWallet,
+		"sponsor_wallet": application.WalletAddress,
+		"application_id": applicationID,
 	})
 }
 
@@ -160,7 +251,7 @@ func (c *SponsorController) GetReviewedApplications(ctx *gin.Context) {
 	utils.SuccessWithPagination(ctx, applications, page, pageSize, total)
 }
 
-// ReviewApplication 审核申请（Admin权限）
+// ReviewApplication 审核申请（Admin权限）。若传入 signed_transaction，先提交链上审核指令（主办方钱包已签名），成功后再更新 DB。
 func (c *SponsorController) ReviewApplication(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
@@ -169,8 +260,9 @@ func (c *SponsorController) ReviewApplication(ctx *gin.Context) {
 	}
 
 	var req struct {
-		Action       string `json:"action" binding:"required,oneof=approve reject"`
-		RejectReason string `json:"reject_reason"` // 可选
+		Action            string `json:"action" binding:"required,oneof=approve reject"`
+		RejectReason      string `json:"reject_reason"`
+		SignedTransaction string `json:"signed_transaction"` // 主办方钱包签名的 approve_sponsor 或 reject_sponsor 交易（base64），若提供则先提交链上
 	}
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -179,10 +271,21 @@ func (c *SponsorController) ReviewApplication(ctx *gin.Context) {
 	}
 
 	userID, _ := ctx.Get("user_id")
-
 	action := "approved"
 	if req.Action == "reject" {
 		action = "rejected"
+	}
+
+	if req.SignedTransaction != "" {
+		_, rpcURL, errConfig := solana.PreparePublishConfig()
+		if errConfig != nil {
+			utils.BadRequest(ctx, errConfig.Error())
+			return
+		}
+		if _, err := solana.SubmitSignedTransaction(strings.TrimSpace(req.SignedTransaction), rpcURL); err != nil {
+			utils.BadRequest(ctx, "链上审核交易提交失败: "+err.Error())
+			return
+		}
 	}
 
 	if err := c.sponsorService.ReviewApplication(id, action, userID.(uint64), req.RejectReason); err != nil {

@@ -64,7 +64,7 @@ pub struct SponsorConfig {
     pub authority: Pubkey,
     /// 主办方钱包，审核通过后金额转入此地址
     pub admin_wallet: Pubkey,
-    /// 默认审核时间（秒），如 3 天 = 259200
+    /// 默认审核时间（秒），如 3 小时 = 10800
     pub review_period_secs: u64,
     /// 金库 PDA 的 bump，用于 approve/reject 时 CPI 签名
     pub treasury_bump: u8,

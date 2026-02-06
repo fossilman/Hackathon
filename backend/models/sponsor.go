@@ -13,7 +13,9 @@ type SponsorApplication struct {
 	LogoURL     string         `gorm:"type:longtext;not null" json:"logo_url"` // 存储base64编码的图片
 	SponsorType string         `gorm:"type:enum('long_term','event_specific');not null" json:"sponsor_type"`
 	EventIDs    string         `gorm:"type:text" json:"event_ids"` // JSON数组字符串，存储活动ID列表
-	Status      string         `gorm:"type:enum('pending','approved','rejected');default:'pending'" json:"status"`
+	AmountSol     float64        `gorm:"type:decimal(20,9);not null;default:0" json:"amount_sol"`       // 赞助金额（SOL），提交时转入金库
+	WalletAddress string         `gorm:"type:varchar(64);index" json:"wallet_address"`               // 赞助商链上钱包地址（申请时签名 sponsor_apply 的地址），审核链上指令需要
+	Status        string         `gorm:"type:enum('pending','approved','rejected');default:'pending'" json:"status"`
 	CreatedAt   time.Time      `json:"created_at"`
 	ReviewedAt  *time.Time     `json:"reviewed_at"`
 	ReviewerID  *uint64        `gorm:"index" json:"reviewer_id"`

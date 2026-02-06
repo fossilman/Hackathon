@@ -27,7 +27,9 @@ func SetupAdminRoutes(router *gin.Engine) {
 		// 赞助商申请（无需认证）
 		sponsor := api.Group("/sponsor")
 		{
+			sponsor.GET("/apply/prepare", sponsorController.PrepareSponsorApply)
 			sponsor.POST("/applications", sponsorController.CreateApplication)
+			sponsor.POST("/applications/submit-transaction", sponsorController.SubmitSponsorApplyTransaction)
 			sponsor.GET("/applications/query", sponsorController.QueryApplication)
 			sponsor.GET("/published-hackathons", sponsorController.GetPublishedHackathons)
 		}
@@ -97,6 +99,7 @@ func SetupAdminRoutes(router *gin.Engine) {
 			sponsorAdmin := api.Group("/sponsor")
 			sponsorAdmin.Use(middleware.RoleMiddleware("admin"))
 			{
+				sponsorAdmin.GET("/review/prepare", sponsorController.PrepareSponsorReview)
 				sponsorAdmin.GET("/applications/pending", sponsorController.GetPendingApplications)
 				sponsorAdmin.GET("/applications/reviewed", sponsorController.GetReviewedApplications)
 				sponsorAdmin.POST("/applications/:id/review", sponsorController.ReviewApplication)

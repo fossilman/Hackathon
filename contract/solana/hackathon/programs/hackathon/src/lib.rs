@@ -99,7 +99,7 @@ pub mod hackathon {
     // ---------- 赞助商资金管理 ----------
 
     /// 初始化赞助商配置与金库。admin_wallet 为主办方（Admin）绑定钱包，审核通过后金额转入该地址。
-    /// review_period_secs 默认建议 3 天（259200），可在项目配置中设置。
+    /// review_period_secs 默认建议 3 小时（10800），可在项目配置中设置。
     pub fn initialize_sponsor_config(
         ctx: Context<InitializeSponsorConfig>,
         admin_wallet: Pubkey,

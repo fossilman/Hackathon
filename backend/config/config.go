@@ -44,9 +44,10 @@ type Config struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
 	Solana struct {
-		ProgramID    string `yaml:"program_id"`
-		RPCURL       string `yaml:"rpc_url"`
-		AuthorityKey string `yaml:"authority_key"` // Base58 私钥，用于发布活动上链；也可用环境变量 SOLANA_AUTHORITY_KEY
+		ProgramID        string `yaml:"program_id"`
+		RPCURL           string `yaml:"rpc_url"`
+		AuthorityKey     string `yaml:"authority_key"`         // Base58 私钥，用于发布活动上链；也可用环境变量 SOLANA_AUTHORITY_KEY
+		SponsorAdminWallet string `yaml:"sponsor_admin_wallet"` // 主办方钱包（审核通过时接收金额），须与链上 initialize_sponsor_config 的 admin_wallet 一致；环境变量 SOLANA_SPONSOR_ADMIN_WALLET
 	} `yaml:"solana"`
 }
 
@@ -107,13 +108,15 @@ func LoadConfig() error {
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets: testWallets,
 		Solana: struct {
-			ProgramID    string `yaml:"program_id"`
-			RPCURL       string `yaml:"rpc_url"`
-			AuthorityKey string `yaml:"authority_key"`
+			ProgramID          string `yaml:"program_id"`
+			RPCURL             string `yaml:"rpc_url"`
+			AuthorityKey       string `yaml:"authority_key"`
+			SponsorAdminWallet string `yaml:"sponsor_admin_wallet"`
 		}{
-			ProgramID:    getEnv("SOLANA_PROGRAM_ID", defaultConfig.Solana.ProgramID),
-			RPCURL:       getEnv("SOLANA_RPC_URL", defaultConfig.Solana.RPCURL),
-			AuthorityKey: getEnv("SOLANA_AUTHORITY_KEY", defaultConfig.Solana.AuthorityKey),
+			ProgramID:          getEnv("SOLANA_PROGRAM_ID", defaultConfig.Solana.ProgramID),
+			RPCURL:             getEnv("SOLANA_RPC_URL", defaultConfig.Solana.RPCURL),
+			AuthorityKey:       getEnv("SOLANA_AUTHORITY_KEY", defaultConfig.Solana.AuthorityKey),
+			SponsorAdminWallet: getEnv("SOLANA_SPONSOR_ADMIN_WALLET", defaultConfig.Solana.SponsorAdminWallet),
 		},
 	}
 
@@ -174,6 +177,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if yamlConfig.Solana.AuthorityKey != "" {
 		defaultConfig.Solana.AuthorityKey = yamlConfig.Solana.AuthorityKey
+	}
+	if yamlConfig.Solana.SponsorAdminWallet != "" {
+		defaultConfig.Solana.SponsorAdminWallet = yamlConfig.Solana.SponsorAdminWallet
 	}
 
 	return nil

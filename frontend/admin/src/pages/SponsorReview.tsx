@@ -2,8 +2,16 @@ import { useState, useEffect } from 'react'
 import { Table, Button, Card, message, Modal, Tabs, Tag, Image, Space, Descriptions } from 'antd'
 import { CheckOutlined, CloseOutlined, EyeOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { PublicKey } from '@solana/web3.js'
 import request from '../api/request'
 import dayjs from 'dayjs'
+import {
+  getLatestBlockhash,
+  signTransactionWithPhantom,
+  buildApproveSponsorTransaction,
+  buildRejectSponsorTransaction,
+  type PrepareSponsorReviewData,
+} from '../utils/solanaPublish'
 
 const { TabPane } = Tabs
 
@@ -13,6 +21,7 @@ interface SponsorApplication {
   logo_url: string
   sponsor_type: string
   event_ids: string
+  wallet_address?: string
   status: string
   created_at: string
   reviewed_at?: string
@@ -149,24 +158,45 @@ export default function SponsorReview() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingApplications, reviewedApplications])
 
-  // 审核申请
+  // 审核申请：主办方用钱包签名链上指令，再提交后端更新 DB
   const handleReview = async (id: number, action: 'approve' | 'reject') => {
     Modal.confirm({
       title: action === 'approve' ? t('sponsorReview.confirmApprove') : t('sponsorReview.confirmReject'),
-      content: action === 'approve'
-        ? t('sponsorReview.approveContent')
-        : t('sponsorReview.rejectContent'),
+      content: (
+        <>
+          <p>{action === 'approve' ? t('sponsorReview.approveContent') : t('sponsorReview.rejectContent')}</p>
+          <p style={{ marginTop: 8, color: '#666' }}>{t('sponsorReview.signWithWalletTip')}</p>
+        </>
+      ),
       onOk: async () => {
         setReviewLoading(id)
         try {
+          const prepare = await request.get('/sponsor/review/prepare', {
+            params: { application_id: id },
+          }) as PrepareSponsorReviewData
+
+          const phantom = (window as any).phantom?.solana
+          if (!phantom || typeof phantom.connect !== 'function') {
+            message.error(t('sponsorReview.phantomRequired'))
+            return
+          }
+          const { publicKey } = await phantom.connect()
+          const authority = new PublicKey(publicKey.toBase58())
+          const blockhash = await getLatestBlockhash(prepare.rpc_url)
+          const transaction = action === 'approve'
+            ? buildApproveSponsorTransaction(prepare, authority, blockhash)
+            : buildRejectSponsorTransaction(prepare, authority, blockhash)
+          const signedBase64 = await signTransactionWithPhantom(transaction)
+
           await request.post(`/sponsor/applications/${id}/review`, {
             action,
+            signed_transaction: signedBase64,
           })
           message.success(t('sponsorReview.reviewSuccess'))
           fetchPendingApplications(pagination.current, pagination.pageSize)
           fetchReviewedApplications(reviewedPagination.current, reviewedPagination.pageSize, statusFilter)
         } catch (error: any) {
-          message.error(error?.response?.data?.message || t('sponsorReview.reviewFailed'))
+          message.error(error?.response?.data?.message || error?.message || t('sponsorReview.reviewFailed'))
         } finally {
           setReviewLoading(null)
         }
@@ -258,6 +288,13 @@ export default function SponsorReview() {
           {type === 'long_term' ? t('sponsor.longTerm') : t('sponsor.eventSpecific')}
         </Tag>
       ),
+    },
+    {
+      title: t('sponsorReview.amountSol'),
+      dataIndex: 'amount_sol',
+      key: 'amount_sol',
+      width: 120,
+      render: (v: number) => (v != null && Number.isFinite(v) ? `${v} SOL` : '-'),
     },
     {
       title: t('sponsorReview.relatedEvents'),

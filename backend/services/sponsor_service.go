@@ -32,6 +32,15 @@ func (s *SponsorService) CreateApplication(application *models.SponsorApplicatio
 	return database.DB.Create(application).Error
 }
 
+// GetApplicationByID 根据 ID 查询申请
+func (s *SponsorService) GetApplicationByID(id uint64) (*models.SponsorApplication, error) {
+	var application models.SponsorApplication
+	if err := database.DB.Where("id = ? AND deleted_at IS NULL", id).First(&application).Error; err != nil {
+		return nil, err
+	}
+	return &application, nil
+}
+
 // GetApplicationByPhone 根据手机号查询申请
 func (s *SponsorService) GetApplicationByPhone(phone string) (*models.SponsorApplication, error) {
 	var application models.SponsorApplication

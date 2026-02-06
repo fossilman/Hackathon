@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import { Form, Input, Button, Card, message, Select, Space, Upload } from 'antd'
-import { SearchOutlined, UploadOutlined } from '@ant-design/icons'
+import { SearchOutlined, UploadOutlined, WalletOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import type { UploadFile, UploadProps } from 'antd'
+import { PublicKey } from '@solana/web3.js'
 import request from '../api/request'
+import {
+  getLatestBlockhash,
+  signTransactionWithPhantom,
+  buildSponsorApplyTransaction,
+  solToLamports,
+  type PrepareSponsorApplyData,
+} from '../utils/solanaPublish'
 import '../index.css'
 
 const { Option } = Select
@@ -17,6 +25,8 @@ export default function SponsorApply() {
   const [sponsorType, setSponsorType] = useState<string>('')
   const [publishedHackathons, setPublishedHackathons] = useState<any[]>([])
   const [logoFileList, setLogoFileList] = useState<UploadFile[]>([])
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [walletLoading, setWalletLoading] = useState(false)
 
   // 获取已发布的活动列表
   const fetchPublishedHackathons = async () => {
@@ -37,6 +47,24 @@ export default function SponsorApply() {
       console.error('获取活动列表失败', error)
       // 不显示错误提示，避免干扰用户体验
       setPublishedHackathons([])
+    }
+  }
+
+  // 连接 Phantom 钱包（用于赞助金额转入金库）
+  const handleConnectWallet = async () => {
+    const phantom = (window as any).phantom?.solana
+    if (!phantom || typeof phantom.connect !== 'function') {
+      message.error(t('sponsor.walletRequired'))
+      return
+    }
+    setWalletLoading(true)
+    try {
+      const { publicKey } = await phantom.connect()
+      setWalletAddress(publicKey.toBase58())
+    } catch (e: any) {
+      message.error(e?.message || t('sponsor.walletRequired'))
+    } finally {
+      setWalletLoading(false)
     }
   }
 
@@ -104,9 +132,18 @@ export default function SponsorApply() {
     form.setFieldsValue({ logo_url: '' })
   }
 
-  // 提交申请
+  // 提交申请：先创建后端申请拿到 application_id，再构建并签名 sponsor_apply 交易，金额转入金库
   const handleSubmit = async (values: any) => {
-    // 验证Logo是否已上传
+    if (!walletAddress) {
+      message.error(t('sponsor.walletRequired'))
+      return
+    }
+    const amountSol = Number(values.amount_sol)
+    if (!Number.isFinite(amountSol) || amountSol <= 0) {
+      message.error(t('sponsor.amountInvalid'))
+      return
+    }
+
     const logoUrl = values.logo_url
     if (!logoUrl || (typeof logoUrl === 'string' && !logoUrl.trim())) {
       message.error(t('sponsor.logoRequired'))
@@ -115,22 +152,42 @@ export default function SponsorApply() {
 
     setLoading(true)
     try {
-      // 确保 logo_url 是字符串类型
       const logoUrlString = typeof logoUrl === 'string' ? logoUrl : String(logoUrl || '')
-      
       const payload = {
         phone: String(values.phone || ''),
         logo_url: logoUrlString,
         sponsor_type: String(values.sponsor_type || ''),
         event_ids: values.sponsor_type === 'event_specific' ? (values.event_ids || []) : [],
+        amount_sol: amountSol,
+        wallet_address: walletAddress,
       }
 
-      await request.post('/sponsor/applications', payload)
+      const createRes = await request.post('/sponsor/applications', payload) as { application_id: number }
+      const applicationId = createRes.application_id
+
+      const prepare = await request.get('/sponsor/apply/prepare') as PrepareSponsorApplyData
+      const blockhash = await getLatestBlockhash(prepare.rpc_url)
+      const programId = new PublicKey(prepare.program_id)
+      const sponsorPk = new PublicKey(walletAddress)
+      const amountLamports = solToLamports(amountSol)
+
+      const transaction = buildSponsorApplyTransaction(
+        programId,
+        applicationId,
+        amountLamports,
+        sponsorPk,
+        blockhash
+      )
+      const signedBase64 = await signTransactionWithPhantom(transaction)
+      await request.post('/sponsor/applications/submit-transaction', {
+        signed_transaction: signedBase64,
+      })
+
       message.success(t('sponsor.submitSuccess'))
       form.resetFields()
       setLogoFileList([])
     } catch (error: any) {
-      message.error(error?.response?.data?.message || t('sponsor.submitFailed'))
+      message.error(error?.response?.data?.message || error?.message || t('sponsor.submitFailed'))
     } finally {
       setLoading(false)
     }
@@ -174,6 +231,36 @@ export default function SponsorApply() {
           layout="vertical"
           size="large"
         >
+          <Form.Item label={t('sponsor.connectWallet')}>
+            <Space>
+              <Button
+                type={walletAddress ? 'default' : 'primary'}
+                icon={<WalletOutlined />}
+                onClick={handleConnectWallet}
+                loading={walletLoading}
+              >
+                {walletAddress ? `${t('sponsor.walletConnected')}: ${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` : t('sponsor.connectWallet')}
+              </Button>
+            </Space>
+          </Form.Item>
+
+          <Form.Item
+            name="amount_sol"
+            label={t('sponsor.amountSol')}
+            rules={[
+              { required: true, message: t('sponsor.amountRequired') },
+              {
+                validator: (_, v) => {
+                  const n = Number(v)
+                  if (!Number.isFinite(n) || n <= 0) return Promise.reject(new Error(t('sponsor.amountInvalid')))
+                  return Promise.resolve()
+                },
+              },
+            ]}
+          >
+            <Input type="number" placeholder={t('sponsor.amountPlaceholder')} min={0} step={0.01} />
+          </Form.Item>
+
           <Form.Item
             name="phone"
             label={t('sponsor.phone')}
