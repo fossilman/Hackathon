@@ -44,10 +44,11 @@ type Config struct {
 		AllowOrigins []string `yaml:"allow_origins"`
 	} `yaml:"cors"`
 	Solana struct {
-		ProgramID        string `yaml:"program_id"`
-		RPCURL           string `yaml:"rpc_url"`
-		AuthorityKey     string `yaml:"authority_key"`         // Base58 私钥，用于发布活动上链；也可用环境变量 SOLANA_AUTHORITY_KEY
-		SponsorAdminWallet string `yaml:"sponsor_admin_wallet"` // 主办方钱包（审核通过时接收金额），须与链上 initialize_sponsor_config 的 admin_wallet 一致；环境变量 SOLANA_SPONSOR_ADMIN_WALLET
+		ProgramID             string `yaml:"program_id"`
+		RPCURL                string `yaml:"rpc_url"`
+		AuthorityKey          string `yaml:"authority_key"`             // Admin 账户私钥（Base58）。链上 sponsor config 的 authority 唯一，仅此账户可审核赞助；用于自动初始化；环境变量 SOLANA_AUTHORITY_KEY
+		SponsorAdminWallet    string `yaml:"sponsor_admin_wallet"`     // 审核通过时收款地址，须与链上 config.admin_wallet 一致。可填 Admin 钱包或平台指定主办方收款地址（链上仅一个）；环境变量 SOLANA_SPONSOR_ADMIN_WALLET
+		SponsorReviewPeriodSecs int `yaml:"sponsor_review_period_secs"` // 赞助审核期限（秒），默认 10800（3 小时）；自动初始化时写入链上
 	} `yaml:"solana"`
 }
 
@@ -108,15 +109,17 @@ func LoadConfig() error {
 		CORSOrigins:    getEnvAsSlice("CORS_ALLOW_ORIGINS", defaultConfig.CORSOrigins),
 		TestWallets: testWallets,
 		Solana: struct {
-			ProgramID          string `yaml:"program_id"`
-			RPCURL             string `yaml:"rpc_url"`
-			AuthorityKey       string `yaml:"authority_key"`
-			SponsorAdminWallet string `yaml:"sponsor_admin_wallet"`
+			ProgramID                string `yaml:"program_id"`
+			RPCURL                   string `yaml:"rpc_url"`
+			AuthorityKey             string `yaml:"authority_key"`
+			SponsorAdminWallet       string `yaml:"sponsor_admin_wallet"`
+			SponsorReviewPeriodSecs  int    `yaml:"sponsor_review_period_secs"`
 		}{
-			ProgramID:          getEnv("SOLANA_PROGRAM_ID", defaultConfig.Solana.ProgramID),
-			RPCURL:             getEnv("SOLANA_RPC_URL", defaultConfig.Solana.RPCURL),
-			AuthorityKey:       getEnv("SOLANA_AUTHORITY_KEY", defaultConfig.Solana.AuthorityKey),
-			SponsorAdminWallet: getEnv("SOLANA_SPONSOR_ADMIN_WALLET", defaultConfig.Solana.SponsorAdminWallet),
+			ProgramID:               getEnv("SOLANA_PROGRAM_ID", defaultConfig.Solana.ProgramID),
+			RPCURL:                  getEnv("SOLANA_RPC_URL", defaultConfig.Solana.RPCURL),
+			AuthorityKey:            getEnv("SOLANA_AUTHORITY_KEY", defaultConfig.Solana.AuthorityKey),
+			SponsorAdminWallet:      getEnv("SOLANA_SPONSOR_ADMIN_WALLET", defaultConfig.Solana.SponsorAdminWallet),
+			SponsorReviewPeriodSecs: getEnvAsInt("SOLANA_SPONSOR_REVIEW_PERIOD_SECS", defaultConfig.Solana.SponsorReviewPeriodSecs),
 		},
 	}
 
@@ -180,6 +183,9 @@ func loadFromYAML(filename string, defaultConfig *Config) error {
 	}
 	if yamlConfig.Solana.SponsorAdminWallet != "" {
 		defaultConfig.Solana.SponsorAdminWallet = yamlConfig.Solana.SponsorAdminWallet
+	}
+	if yamlConfig.Solana.SponsorReviewPeriodSecs > 0 {
+		defaultConfig.Solana.SponsorReviewPeriodSecs = yamlConfig.Solana.SponsorReviewPeriodSecs
 	}
 
 	return nil

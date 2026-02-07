@@ -5,12 +5,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"hackathon-backend/config"
 	"hackathon-backend/models"
 	"hackathon-backend/services"
 	"hackathon-backend/solana"
 	"hackathon-backend/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 type SponsorController struct {
@@ -25,8 +26,13 @@ func NewSponsorController() *SponsorController {
 	}
 }
 
-// PrepareSponsorApply 返回赞助商申请页构建链上 sponsor_apply 交易所需的 program_id、rpc_url（无需登录）
+// PrepareSponsorApply 返回赞助商申请页构建链上 sponsor_apply 交易所需的 program_id、rpc_url（无需登录）。
+// 若链上 sponsor config 未初始化且已配置 SOLANA_AUTHORITY_KEY，会先自动执行一次 initialize_sponsor_config。
 func (c *SponsorController) PrepareSponsorApply(ctx *gin.Context) {
+	if err := solana.EnsureSponsorConfigInitialized(); err != nil {
+		utils.BadRequest(ctx, "赞助商链上配置未就绪: "+err.Error())
+		return
+	}
 	programID, rpcURL, err := solana.PreparePublishConfig()
 	if err != nil {
 		utils.BadRequest(ctx, err.Error())
@@ -160,11 +166,23 @@ func (c *SponsorController) QueryApplication(ctx *gin.Context) {
 		message = "申请状态未知"
 	}
 
-	utils.Success(ctx, gin.H{
-		"status":    application.Status,
-		"message":   message,
+	resp := gin.H{
+		"status":     application.Status,
+		"message":    message,
 		"created_at": application.CreatedAt,
-	})
+	}
+	if programID := strings.TrimSpace(config.AppConfig.Solana.ProgramID); programID != "" {
+		if vaultPDA, err := solana.SponsorTreasuryPDA(programID); err == nil {
+			resp["vault_address"] = vaultPDA.String()
+		}
+		if configPDA, err := solana.SponsorConfigPDA(programID); err == nil {
+			resp["sponsor_config_address"] = configPDA.String()
+		}
+		if appPDA, err := solana.SponsorApplicationPDA(programID, uint64(application.ID)); err == nil {
+			resp["sponsor_application_address"] = appPDA.String()
+		}
+	}
+	utils.Success(ctx, resp)
 }
 
 // PrepareSponsorReview 返回主办方链上审核（approve_sponsor/reject_sponsor）所需数据，供前端用钱包签名。需 Admin 权限。
@@ -339,4 +357,3 @@ func (c *SponsorController) GetPublishedHackathons(ctx *gin.Context) {
 
 	utils.SuccessWithPagination(ctx, hackathons, page, pageSize, total)
 }
-

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { UploadFile, UploadProps } from 'antd'
 import { PublicKey } from '@solana/web3.js'
 import request from '../api/request'
+import { getSolanaExplorerAddressUrl } from '../config/solana'
 import {
   getLatestBlockhash,
   signTransactionWithPhantom,
@@ -357,6 +358,45 @@ export default function SponsorApply() {
             {queryResult.status && (
               <div style={{ marginTop: '8px', color: '#666' }}>
                 {t('sponsor.status')}{queryResult.status === 'pending' ? t('sponsor.statusPending') : queryResult.status === 'approved' ? t('sponsor.statusApproved') : t('sponsor.statusRejected')}
+              </div>
+            )}
+            {queryResult.vault_address && (
+              <div style={{ marginTop: '12px' }}>
+                <span style={{ color: '#666', marginRight: '8px' }}>{t('sponsor.vaultAddress')}:</span>
+                <a
+                  href={getSolanaExplorerAddressUrl(queryResult.vault_address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {queryResult.vault_address.slice(0, 8)}...{queryResult.vault_address.slice(-8)}
+                </a>
+                <span style={{ marginLeft: '8px', color: '#1890ff', fontSize: '12px' }}>{t('sponsor.viewOnExplorer')}</span>
+              </div>
+            )}
+            {queryResult.sponsor_config_address && (
+              <div style={{ marginTop: '8px' }}>
+                <span style={{ color: '#666', marginRight: '8px' }}>{t('sponsor.sponsorConfigAddress')}:</span>
+                <a
+                  href={getSolanaExplorerAddressUrl(queryResult.sponsor_config_address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {queryResult.sponsor_config_address.slice(0, 8)}...{queryResult.sponsor_config_address.slice(-8)}
+                </a>
+                <span style={{ marginLeft: '8px', color: '#1890ff', fontSize: '12px' }}>{t('sponsor.viewOnExplorer')}</span>
+              </div>
+            )}
+            {queryResult.sponsor_application_address && (
+              <div style={{ marginTop: '8px' }}>
+                <span style={{ color: '#666', marginRight: '8px' }}>{t('sponsor.sponsorApplicationAddress')}:</span>
+                <a
+                  href={getSolanaExplorerAddressUrl(queryResult.sponsor_application_address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {queryResult.sponsor_application_address.slice(0, 8)}...{queryResult.sponsor_application_address.slice(-8)}
+                </a>
+                <span style={{ marginLeft: '8px', color: '#1890ff', fontSize: '12px' }}>{t('sponsor.viewOnExplorer')}</span>
               </div>
             )}
           </div>

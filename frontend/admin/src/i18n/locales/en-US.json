@@ -345,7 +345,11 @@
     "statusPending": "Pending",
     "statusApproved": "Approved",
     "statusRejected": "Rejected",
-    "status": "Status:"
+    "status": "Status:",
+    "vaultAddress": "Vault Address",
+    "sponsorConfigAddress": "SponsorConfig",
+    "sponsorApplicationAddress": "SponsorApplication",
+    "viewOnExplorer": "View on Solana Explorer"
   },
   "login": {
     "phoneLogin": "Phone Login",

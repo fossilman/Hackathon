@@ -14,7 +14,7 @@ use check_in::*;
 use sponsor::*;
 use vote::*;
 
-declare_id!("DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg");
+declare_id!("7pgYzGEw9byBrFkPmRVtvqE3GDdUwpxXAANc6CEBXhk9");
 
 #[program]
 pub mod hackathon {

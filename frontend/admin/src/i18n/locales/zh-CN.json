@@ -345,7 +345,11 @@
     "statusPending": "审核中",
     "statusApproved": "已通过",
     "statusRejected": "已拒绝",
-    "status": "状态："
+    "status": "状态：",
+    "vaultAddress": "金库地址",
+    "sponsorConfigAddress": "SponsorConfig",
+    "sponsorApplicationAddress": "SponsorApplication",
+    "viewOnExplorer": "在 Solana Explorer 中查看"
   },
   "login": {
     "phoneLogin": "手机号登录",

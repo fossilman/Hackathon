@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-hackathon = "DtuGwFvSDnQyLamC5Lkf8hxvmU1VNYJxSNuss4qLb8cg"
+hackathon = "7pgYzGEw9byBrFkPmRVtvqE3GDdUwpxXAANc6CEBXhk9"
 
 [registry]
 url = "https://api.apr.dev"
