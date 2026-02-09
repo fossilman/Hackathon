@@ -1,7 +1,8 @@
-//! 签到信息上链
+//! 签到信息上链：Anchor ctx + 调度，业务校验委托 logic
 
 use anchor_lang::prelude::*;
 
+use crate::logic::check_in;
 use crate::error::HackathonError;
 use crate::state::{Activity, ActivityCheckIns, ActivityPhase};
 
@@ -34,7 +35,7 @@ pub fn upload_check_ins(
     attendee_pubkeys: Vec<Pubkey>,
 ) -> Result<()> {
     require!(
-        attendee_pubkeys.len() <= 200,
+        check_in::validate_attendee_list_len(attendee_pubkeys.len()),
         HackathonError::CheckInListTooLong
     );
     let check_ins = &mut ctx.accounts.check_ins;

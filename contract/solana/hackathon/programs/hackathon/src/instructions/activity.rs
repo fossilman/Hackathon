@@ -1,7 +1,8 @@
-//! 活动生命周期：发布、删除、报名阶段、签到阶段
+//! 活动生命周期：Anchor ctx + 调度，业务逻辑委托 logic
 
 use anchor_lang::prelude::*;
 
+use crate::logic::activity;
 use crate::error::HackathonError;
 use crate::state::{Activity, ActivityPhase};
 
@@ -117,7 +118,10 @@ pub fn publish_activity(
     title: String,
     description_hash: [u8; 32],
 ) -> Result<()> {
-    require!(title.len() <= 128, HackathonError::TitleTooLong);
+    require!(
+        activity::validate_title_len(&title),
+        HackathonError::TitleTooLong
+    );
     let activity = &mut ctx.accounts.activity;
     activity.authority = ctx.accounts.authority.key();
     activity.activity_id = activity_id;

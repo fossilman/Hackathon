@@ -1,145 +1,12 @@
-//! 赞助商资金管理：长期赞助商申请入金库，审核通过转主办方，拒绝原路返回
+//! 赞助商资金管理：Anchor ctx + CPI，业务校验委托 logic
 
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
-
 use anchor_lang::solana_program::system_instruction;
 
+use crate::logic::sponsor as logic_sponsor;
 use crate::error::HackathonError;
 use crate::state::{SponsorApplication, SponsorApplicationStatus, SponsorConfig};
-
-/// 初始化赞助商全局配置与金库。审核期限默认建议 3 小时（10800 秒），可在项目配置中设置。
-/// 金库为无数据 PDA (space=0)，仅持 SOL，以便系统程序能从其转出。
-pub fn initialize_sponsor_config(
-    ctx: Context<InitializeSponsorConfig>,
-    admin_wallet: Pubkey,
-    review_period_secs: u64,
-) -> Result<()> {
-    let (treasury_pda, treasury_bump) =
-        Pubkey::find_program_address(&[b"treasury"], ctx.program_id);
-    require!(
-        ctx.accounts.treasury.key() == treasury_pda,
-        HackathonError::InvalidTreasury
-    );
-
-    let config = &mut ctx.accounts.config;
-    config.authority = ctx.accounts.authority.key();
-    config.admin_wallet = admin_wallet;
-    config.review_period_secs = review_period_secs;
-    config.treasury_bump = treasury_bump;
-    config.bump = ctx.bumps.config;
-
-    // 金库须为 System Program 拥有，System Program 才能从其转出 SOL；仅本程序可通过 invoke_signed 用 PDA 签名授权转出
-    if *ctx.accounts.treasury.owner != anchor_lang::solana_program::system_program::ID {
-        let rent = Rent::get()?;
-        let create_ix = system_instruction::create_account(
-            &ctx.accounts.authority.key(),
-            &ctx.accounts.treasury.key(),
-            rent.minimum_balance(0),
-            0,
-            &anchor_lang::solana_program::system_program::ID,
-        );
-        let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
-        let signer_seeds = &[seeds];
-        anchor_lang::solana_program::program::invoke_signed(
-            &create_ix,
-            &[
-                ctx.accounts.authority.to_account_info(),
-                ctx.accounts.treasury.to_account_info(),
-                ctx.accounts.system_program.to_account_info(),
-            ],
-            signer_seeds,
-        )?;
-    }
-    Ok(())
-}
-
-/// 长期赞助商发起申请：将金额转入金库并创建申请记录。
-pub fn sponsor_apply(
-    ctx: Context<SponsorApply>,
-    _application_id: u64,
-    amount_lamports: u64,
-) -> Result<()> {
-    require!(amount_lamports > 0, HackathonError::ZeroAmount);
-
-    let transfer_ix = anchor_lang::solana_program::system_instruction::transfer(
-        &ctx.accounts.sponsor.key(),
-        &ctx.accounts.treasury.key(),
-        amount_lamports,
-    );
-    anchor_lang::solana_program::program::invoke_signed(
-        &transfer_ix,
-        &[
-            ctx.accounts.sponsor.to_account_info(),
-            ctx.accounts.treasury.to_account_info(),
-        ],
-        &[],
-    )?;
-
-    let app = &mut ctx.accounts.application;
-    app.sponsor = ctx.accounts.sponsor.key();
-    app.amount_lamports = amount_lamports;
-    app.status = SponsorApplicationStatus::Pending;
-    app.applied_at = Clock::get()?.unix_timestamp;
-    app.bump = ctx.bumps.application;
-    Ok(())
-}
-
-/// 审核通过：将金库中该申请金额转入主办方钱包（Admin 绑定）。
-pub fn approve_sponsor(ctx: Context<ReviewSponsor>, _application_id: u64) -> Result<()> {
-    let app = &ctx.accounts.application;
-    require!(
-        app.status == SponsorApplicationStatus::Pending,
-        HackathonError::ApplicationNotPending
-    );
-
-    let treasury_bump = ctx.accounts.config.treasury_bump;
-    let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
-    let signer_seeds = &[seeds];
-
-    let transfer_ix = system_program::Transfer {
-        from: ctx.accounts.treasury.to_account_info(),
-        to: ctx.accounts.admin_wallet.to_account_info(),
-    };
-    let cpi_ctx = CpiContext::new_with_signer(
-        ctx.accounts.system_program.to_account_info(),
-        transfer_ix,
-        signer_seeds,
-    );
-    system_program::transfer(cpi_ctx, app.amount_lamports)?;
-
-    let app_mut = &mut ctx.accounts.application;
-    app_mut.status = SponsorApplicationStatus::Approved;
-    Ok(())
-}
-
-/// 审核失败：金额原路返回给赞助商。
-pub fn reject_sponsor(ctx: Context<ReviewSponsor>, _application_id: u64) -> Result<()> {
-    let app = &ctx.accounts.application;
-    require!(
-        app.status == SponsorApplicationStatus::Pending,
-        HackathonError::ApplicationNotPending
-    );
-
-    let treasury_bump = ctx.accounts.config.treasury_bump;
-    let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
-    let signer_seeds = &[seeds];
-
-    let transfer_ix = system_program::Transfer {
-        from: ctx.accounts.treasury.to_account_info(),
-        to: ctx.accounts.sponsor_wallet.to_account_info(),
-    };
-    let cpi_ctx = CpiContext::new_with_signer(
-        ctx.accounts.system_program.to_account_info(),
-        transfer_ix,
-        signer_seeds,
-    );
-    system_program::transfer(cpi_ctx, app.amount_lamports)?;
-
-    let app_mut = &mut ctx.accounts.application;
-    app_mut.status = SponsorApplicationStatus::Rejected;
-    Ok(())
-}
 
 #[derive(Accounts)]
 pub struct InitializeSponsorConfig<'info> {
@@ -230,4 +97,134 @@ pub struct ReviewSponsor<'info> {
     pub sponsor_wallet: AccountInfo<'info>,
 
     pub system_program: Program<'info, System>,
+}
+
+pub fn initialize_sponsor_config(
+    ctx: Context<InitializeSponsorConfig>,
+    admin_wallet: Pubkey,
+    review_period_secs: u64,
+) -> Result<()> {
+    let (treasury_pda, treasury_bump) =
+        Pubkey::find_program_address(&[b"treasury"], ctx.program_id);
+    require!(
+        ctx.accounts.treasury.key() == treasury_pda,
+        HackathonError::InvalidTreasury
+    );
+
+    let config = &mut ctx.accounts.config;
+    config.authority = ctx.accounts.authority.key();
+    config.admin_wallet = admin_wallet;
+    config.review_period_secs = review_period_secs;
+    config.treasury_bump = treasury_bump;
+    config.bump = ctx.bumps.config;
+
+    if *ctx.accounts.treasury.owner != anchor_lang::solana_program::system_program::ID {
+        let rent = Rent::get()?;
+        let create_ix = system_instruction::create_account(
+            &ctx.accounts.authority.key(),
+            &ctx.accounts.treasury.key(),
+            rent.minimum_balance(0),
+            0,
+            &anchor_lang::solana_program::system_program::ID,
+        );
+        let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
+        let signer_seeds = &[seeds];
+        anchor_lang::solana_program::program::invoke_signed(
+            &create_ix,
+            &[
+                ctx.accounts.authority.to_account_info(),
+                ctx.accounts.treasury.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            signer_seeds,
+        )?;
+    }
+    Ok(())
+}
+
+pub fn sponsor_apply(
+    ctx: Context<SponsorApply>,
+    _application_id: u64,
+    amount_lamports: u64,
+) -> Result<()> {
+    require!(
+        logic_sponsor::validate_amount(amount_lamports),
+        HackathonError::ZeroAmount
+    );
+
+    let transfer_ix = anchor_lang::solana_program::system_instruction::transfer(
+        &ctx.accounts.sponsor.key(),
+        &ctx.accounts.treasury.key(),
+        amount_lamports,
+    );
+    anchor_lang::solana_program::program::invoke_signed(
+        &transfer_ix,
+        &[
+            ctx.accounts.sponsor.to_account_info(),
+            ctx.accounts.treasury.to_account_info(),
+        ],
+        &[],
+    )?;
+
+    let app = &mut ctx.accounts.application;
+    app.sponsor = ctx.accounts.sponsor.key();
+    app.amount_lamports = amount_lamports;
+    app.status = SponsorApplicationStatus::Pending;
+    app.applied_at = Clock::get()?.unix_timestamp;
+    app.bump = ctx.bumps.application;
+    Ok(())
+}
+
+pub fn approve_sponsor(ctx: Context<ReviewSponsor>, _application_id: u64) -> Result<()> {
+    let app = &ctx.accounts.application;
+    require!(
+        app.status == SponsorApplicationStatus::Pending,
+        HackathonError::ApplicationNotPending
+    );
+
+    let treasury_bump = ctx.accounts.config.treasury_bump;
+    let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
+    let signer_seeds = &[seeds];
+
+    let transfer_ix = system_program::Transfer {
+        from: ctx.accounts.treasury.to_account_info(),
+        to: ctx.accounts.admin_wallet.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.system_program.to_account_info(),
+        transfer_ix,
+        signer_seeds,
+    );
+    system_program::transfer(cpi_ctx, app.amount_lamports)?;
+
+    let app_mut = &mut ctx.accounts.application;
+    app_mut.status = SponsorApplicationStatus::Approved;
+    Ok(())
+}
+
+pub fn reject_sponsor(ctx: Context<ReviewSponsor>, _application_id: u64) -> Result<()> {
+    let app = &ctx.accounts.application;
+    require!(
+        app.status == SponsorApplicationStatus::Pending,
+        HackathonError::ApplicationNotPending
+    );
+
+    let treasury_bump = ctx.accounts.config.treasury_bump;
+    let seeds: &[&[u8]] = &[b"treasury", &[treasury_bump]];
+    let signer_seeds = &[seeds];
+
+    let transfer_ix = system_program::Transfer {
+        from: ctx.accounts.treasury.to_account_info(),
+        to: ctx.accounts.sponsor_wallet.to_account_info(),
+    };
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.system_program.to_account_info(),
+        transfer_ix,
+        signer_seeds,
+    );
+    system_program::transfer(cpi_ctx, app.amount_lamports)?;
+
+    let app_mut = &mut ctx.accounts.application;
+    app_mut.status = SponsorApplicationStatus::Rejected;
+    Ok(())
 }

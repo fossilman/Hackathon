@@ -1,9 +1,12 @@
-//! 投票与投票汇总上链
+//! 投票与投票汇总上链：Anchor ctx + 调度，业务校验委托 logic
 
 use anchor_lang::prelude::*;
 
+use crate::logic::vote as logic_vote;
 use crate::error::HackathonError;
-use crate::state::{Activity, ActivityCheckIns, CandidateVote, VoteRecord, VoteTally, ActivityPhase};
+use crate::state::{
+    Activity, ActivityCheckIns, ActivityPhase, CandidateVote, VoteRecord, VoteTally,
+};
 
 #[derive(Accounts)]
 pub struct CastVote<'info> {
@@ -89,8 +92,9 @@ pub struct UploadVoteTally<'info> {
 pub fn vote(ctx: Context<CastVote>, candidate_id: u64) -> Result<()> {
     let check_ins = &ctx.accounts.check_ins;
     let voter = ctx.accounts.voter.key();
+    let attendees: Vec<[u8; 32]> = check_ins.attendees.iter().map(|p| p.to_bytes()).collect();
     require!(
-        check_ins.attendees.contains(&voter),
+        logic_vote::validate_voter_in_list(&attendees, &voter.to_bytes()),
         HackathonError::NotInCheckInList
     );
     let v = &mut ctx.accounts.vote_record;
@@ -104,8 +108,9 @@ pub fn vote(ctx: Context<CastVote>, candidate_id: u64) -> Result<()> {
 pub fn revoke_vote(ctx: Context<RevokeVote>) -> Result<()> {
     let check_ins = &ctx.accounts.check_ins;
     let voter = ctx.accounts.voter.key();
+    let attendees: Vec<[u8; 32]> = check_ins.attendees.iter().map(|p| p.to_bytes()).collect();
     require!(
-        check_ins.attendees.contains(&voter),
+        logic_vote::validate_voter_in_list(&attendees, &voter.to_bytes()),
         HackathonError::NotInCheckInList
     );
     Ok(())
@@ -117,11 +122,11 @@ pub fn upload_vote_tally(
     vote_counts: Vec<u64>,
 ) -> Result<()> {
     require!(
-        candidate_ids.len() == vote_counts.len(),
+        logic_vote::validate_tally_length_match(candidate_ids.len(), vote_counts.len()),
         HackathonError::TallyLengthMismatch
     );
     require!(
-        candidate_ids.len() <= 100,
+        logic_vote::validate_tally_max_len(candidate_ids.len()),
         HackathonError::TallyTooLong
     );
     let tally = &mut ctx.accounts.vote_tally;
